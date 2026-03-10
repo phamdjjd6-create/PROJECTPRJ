@@ -1,0 +1,23 @@
+<%@page import="model.dality"%>
+<%@ page import="java.util.*, model.dality" %>
+
+<h2>Danh sách sinh viên</h2>
+
+<%
+List<dality> list = (List<dality>) request.getAttribute("students");
+
+if(list != null){
+    for(dality s : list){
+%>
+        <p>
+            ID: <%= s.getId() %> |
+            username: <%= s.getUsername()%> |
+            amount: <%= s.getAmount()%> |
+            age: <%= s.getDescript()%>|
+             date: <%= s.getDate()%>
+           
+        </p>
+<%
+    }
+}
+%>
