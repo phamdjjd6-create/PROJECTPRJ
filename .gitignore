@@ -1,9 +1,0 @@
-/build/
-/dist/
-/nbproject/private/
-/nbproject/Makefile-genesis.properties
-/nbproject/Package-genesis.properties
-*.class
-*.war
-*.jar
-.DS_Store
