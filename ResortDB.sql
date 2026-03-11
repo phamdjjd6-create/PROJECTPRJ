@@ -10,8 +10,16 @@
 
 USE master;
 GO
-IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'ResortDB')
-    CREATE DATABASE ResortDB;
+
+-- Drop database if exists to ensure a clean state for testing
+IF EXISTS (SELECT name FROM sys.databases WHERE name = 'ResortDB')
+BEGIN
+    ALTER DATABASE ResortDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE ResortDB;
+END
+GO
+
+CREATE DATABASE ResortDB;
 GO
 USE ResortDB;
 GO
@@ -59,9 +67,13 @@ CREATE TABLE tbl_persons (
 
     CONSTRAINT PK_persons       PRIMARY KEY (id),
     CONSTRAINT UQ_persons_email  UNIQUE (email),
-    CONSTRAINT UQ_persons_idcard UNIQUE (id_card),
+    -- Removed UQ_persons_idcard to allow multiple NULLs, replaced with filtered index below
     CONSTRAINT CK_persons_type   CHECK  (person_type IN ('EMPLOYEE','CUSTOMER'))
 );
+GO
+
+-- Filtered Index to allow multiple NULLs in id_card (SQL Server specific)
+CREATE UNIQUE INDEX UIX_persons_idcard ON tbl_persons(id_card) WHERE id_card IS NOT NULL;
 GO
 
 -- ── tbl_departments ──────────────────────────────────────────────
@@ -422,11 +434,11 @@ GO
 INSERT INTO tbl_departments(dept_id, dept_name) VALUES ('DP01', N'Management'), ('DP02', N'Reception');
 
 -- Persons & Employees
-INSERT INTO tbl_persons(id, full_name, person_type) VALUES ('NV001', N'Admin', 'EMPLOYEE');
+INSERT INTO tbl_persons(id, full_name, person_type, id_card) VALUES ('NV001', N'Admin', 'EMPLOYEE', 'ID001');
 INSERT INTO tbl_employees(id, dept_id, salary) VALUES ('NV001', 'DP01', 30000000);
 
 -- Customers
-INSERT INTO tbl_persons(id, full_name, person_type) VALUES ('KH001', N'John Doe', 'CUSTOMER');
+INSERT INTO tbl_persons(id, full_name, person_type, id_card) VALUES ('KH001', N'John Doe', 'CUSTOMER', 'ID002');
 INSERT INTO tbl_customers(id, type_customer) VALUES ('KH001', N'Gold');
 
 -- Facilities
