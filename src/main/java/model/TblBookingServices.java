@@ -46,11 +46,11 @@ public class TblBookingServices implements Serializable {
     @Column(name = "note")
     private String note;
 
-    @JoinColumn(name = "booking_id", referencedColumnName = "booking_id")
+    @JoinColumn(name = "booking_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private TblBookings bookingId;
 
-    @JoinColumn(name = "service_id", referencedColumnName = "service_id")
+    @JoinColumn(name = "service_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private TblServices serviceId;
 }

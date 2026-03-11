@@ -30,8 +30,8 @@ public class TblFacilities implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 20)
-    @Column(name = "service_code")
-    private String serviceCode;
+    @Column(name = "id")
+    private String id;
 
     @Basic(optional = false)
     @NotNull

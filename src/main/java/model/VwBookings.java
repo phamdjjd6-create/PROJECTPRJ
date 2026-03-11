@@ -16,8 +16,8 @@ public class VwBookings implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column(name = "booking_id")
-    private String bookingId;
+    @Column(name = "id")
+    private String id;
 
     @Column(name = "date_booking")
     @Temporal(TemporalType.TIMESTAMP)

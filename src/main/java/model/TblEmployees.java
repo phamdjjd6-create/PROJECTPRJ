@@ -18,11 +18,11 @@ import lombok.AllArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class TblEmployees extends TblPersons implements Serializable {
+public class TblEmployees extends TblPersons {
 
     private static final long serialVersionUID = 1L;
 
-    @JoinColumn(name = "dept_id", referencedColumnName = "dept_id")
+    @JoinColumn(name = "dept_id", referencedColumnName = "id")
     @ManyToOne
     private TblDepartments deptId;
 

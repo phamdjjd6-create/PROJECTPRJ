@@ -9,12 +9,12 @@ import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "tbl_houses")
-@PrimaryKeyJoinColumn(name = "service_code")
+@PrimaryKeyJoinColumn(name = "id")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class TblHouses extends TblFacilities implements Serializable {
+public class TblHouses extends TblFacilities {
 
     private static final long serialVersionUID = 1L;
 

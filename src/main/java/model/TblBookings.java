@@ -22,8 +22,8 @@ public class TblBookings implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 20)
-    @Column(name = "booking_id")
-    private String bookingId;
+    @Column(name = "id")
+    private String id;
 
     @Basic(optional = false)
     @NotNull
@@ -66,11 +66,11 @@ public class TblBookings implements Serializable {
     @ManyToOne(optional = false)
     private TblCustomers customerId;
 
-    @JoinColumn(name = "facility_id", referencedColumnName = "service_code")
+    @JoinColumn(name = "facility_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private TblFacilities facilityId;
 
-    @JoinColumn(name = "voucher_id", referencedColumnName = "voucher_id")
+    @JoinColumn(name = "voucher_id", referencedColumnName = "id")
     @ManyToOne
     private TblVouchers voucherId;
 

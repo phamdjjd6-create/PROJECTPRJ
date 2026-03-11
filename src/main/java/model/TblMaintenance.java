@@ -22,8 +22,8 @@ public class TblMaintenance implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @Column(name = "maintenance_id")
-    private Integer maintenanceId;
+    @Column(name = "id")
+    private Integer id;
 
     @Basic(optional = false)
     @NotNull
@@ -48,7 +48,7 @@ public class TblMaintenance implements Serializable {
     @Column(name = "cost")
     private BigDecimal cost;
 
-    @JoinColumn(name = "facility_id", referencedColumnName = "service_code")
+    @JoinColumn(name = "facility_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private TblFacilities facilityId;
 

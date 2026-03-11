@@ -1,17 +1,18 @@
 -- ================================================================
---  RESORT MANAGEMENT SYSTEM — SQL Server  (REFACTORED v2.1)
+--  RESORT MANAGEMENT SYSTEM — SQL Server  (REFACTORED v2.2)
 --  Database  : ResortDB
 --  Features  :
---    ✅ Normalized Facility Hierarchy (Base table + Child tables)
---    ✅ Native DATE/DATETIME types for all date fields
---    ✅ Security: password_hash & is_deleted (Soft Delete)
+--    ✅ Standardized Naming: PK is always "id"
+--    ✅ Normalized Facility Hierarchy
+--    ✅ Native DATE/DATETIME types
+--    ✅ Security: password_hash & is_deleted
 --    ✅ Auditing: updated_at & audit log triggers
 -- ================================================================
 
 USE master;
 GO
 
--- Drop database if exists to ensure a clean state for testing
+-- Drop database if exists for a clean start
 IF EXISTS (SELECT name FROM sys.databases WHERE name = 'ResortDB')
 BEGIN
     ALTER DATABASE ResortDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
@@ -25,30 +26,7 @@ USE ResortDB;
 GO
 
 -- ================================================================
---  ❶  DROP ALL (Reverse FK order)
--- ================================================================
-IF OBJECT_ID('tbl_audit_log',        'U') IS NOT NULL DROP TABLE tbl_audit_log;
-IF OBJECT_ID('tbl_reviews',          'U') IS NOT NULL DROP TABLE tbl_reviews;
-IF OBJECT_ID('tbl_payments',         'U') IS NOT NULL DROP TABLE tbl_payments;
-IF OBJECT_ID('tbl_booking_services', 'U') IS NOT NULL DROP TABLE tbl_booking_services;
-IF OBJECT_ID('tbl_maintenance',      'U') IS NOT NULL DROP TABLE tbl_maintenance;
-IF OBJECT_ID('tbl_promotions',       'U') IS NOT NULL DROP TABLE tbl_promotions;
-IF OBJECT_ID('tbl_services',         'U') IS NOT NULL DROP TABLE tbl_services;
-IF OBJECT_ID('tbl_contracts',        'U') IS NOT NULL DROP TABLE tbl_contracts;
-IF OBJECT_ID('tbl_bookings',         'U') IS NOT NULL DROP TABLE tbl_bookings;
-IF OBJECT_ID('tbl_vouchers',         'U') IS NOT NULL DROP TABLE tbl_vouchers;
-IF OBJECT_ID('tbl_villas',           'U') IS NOT NULL DROP TABLE tbl_villas;
-IF OBJECT_ID('tbl_houses',           'U') IS NOT NULL DROP TABLE tbl_houses;
-IF OBJECT_ID('tbl_rooms',            'U') IS NOT NULL DROP TABLE tbl_rooms;
-IF OBJECT_ID('tbl_facilities',       'U') IS NOT NULL DROP TABLE tbl_facilities;
-IF OBJECT_ID('tbl_customers',        'U') IS NOT NULL DROP TABLE tbl_customers;
-IF OBJECT_ID('tbl_employees',        'U') IS NOT NULL DROP TABLE tbl_employees;
-IF OBJECT_ID('tbl_departments',      'U') IS NOT NULL DROP TABLE tbl_departments;
-IF OBJECT_ID('tbl_persons',          'U') IS NOT NULL DROP TABLE tbl_persons;
-GO
-
--- ================================================================
---  ❷  CORE TABLES
+--  ❶  BẢNG CỐT LÕI (CORE TABLES)
 -- ================================================================
 
 -- ── tbl_persons ─────────────────────────────────────────────────
@@ -65,24 +43,21 @@ CREATE TABLE tbl_persons (
     updated_at    DATETIME      NOT NULL DEFAULT GETDATE(),
     is_deleted    BIT           NOT NULL DEFAULT 0,
 
-    CONSTRAINT PK_persons       PRIMARY KEY (id),
-    CONSTRAINT UQ_persons_email  UNIQUE (email),
-    -- Removed UQ_persons_idcard to allow multiple NULLs, replaced with filtered index below
-    CONSTRAINT CK_persons_type   CHECK  (person_type IN ('EMPLOYEE','CUSTOMER'))
+    CONSTRAINT PK_persons PRIMARY KEY (id),
+    CONSTRAINT UQ_persons_email UNIQUE (email),
+    CONSTRAINT CK_persons_type  CHECK (person_type IN ('EMPLOYEE','CUSTOMER'))
 );
 GO
-
--- Filtered Index to allow multiple NULLs in id_card (SQL Server specific)
 CREATE UNIQUE INDEX UIX_persons_idcard ON tbl_persons(id_card) WHERE id_card IS NOT NULL;
 GO
 
 -- ── tbl_departments ──────────────────────────────────────────────
 CREATE TABLE tbl_departments (
-    dept_id   VARCHAR(10)   NOT NULL,
+    id        VARCHAR(10)   NOT NULL, -- Formerly dept_id
     dept_name NVARCHAR(100) NOT NULL,
     manager_id VARCHAR(20)  NULL,
 
-    CONSTRAINT PK_departments PRIMARY KEY (dept_id)
+    CONSTRAINT PK_departments PRIMARY KEY (id)
 );
 GO
 
@@ -99,7 +74,7 @@ CREATE TABLE tbl_employees (
 
     CONSTRAINT PK_employees PRIMARY KEY (id),
     CONSTRAINT FK_employees_persons FOREIGN KEY (id) REFERENCES tbl_persons(id) ON DELETE CASCADE,
-    CONSTRAINT FK_employees_dept    FOREIGN KEY (dept_id) REFERENCES tbl_departments(dept_id)
+    CONSTRAINT FK_employees_dept    FOREIGN KEY (dept_id) REFERENCES tbl_departments(id)
 );
 GO
 
@@ -121,88 +96,87 @@ CREATE TABLE tbl_customers (
 GO
 
 -- ================================================================
---  ❸  FACILITY NORMALIZATION
+--  ❷  FACILITY HIERARCHY
 -- ================================================================
 
--- ── tbl_facilities (BASE TABLE) ──────────────────────────────────
+-- ── tbl_facilities (BASE) ────────────────────────────────────────
 CREATE TABLE tbl_facilities (
-    service_code  VARCHAR(20)   NOT NULL,
+    id            VARCHAR(20)   NOT NULL, -- Formerly service_code
     service_name  NVARCHAR(150) NOT NULL,
     usable_area   DECIMAL(10,2) NOT NULL DEFAULT 0,
     cost          DECIMAL(15,2) NOT NULL DEFAULT 0,
     max_people    INT           NOT NULL DEFAULT 1,
     rental_type   NVARCHAR(20)  NULL,
     status        NVARCHAR(20)  NOT NULL DEFAULT N'AVAILABLE',
-    facility_type VARCHAR(10)   NOT NULL, -- VILLA | HOUSE | ROOM
+    facility_type VARCHAR(10)   NOT NULL,
     description   NVARCHAR(500) NULL,
     image_url     VARCHAR(300)  NULL,
     created_at    DATETIME      NOT NULL DEFAULT GETDATE(),
     updated_at    DATETIME      NOT NULL DEFAULT GETDATE(),
     is_deleted    BIT           NOT NULL DEFAULT 0,
 
-    CONSTRAINT PK_facilities PRIMARY KEY (service_code),
+    CONSTRAINT PK_facilities PRIMARY KEY (id),
     CONSTRAINT CK_facilities_type   CHECK (facility_type IN ('VILLA','HOUSE','ROOM')),
     CONSTRAINT CK_facilities_status CHECK (status IN ('AVAILABLE','OCCUPIED','MAINTENANCE'))
 );
 GO
 
--- ── tbl_villas (CHILD TABLE) ────────────────────────────────────
+-- ── tbl_villas ──────────────────────────────────────────────────
 CREATE TABLE tbl_villas (
-    service_code  VARCHAR(20)   NOT NULL,
+    id            VARCHAR(20)   NOT NULL,
     room_standard NVARCHAR(30)  NULL,
     pool_area     DECIMAL(10,2) NULL DEFAULT 0,
     num_of_floor  INT           NULL DEFAULT 1,
 
-    CONSTRAINT PK_villas PRIMARY KEY (service_code),
-    CONSTRAINT FK_villas_facility FOREIGN KEY (service_code) REFERENCES tbl_facilities(service_code) ON DELETE CASCADE
+    CONSTRAINT PK_villas PRIMARY KEY (id),
+    CONSTRAINT FK_villas_facility FOREIGN KEY (id) REFERENCES tbl_facilities(id) ON DELETE CASCADE
 );
 GO
 
--- ── tbl_houses (CHILD TABLE) ─────────────────────────────────────
+-- ── tbl_houses ──────────────────────────────────────────────────
 CREATE TABLE tbl_houses (
-    service_code  VARCHAR(20)   NOT NULL,
+    id            VARCHAR(20)   NOT NULL,
     room_standard NVARCHAR(30)  NULL,
     num_of_floor  INT           NULL DEFAULT 1,
 
-    CONSTRAINT PK_houses PRIMARY KEY (service_code),
-    CONSTRAINT FK_houses_facility FOREIGN KEY (service_code) REFERENCES tbl_facilities(service_code) ON DELETE CASCADE
+    CONSTRAINT PK_houses PRIMARY KEY (id),
+    CONSTRAINT FK_houses_facility FOREIGN KEY (id) REFERENCES tbl_facilities(id) ON DELETE CASCADE
 );
 GO
 
--- ── tbl_rooms (CHILD TABLE) ──────────────────────────────────────
+-- ── tbl_rooms ───────────────────────────────────────────────────
 CREATE TABLE tbl_rooms (
-    service_code  VARCHAR(20)   NOT NULL,
+    id            VARCHAR(20)   NOT NULL,
     free_services NVARCHAR(255) NULL,
     floor_number  INT           NULL DEFAULT 1,
 
-    CONSTRAINT PK_rooms PRIMARY KEY (service_code),
-    CONSTRAINT FK_rooms_facility FOREIGN KEY (service_code) REFERENCES tbl_facilities(service_code) ON DELETE CASCADE
+    CONSTRAINT PK_rooms PRIMARY KEY (id),
+    CONSTRAINT FK_rooms_facility FOREIGN KEY (id) REFERENCES tbl_facilities(id) ON DELETE CASCADE
 );
 GO
 
 -- ================================================================
---  ❹  TRANSACTIONAL TABLES
+--  ❸  TRANSACTIONS & LOGIC
 -- ================================================================
 
 -- ── tbl_vouchers ─────────────────────────────────────────────────
 CREATE TABLE tbl_vouchers (
-    voucher_id       INT           NOT NULL IDENTITY(1,1),
+    id               INT           NOT NULL IDENTITY(1,1),
     customer_id      VARCHAR(20)   NOT NULL,
     discount_percent INT           NOT NULL,
-    expiry_date      DATE          NOT NULL, -- Native DATE
+    expiry_date      DATE          NOT NULL,
     is_used          BIT           NOT NULL DEFAULT 0,
     created_at       DATETIME      NOT NULL DEFAULT GETDATE(),
     min_order_value  DECIMAL(15,2) NULL DEFAULT 0,
 
-    CONSTRAINT PK_vouchers           PRIMARY KEY (voucher_id),
-    CONSTRAINT FK_vouchers_customer  FOREIGN KEY (customer_id) REFERENCES tbl_customers(id),
-    CONSTRAINT CK_voucher_pct        CHECK  (discount_percent BETWEEN 1 AND 100)
+    CONSTRAINT PK_vouchers PRIMARY KEY (id),
+    CONSTRAINT FK_vouchers_customer FOREIGN KEY (customer_id) REFERENCES tbl_customers(id)
 );
 GO
 
 -- ── tbl_bookings ─────────────────────────────────────────────────
 CREATE TABLE tbl_bookings (
-    booking_id    VARCHAR(20)   NOT NULL,
+    id            VARCHAR(20)   NOT NULL,
     date_booking  DATETIME      NOT NULL DEFAULT GETDATE(),
     start_date    DATE          NOT NULL,
     end_date      DATE          NOT NULL,
@@ -215,10 +189,10 @@ CREATE TABLE tbl_bookings (
     children      INT           NOT NULL DEFAULT 0,
     created_by    VARCHAR(20)   NULL,
 
-    CONSTRAINT PK_bookings          PRIMARY KEY (booking_id),
+    CONSTRAINT PK_bookings          PRIMARY KEY (id),
     CONSTRAINT FK_bookings_customer FOREIGN KEY (customer_id) REFERENCES tbl_customers(id),
-    CONSTRAINT FK_bookings_facility FOREIGN KEY (facility_id) REFERENCES tbl_facilities(service_code),
-    CONSTRAINT FK_bookings_voucher  FOREIGN KEY (voucher_id)  REFERENCES tbl_vouchers(voucher_id),
+    CONSTRAINT FK_bookings_facility FOREIGN KEY (facility_id) REFERENCES tbl_facilities(id),
+    CONSTRAINT FK_bookings_voucher  FOREIGN KEY (voucher_id)  REFERENCES tbl_vouchers(id),
     CONSTRAINT FK_bookings_creator  FOREIGN KEY (created_by)  REFERENCES tbl_employees(id),
     CONSTRAINT CK_bookings_status   CHECK (status IN ('PENDING','CONFIRMED','CANCELLED','CHECKED_IN','CHECKED_OUT'))
 );
@@ -226,7 +200,7 @@ GO
 
 -- ── tbl_contracts ────────────────────────────────────────────────
 CREATE TABLE tbl_contracts (
-    contract_id   VARCHAR(20)   NOT NULL,
+    id            VARCHAR(20)   NOT NULL,
     booking_id    VARCHAR(20)   NOT NULL,
     deposit       DECIMAL(15,2) NOT NULL DEFAULT 0,
     total_payment DECIMAL(15,2) NOT NULL DEFAULT 0,
@@ -236,17 +210,16 @@ CREATE TABLE tbl_contracts (
     signed_date   DATE          NULL,
     notes         NVARCHAR(500) NULL,
 
-    CONSTRAINT PK_contracts PRIMARY KEY (contract_id),
-    CONSTRAINT FK_contracts_booking  FOREIGN KEY (booking_id)  REFERENCES tbl_bookings(booking_id),
+    CONSTRAINT PK_contracts PRIMARY KEY (id),
+    CONSTRAINT FK_contracts_booking  FOREIGN KEY (booking_id) REFERENCES tbl_bookings(id),
     CONSTRAINT FK_contracts_employee FOREIGN KEY (employee_id) REFERENCES tbl_employees(id),
-    CONSTRAINT UQ_contracts_booking  UNIQUE (booking_id),
-    CONSTRAINT CK_contracts_status   CHECK (status IN ('DRAFT','ACTIVE','EXPIRED','CANCELLED'))
+    CONSTRAINT UQ_contracts_booking  UNIQUE (booking_id)
 );
 GO
 
 -- ── tbl_services ─────────────────────────────────────────────────
 CREATE TABLE tbl_services (
-    service_id    INT           NOT NULL IDENTITY(1,1),
+    id            INT           NOT NULL IDENTITY(1,1),
     service_name  NVARCHAR(150) NOT NULL,
     category      NVARCHAR(50)  NULL,
     unit_price    DECIMAL(15,2) NOT NULL DEFAULT 0,
@@ -254,7 +227,7 @@ CREATE TABLE tbl_services (
     description   NVARCHAR(300) NULL,
     is_active     BIT           NOT NULL DEFAULT 1,
 
-    CONSTRAINT PK_services PRIMARY KEY (service_id)
+    CONSTRAINT PK_services PRIMARY KEY (id)
 );
 GO
 
@@ -270,14 +243,14 @@ CREATE TABLE tbl_booking_services (
     note         NVARCHAR(200) NULL,
 
     CONSTRAINT PK_booking_svc  PRIMARY KEY (id),
-    CONSTRAINT FK_bsvc_booking FOREIGN KEY (booking_id) REFERENCES tbl_bookings(booking_id),
-    CONSTRAINT FK_bsvc_service FOREIGN KEY (service_id) REFERENCES tbl_services(service_id)
+    CONSTRAINT FK_bsvc_booking FOREIGN KEY (booking_id) REFERENCES tbl_bookings(id),
+    CONSTRAINT FK_bsvc_service FOREIGN KEY (service_id) REFERENCES tbl_services(id)
 );
 GO
 
 -- ── tbl_payments ─────────────────────────────────────────────────
 CREATE TABLE tbl_payments (
-    payment_id     INT           NOT NULL IDENTITY(1,1),
+    id             INT           NOT NULL IDENTITY(1,1),
     contract_id    VARCHAR(20)   NOT NULL,
     amount         DECIMAL(15,2) NOT NULL,
     payment_date   DATETIME      NOT NULL DEFAULT GETDATE(),
@@ -286,15 +259,15 @@ CREATE TABLE tbl_payments (
     note           NVARCHAR(200) NULL,
     received_by    VARCHAR(20)   NULL,
 
-    CONSTRAINT PK_payments          PRIMARY KEY (payment_id),
-    CONSTRAINT FK_payments_contract FOREIGN KEY (contract_id) REFERENCES tbl_contracts(contract_id),
+    CONSTRAINT PK_payments PRIMARY KEY (id),
+    CONSTRAINT FK_payments_contract FOREIGN KEY (contract_id) REFERENCES tbl_contracts(id),
     CONSTRAINT FK_payments_emp      FOREIGN KEY (received_by) REFERENCES tbl_employees(id)
 );
 GO
 
 -- ── tbl_reviews ──────────────────────────────────────────────────
 CREATE TABLE tbl_reviews (
-    review_id     INT           NOT NULL IDENTITY(1,1),
+    id            INT           NOT NULL IDENTITY(1,1),
     booking_id    VARCHAR(20)   NOT NULL,
     customer_id   VARCHAR(20)   NOT NULL,
     rating        TINYINT       NOT NULL,
@@ -304,17 +277,16 @@ CREATE TABLE tbl_reviews (
     is_published  BIT           NOT NULL DEFAULT 1,
     reply         NVARCHAR(500) NULL,
 
-    CONSTRAINT PK_reviews PRIMARY KEY (review_id),
-    CONSTRAINT FK_reviews_booking   FOREIGN KEY (booking_id)  REFERENCES tbl_bookings(booking_id),
+    CONSTRAINT PK_reviews PRIMARY KEY (id),
+    CONSTRAINT FK_reviews_booking   FOREIGN KEY (booking_id) REFERENCES tbl_bookings(id),
     CONSTRAINT FK_reviews_customer  FOREIGN KEY (customer_id) REFERENCES tbl_customers(id),
-    CONSTRAINT UQ_reviews_booking   UNIQUE (booking_id),
-    CONSTRAINT CK_reviews_rating    CHECK  (rating BETWEEN 1 AND 5)
+    CONSTRAINT UQ_reviews_booking   UNIQUE (booking_id)
 );
 GO
 
 -- ── tbl_maintenance ──────────────────────────────────────────────
 CREATE TABLE tbl_maintenance (
-    maintenance_id INT           NOT NULL IDENTITY(1,1),
+    id             INT           NOT NULL IDENTITY(1,1),
     facility_id    VARCHAR(20)   NOT NULL,
     start_date     DATE          NOT NULL,
     end_date       DATE          NULL,
@@ -323,16 +295,15 @@ CREATE TABLE tbl_maintenance (
     assigned_to    VARCHAR(20)   NULL,
     cost           DECIMAL(15,2) NULL DEFAULT 0,
 
-    CONSTRAINT PK_maintenance PRIMARY KEY (maintenance_id),
-    CONSTRAINT FK_maintenance_facility FOREIGN KEY (facility_id) REFERENCES tbl_facilities(service_code),
-    CONSTRAINT FK_maintenance_emp      FOREIGN KEY (assigned_to) REFERENCES tbl_employees(id),
-    CONSTRAINT CK_maintenance_status   CHECK (status IN ('SCHEDULED','IN_PROGRESS','COMPLETED','CANCELLED'))
+    CONSTRAINT PK_maintenance PRIMARY KEY (id),
+    CONSTRAINT FK_maintenance_facility FOREIGN KEY (facility_id) REFERENCES tbl_facilities(id),
+    CONSTRAINT FK_maintenance_emp      FOREIGN KEY (assigned_to) REFERENCES tbl_employees(id)
 );
 GO
 
 -- ── tbl_promotions ───────────────────────────────────────────────
 CREATE TABLE tbl_promotions (
-    promo_id      INT           NOT NULL IDENTITY(1,1),
+    id            INT           NOT NULL IDENTITY(1,1),
     promo_name    NVARCHAR(150) NOT NULL,
     promo_code    VARCHAR(30)   NOT NULL,
     discount_type NVARCHAR(10)  NOT NULL DEFAULT 'PERCENT',
@@ -345,15 +316,14 @@ CREATE TABLE tbl_promotions (
     applies_to    NVARCHAR(20)  NOT NULL DEFAULT 'ALL',
     is_active     BIT           NOT NULL DEFAULT 1,
 
-    CONSTRAINT PK_promotions PRIMARY KEY (promo_id),
-    CONSTRAINT UQ_promotions_code UNIQUE (promo_code),
-    CONSTRAINT CK_promotions_dtype CHECK (discount_type IN ('PERCENT','FIXED'))
+    CONSTRAINT PK_promotions PRIMARY KEY (id),
+    CONSTRAINT UQ_promotions_code UNIQUE (promo_code)
 );
 GO
 
 -- ── tbl_audit_log ────────────────────────────────────────────────
 CREATE TABLE tbl_audit_log (
-    log_id       BIGINT        NOT NULL IDENTITY(1,1),
+    id           BIGINT        NOT NULL IDENTITY(1,1),
     table_name   VARCHAR(50)   NOT NULL,
     action       VARCHAR(10)   NOT NULL,
     record_id    VARCHAR(50)   NOT NULL,
@@ -363,30 +333,30 @@ CREATE TABLE tbl_audit_log (
     changed_at   DATETIME      NOT NULL DEFAULT GETDATE(),
     ip_address   VARCHAR(50)   NULL,
 
-    CONSTRAINT PK_audit_log PRIMARY KEY (log_id)
+    CONSTRAINT PK_audit_log PRIMARY KEY (id)
 );
 GO
 
 -- ================================================================
---  ❺  VIEWS & LOGIC
+--  ❹  VIEWS
 -- ================================================================
 
 CREATE OR ALTER VIEW vw_facilities AS
-SELECT f.service_code, f.service_name, f.usable_area, f.cost, f.max_people,
+SELECT f.id, f.service_name, f.usable_area, f.cost, f.max_people,
        f.rental_type, f.status, f.facility_type, f.description, f.image_url,
        v.room_standard, v.pool_area, v.num_of_floor,
        h.room_standard AS house_standard, h.num_of_floor AS house_floors,
        r.free_services, r.floor_number
 FROM tbl_facilities f
-LEFT JOIN tbl_villas v ON f.service_code = v.service_code
-LEFT JOIN tbl_houses h ON f.service_code = h.service_code
-LEFT JOIN tbl_rooms  r ON f.service_code = r.service_code
+LEFT JOIN tbl_villas v ON f.id = v.id
+LEFT JOIN tbl_houses h ON f.id = h.id
+LEFT JOIN tbl_rooms  r ON f.id = r.id
 WHERE f.is_deleted = 0;
 GO
 
 CREATE OR ALTER VIEW vw_bookings AS
 SELECT
-    b.booking_id, b.date_booking, b.start_date, b.end_date,
+    b.id, b.date_booking, b.start_date, b.end_date,
     b.status, b.adults, b.children, b.special_req,
     b.customer_id, p.full_name AS customer_name,
     b.facility_id, f.service_name AS facility_name, f.facility_type,
@@ -394,44 +364,16 @@ SELECT
     v.discount_percent
 FROM tbl_bookings b
 JOIN tbl_persons p ON b.customer_id = p.id
-JOIN tbl_facilities f ON b.facility_id = f.service_code
-LEFT JOIN tbl_vouchers v ON b.voucher_id = v.voucher_id;
-GO
-
--- Hàm: tính số đêm (Native DATE)
-CREATE OR ALTER FUNCTION fn_nights(@start DATE, @end DATE)
-RETURNS INT
-AS BEGIN
-    RETURN DATEDIFF(DAY, @start, @end)
-END;
-GO
-
--- TRIGGER: Cập nhật facility status
-CREATE OR ALTER TRIGGER trg_facility_status_update
-ON tbl_bookings AFTER UPDATE
-AS BEGIN
-    SET NOCOUNT ON;
-    IF UPDATE(status)
-    BEGIN
-        UPDATE f
-        SET status = CASE 
-            WHEN i.status = 'CHECKED_IN' THEN 'OCCUPIED'
-            WHEN i.status IN ('CHECKED_OUT', 'CANCELLED') THEN 'AVAILABLE'
-            ELSE f.status
-        END
-        FROM tbl_facilities f
-        JOIN inserted i ON f.service_code = i.facility_id
-        WHERE i.status IN ('CHECKED_IN', 'CHECKED_OUT', 'CANCELLED');
-    END
-END;
+JOIN tbl_facilities f ON b.facility_id = f.id
+LEFT JOIN tbl_vouchers v ON b.voucher_id = v.id;
 GO
 
 -- ================================================================
---  ❻  SAMPLE DATA (Simplified for version 2.1)
+--  ❺  SAMPLE DATA
 -- ================================================================
 
 -- Departments
-INSERT INTO tbl_departments(dept_id, dept_name) VALUES ('DP01', N'Management'), ('DP02', N'Reception');
+INSERT INTO tbl_departments(id, dept_name) VALUES ('DP01', N'Management'), ('DP02', N'Reception');
 
 -- Persons & Employees
 INSERT INTO tbl_persons(id, full_name, person_type, id_card) VALUES ('NV001', N'Admin', 'EMPLOYEE', 'ID001');
@@ -442,13 +384,13 @@ INSERT INTO tbl_persons(id, full_name, person_type, id_card) VALUES ('KH001', N'
 INSERT INTO tbl_customers(id, type_customer) VALUES ('KH001', N'Gold');
 
 -- Facilities
-INSERT INTO tbl_facilities(service_code, service_name, cost, facility_type) 
+INSERT INTO tbl_facilities(id, service_name, cost, facility_type) 
 VALUES ('VL001', N'Ocean Villa', 5000000, 'VILLA');
-INSERT INTO tbl_villas(service_code, room_standard, pool_area) VALUES ('VL001', '5 Star', 50.0);
+INSERT INTO tbl_villas(id, room_standard, pool_area) VALUES ('VL001', '5 Star', 50.0);
 
 -- Booking
-INSERT INTO tbl_bookings(booking_id, start_date, end_date, customer_id, facility_id)
+INSERT INTO tbl_bookings(id, start_date, end_date, customer_id, facility_id)
 VALUES ('BK001', '2025-05-01', '2025-05-05', 'KH001', 'VL001');
 
-PRINT 'ResortDB v2.1 Refactored Successfully!';
+PRINT 'ResortDB v2.2 Standardized Successfully!';
 GO

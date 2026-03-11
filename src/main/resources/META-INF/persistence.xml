@@ -1,47 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<persistence version="3.0" xmlns="https://jakarta.ee/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence              https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
+<persistence version="3.0" xmlns="https://jakarta.ee/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
   <persistence-unit name="ResortPU" transaction-type="RESOURCE_LOCAL">
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-    <class>model.Person</class>
-    <class>model.Employee</class>
-    <class>model.Customer</class>
-    <class>model.Facility</class>
-    <class>model.Villa</class>
-    <class>model.House</class>
-    <class>model.Room</class>
-    <class>model.Booking</class>
-    <class>model.Contract</class>
-    <class>model.Voucher</class>
-    <class>model.TblMaintenance</class>
-    <class>model.VwEmployees</class>
-    <class>model.VwFacilities</class>
-    <class>model.TblDepartments</class>
-    <class>model.VwBookings</class>
-    <class>model.TblReviews</class>
-    <class>model.TblBookingServices</class>
+    
+    <!-- Refactored Entities -->
+    <class>model.TblPersons</class>
     <class>model.TblEmployees</class>
-    <class>model.TblServices</class>
-    <class>model.TblAuditLog</class>
-    <class>model.TblPromotions</class>
-    <class>model.TblPayments</class>
     <class>model.TblCustomers</class>
-    <class>model.TblContracts</class>
+    <class>model.TblFacilities</class>
+    <class>model.TblVillas</class>
     <class>model.TblHouses</class>
     <class>model.TblRooms</class>
-    <class>model.TblVouchers</class>
     <class>model.TblBookings</class>
-    <class>model.TblVillas</class>
-    <class>model.VwFacilityRatings</class>
-    <class>model.VwContracts</class>
-    <class>model.TblPersons</class>
+    <class>model.TblContracts</class>
+    <class>model.TblVouchers</class>
+    <class>model.TblServices</class>
+    <class>model.TblBookingServices</class>
+    <class>model.TblPayments</class>
+    <class>model.TblReviews</class>
+    <class>model.TblMaintenance</class>
+    <class>model.TblPromotions</class>
+    <class>model.TblDepartments</class>
+    <class>model.TblAuditLog</class>
+    
+    <!-- Views -->
+    <class>model.VwBookings</class>
+    <class>model.VwFacilities</class>
     <class>model.VwCustomers</class>
+    <class>model.VwEmployees</class>
     <class>model.VwMonthlyRevenue</class>
+    <class>model.VwContracts</class>
+    <class>model.VwFacilityRatings</class>
+
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
+    
     <properties>
       <property name="jakarta.persistence.jdbc.driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
       <property name="jakarta.persistence.jdbc.url" value="jdbc:sqlserver://MSI:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true"/>
       <property name="jakarta.persistence.jdbc.user" value="sa"/>
       <property name="jakarta.persistence.jdbc.password" value="123123"/>
+      
       <property name="eclipselink.ddl-generation" value="none"/>
       <property name="eclipselink.logging.level.sql" value="FINE"/>
       <property name="eclipselink.logging.parameters" value="true"/>

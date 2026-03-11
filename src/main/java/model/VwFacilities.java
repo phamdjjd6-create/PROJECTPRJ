@@ -3,6 +3,7 @@ package model;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,8 +16,8 @@ public class VwFacilities implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column(name = "service_code")
-    private String serviceCode;
+    @Column(name = "id")
+    private String id;
 
     @Column(name = "service_name")
     private String serviceName;
