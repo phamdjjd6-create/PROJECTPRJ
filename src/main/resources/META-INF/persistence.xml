@@ -13,10 +13,7 @@
     <class>model.Contract</class>
     <class>model.Voucher</class>
     <class>model.TblMaintenance</class>
-    <class>model.VwEmployees</class>
-    <class>model.VwFacilities</class>
     <class>model.TblDepartments</class>
-    <class>model.VwBookings</class>
     <class>model.TblReviews</class>
     <class>model.TblBookingServices</class>
     <class>model.TblEmployees</class>
@@ -31,11 +28,14 @@
     <class>model.TblVouchers</class>
     <class>model.TblBookings</class>
     <class>model.TblVillas</class>
-    <class>model.VwFacilityRatings</class>
-    <class>model.VwContracts</class>
     <class>model.TblPersons</class>
+    <class>model.VwFacilityRatings</class>
+    <class>model.VwFacilities</class>
     <class>model.VwCustomers</class>
+    <class>model.VwContracts</class>
     <class>model.VwMonthlyRevenue</class>
+    <class>model.VwBookings</class>
+    <class>model.VwEmployees</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
     <properties>
       <property name="jakarta.persistence.jdbc.driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>

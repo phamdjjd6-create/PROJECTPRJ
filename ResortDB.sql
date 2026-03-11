@@ -96,10 +96,12 @@ CREATE TABLE tbl_employees (
     hire_date     DATE          NULL,
     password_hash VARCHAR(255)  NOT NULL DEFAULT '123456',
     is_active     BIT           NOT NULL DEFAULT 1,
+    role          VARCHAR(10)   NOT NULL DEFAULT 'STAFF', -- ADMIN | STAFF
 
     CONSTRAINT PK_employees PRIMARY KEY (id),
     CONSTRAINT FK_employees_persons FOREIGN KEY (id) REFERENCES tbl_persons(id) ON DELETE CASCADE,
-    CONSTRAINT FK_employees_dept    FOREIGN KEY (dept_id) REFERENCES tbl_departments(dept_id)
+    CONSTRAINT FK_employees_dept    FOREIGN KEY (dept_id) REFERENCES tbl_departments(dept_id),
+    CONSTRAINT CK_employees_role    CHECK (role IN ('ADMIN', 'STAFF'))
 );
 GO
 
@@ -114,6 +116,7 @@ CREATE TABLE tbl_customers (
     address         NVARCHAR(200) NULL,
     loyalty_points  INT           NOT NULL DEFAULT 0,
     total_spent     DECIMAL(18,2) NOT NULL DEFAULT 0,
+    password_hash   VARCHAR(255)  NOT NULL DEFAULT '123456', -- Dùng cho login khách hàng
 
     CONSTRAINT PK_customers PRIMARY KEY (id),
     CONSTRAINT FK_customers_persons FOREIGN KEY (id) REFERENCES tbl_persons(id) ON DELETE CASCADE
@@ -398,6 +401,78 @@ JOIN tbl_facilities f ON b.facility_id = f.service_code
 LEFT JOIN tbl_vouchers v ON b.voucher_id = v.voucher_id;
 GO
 
+-- View: danh sách nhân viên kèm phòng ban
+CREATE OR ALTER VIEW vw_employees AS
+SELECT
+    p.id, p.full_name, p.date_of_birth, p.gender, p.id_card,
+    p.phone_number, p.email, p.created_at,
+    e.dept_id, d.dept_name, e.level, e.position,
+    e.salary, e.hire_date, e.is_active, e.role
+FROM tbl_employees e
+JOIN tbl_persons p    ON e.id = p.id
+LEFT JOIN tbl_departments d ON e.dept_id = d.dept_id
+WHERE p.is_deleted = 0;
+GO
+
+-- View: danh sách khách hàng
+CREATE OR ALTER VIEW vw_customers AS
+SELECT
+    p.id, p.full_name, p.date_of_birth, p.gender, p.id_card,
+    p.phone_number, p.email, p.created_at,
+    c.type_customer, c.address, c.loyalty_points, c.total_spent
+FROM tbl_customers c
+JOIN tbl_persons p ON c.id = p.id
+WHERE p.is_deleted = 0;
+GO
+
+-- View: hợp đồng kèm thông tin booking, khách hàng, nhân viên
+CREATE OR ALTER VIEW vw_contracts AS
+SELECT
+    ct.contract_id, ct.deposit, ct.total_payment, ct.paid_amount,
+    ct.status AS contract_status, ct.signed_date, ct.notes,
+    b.booking_id, b.start_date, b.end_date, b.status AS booking_status,
+    pc.id AS customer_id, pc.full_name AS customer_name,
+    pe.id AS employee_id, pe.full_name AS employee_name,
+    f.service_name AS facility_name, f.facility_type,
+    f.cost AS cost_per_night
+FROM tbl_contracts ct
+JOIN tbl_bookings b    ON ct.booking_id = b.booking_id
+JOIN tbl_persons  pc   ON b.customer_id = pc.id
+JOIN tbl_facilities f  ON b.facility_id = f.service_code
+LEFT JOIN tbl_employees e  ON ct.employee_id = e.id
+LEFT JOIN tbl_persons   pe ON e.id = pe.id;
+GO
+
+-- View: đánh giá kèm tên khách hàng và cơ sở vật chất
+CREATE OR ALTER VIEW vw_facility_ratings AS
+SELECT
+    r.review_id, r.rating, r.title, r.content, r.review_date,
+    r.is_published, r.reply,
+    p.full_name AS customer_name,
+    f.service_name AS facility_name, f.facility_type
+FROM tbl_reviews r
+JOIN tbl_bookings b   ON r.booking_id = b.booking_id
+JOIN tbl_persons  p   ON r.customer_id = p.id
+JOIN tbl_facilities f ON b.facility_id = f.service_code
+WHERE r.is_published = 1;
+GO
+
+-- View: doanh thu theo tháng
+CREATE OR ALTER VIEW vw_monthly_revenue AS
+SELECT
+    YEAR(b.start_date)  AS revenue_year,
+    MONTH(b.start_date) AS revenue_month,
+    f.facility_type,
+    COUNT(DISTINCT b.booking_id)                        AS total_bookings,
+    SUM(DATEDIFF(DAY, b.start_date, b.end_date) * f.cost
+        * (1.0 - ISNULL(v.discount_percent, 0) / 100.0)) AS total_revenue
+FROM tbl_bookings b
+JOIN tbl_facilities f  ON b.facility_id = f.service_code
+LEFT JOIN tbl_vouchers v ON b.voucher_id = v.voucher_id
+WHERE b.status IN ('CONFIRMED','CHECKED_IN','CHECKED_OUT')
+GROUP BY YEAR(b.start_date), MONTH(b.start_date), f.facility_type;
+GO
+
 -- Hàm: tính số đêm (Native DATE)
 CREATE OR ALTER FUNCTION fn_nights(@start DATE, @end DATE)
 RETURNS INT
@@ -427,28 +502,61 @@ END;
 GO
 
 -- ================================================================
---  ❻  SAMPLE DATA (Simplified for version 2.1)
+--  ❻  SAMPLE DATA (v2.2 — Role-Based)
 -- ================================================================
 
 -- Departments
-INSERT INTO tbl_departments(dept_id, dept_name) VALUES ('DP01', N'Management'), ('DP02', N'Reception');
+INSERT INTO tbl_departments(dept_id, dept_name)
+VALUES ('DP01', N'Management'), ('DP02', N'Reception'), ('DP03', N'Facility');
 
--- Persons & Employees
-INSERT INTO tbl_persons(id, full_name, person_type, id_card) VALUES ('NV001', N'Admin', 'EMPLOYEE', 'ID001');
-INSERT INTO tbl_employees(id, dept_id, salary) VALUES ('NV001', 'DP01', 30000000);
+-- ── Persons & Employees ──────────────────────────────────────────
+-- Admin
+INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number)
+VALUES ('NV001', N'Nguyễn Admin', 'EMPLOYEE', 'ID001', 'admin@resort.com', '0901000001');
+INSERT INTO tbl_employees(id, dept_id, salary, role, position, hire_date)
+VALUES ('NV001', 'DP01', 30000000, 'ADMIN', N'Quản lý hệ thống', '2020-01-01');
 
--- Customers
-INSERT INTO tbl_persons(id, full_name, person_type, id_card) VALUES ('KH001', N'John Doe', 'CUSTOMER', 'ID002');
-INSERT INTO tbl_customers(id, type_customer) VALUES ('KH001', N'Gold');
+-- Nhân viên lễ tân
+INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number)
+VALUES ('NV002', N'Trần Lễ Tân', 'EMPLOYEE', 'ID003', 'staff1@resort.com', '0901000002');
+INSERT INTO tbl_employees(id, dept_id, salary, role, position, hire_date)
+VALUES ('NV002', 'DP02', 12000000, 'STAFF', N'Lễ tân', '2022-06-15');
 
--- Facilities
-INSERT INTO tbl_facilities(service_code, service_name, cost, facility_type) 
-VALUES ('VL001', N'Ocean Villa', 5000000, 'VILLA');
-INSERT INTO tbl_villas(service_code, room_standard, pool_area) VALUES ('VL001', '5 Star', 50.0);
+-- ── Customers ────────────────────────────────────────────────────
+INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number)
+VALUES ('KH001', N'Nguyễn Văn A', 'CUSTOMER', 'ID002', 'customer1@gmail.com', '0912000001');
+INSERT INTO tbl_customers(id, type_customer, address)
+VALUES ('KH001', N'Gold', N'123 Đường Lê Lợi, TP.HCM');
 
--- Booking
-INSERT INTO tbl_bookings(booking_id, start_date, end_date, customer_id, facility_id)
-VALUES ('BK001', '2025-05-01', '2025-05-05', 'KH001', 'VL001');
+INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number)
+VALUES ('KH002', N'Trần Thị B', 'CUSTOMER', 'ID004', 'customer2@gmail.com', '0912000002');
+INSERT INTO tbl_customers(id, type_customer, address)
+VALUES ('KH002', N'Normal', N'456 Đường Nguyễn Huệ, Đà Nẵng');
 
-PRINT 'ResortDB v2.1 Refactored Successfully!';
+-- ── Facilities ───────────────────────────────────────────────────
+INSERT INTO tbl_facilities(service_code, service_name, cost, facility_type, max_people, status, description)
+VALUES
+    ('VL001', N'Ocean Villa', 5000000, 'VILLA', 6, 'AVAILABLE', N'Villa view biển, hồ bơi riêng'),
+    ('VL002', N'Garden Villa', 3500000, 'VILLA', 4, 'AVAILABLE', N'Villa view vườn, yên tĩnh'),
+    ('RM001', N'Deluxe Room', 1200000, 'ROOM',  2, 'AVAILABLE', N'Phòng deluxe tầng 3');
+INSERT INTO tbl_villas(service_code, room_standard, pool_area, num_of_floor)
+VALUES ('VL001', '5 Star', 50.0, 2), ('VL002', '4 Star', 30.0, 1);
+INSERT INTO tbl_rooms(service_code, free_services, floor_number)
+VALUES ('RM001', N'Breakfast, WiFi', 3);
+
+-- ── Bookings ─────────────────────────────────────────────────────
+INSERT INTO tbl_bookings(booking_id, start_date, end_date, customer_id, facility_id, status, adults, children)
+VALUES
+    ('BK001', '2025-05-01', '2025-05-05', 'KH001', 'VL001', 'CONFIRMED', 2, 1),
+    ('BK002', '2025-06-10', '2025-06-14', 'KH002', 'RM001', 'PENDING',   2, 0);
+
+-- ── Contract mẫu ─────────────────────────────────────────────────
+INSERT INTO tbl_contracts(contract_id, booking_id, deposit, total_payment, paid_amount, employee_id, status, signed_date)
+VALUES ('CT001', 'BK001', 5000000, 20000000, 5000000, 'NV002', 'ACTIVE', '2025-04-20');
+
+PRINT 'ResortDB v2.2 Role-Based Successfully!';
 GO
+
+select * from vw_monthly_revenue;
+
+select * from vw_monthly_revenue;   

@@ -53,4 +53,13 @@ public class TblEmployees extends TblPersons implements Serializable {
     @NotNull
     @Column(name = "is_active")
     private boolean isActive;
+
+    /**
+     * Phân quyền: ADMIN hoặc STAFF
+     */
+    @Basic(optional = false)
+    @NotNull
+    @Size(min = 1, max = 10)
+    @Column(name = "role")
+    private String role; // "ADMIN" | "STAFF"
 }

@@ -36,7 +36,8 @@ import java.util.Collection;
     @NamedQuery(name = "TblCustomers.findByTypeCustomer", query = "SELECT t FROM TblCustomers t WHERE t.typeCustomer = :typeCustomer"),
     @NamedQuery(name = "TblCustomers.findByAddress", query = "SELECT t FROM TblCustomers t WHERE t.address = :address"),
     @NamedQuery(name = "TblCustomers.findByLoyaltyPoints", query = "SELECT t FROM TblCustomers t WHERE t.loyaltyPoints = :loyaltyPoints"),
-    @NamedQuery(name = "TblCustomers.findByTotalSpent", query = "SELECT t FROM TblCustomers t WHERE t.totalSpent = :totalSpent")})
+    @NamedQuery(name = "TblCustomers.findByTotalSpent", query = "SELECT t FROM TblCustomers t WHERE t.totalSpent = :totalSpent"),
+    @NamedQuery(name = "TblCustomers.findByPasswordHash", query = "SELECT t FROM TblCustomers t WHERE t.passwordHash = :passwordHash")})
 public class TblCustomers implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -61,6 +62,11 @@ public class TblCustomers implements Serializable {
     @NotNull
     @Column(name = "total_spent")
     private BigDecimal totalSpent;
+    @Basic(optional = false)
+    @NotNull
+    @Size(min = 1, max = 255)
+    @Column(name = "password_hash")
+    private String passwordHash; // Dùng cho đăng nhập khách hàng
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "customerId")
     private Collection<TblReviews> tblReviewsCollection;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "customerId")
@@ -122,6 +128,14 @@ public class TblCustomers implements Serializable {
 
     public void setTotalSpent(BigDecimal totalSpent) {
         this.totalSpent = totalSpent;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     @XmlTransient
