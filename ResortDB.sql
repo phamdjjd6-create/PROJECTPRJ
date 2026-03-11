@@ -743,7 +743,7 @@ AS BEGIN
         c.id, p.full_name, p.phone_number, p.email,
         c.type_customer, c.loyalty_points, c.total_spent,
         COUNT(DISTINCT b.booking_id) AS total_bookings,
-        AVG(CAST(r.rating AS DECIMAL(3,1))) AS avg_rating_given
+      ISNULL(  AVG(CAST(r.rating AS DECIMAL(3,1))),0) AS avg_rating_given
     FROM      tbl_customers c
     JOIN      tbl_persons   p ON c.id = p.id
     LEFT JOIN tbl_bookings  b ON c.id = b.customer_id AND b.status = 'CHECKED_OUT'
