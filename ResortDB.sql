@@ -60,20 +60,24 @@ CREATE TABLE tbl_persons (
     id_card       VARCHAR(20)   NULL,
     phone_number  VARCHAR(20)   NULL,
     email         VARCHAR(100)  NULL,
+    account       VARCHAR(50)   NULL,          -- Tên đăng nhập
+    password_hash VARCHAR(255)  NOT NULL DEFAULT '123456', -- Mật khẩu chuyển lên đây
     person_type   VARCHAR(10)   NOT NULL,
     created_at    DATETIME      NOT NULL DEFAULT GETDATE(),
     updated_at    DATETIME      NOT NULL DEFAULT GETDATE(),
     is_deleted    BIT           NOT NULL DEFAULT 0,
 
-    CONSTRAINT PK_persons       PRIMARY KEY (id),
+    CONSTRAINT PK_persons        PRIMARY KEY (id),
     CONSTRAINT UQ_persons_email  UNIQUE (email),
-    -- Removed UQ_persons_idcard to allow multiple NULLs, replaced with filtered index below
     CONSTRAINT CK_persons_type   CHECK  (person_type IN ('EMPLOYEE','CUSTOMER'))
 );
 GO
 
+
 -- Filtered Index to allow multiple NULLs in id_card (SQL Server specific)
-CREATE UNIQUE INDEX UIX_persons_idcard ON tbl_persons(id_card) WHERE id_card IS NOT NULL;
+CREATE UNIQUE INDEX UIX_persons_idcard   ON tbl_persons(id_card)  WHERE id_card  IS NOT NULL;
+-- Filtered Index to allow multiple NULLs in account
+CREATE UNIQUE INDEX UIX_persons_account  ON tbl_persons(account)  WHERE account  IS NOT NULL;
 GO
 
 -- ── tbl_departments ──────────────────────────────────────────────
@@ -94,9 +98,8 @@ CREATE TABLE tbl_employees (
     position      NVARCHAR(60)  NULL,
     salary        DECIMAL(15,2) NOT NULL DEFAULT 0,
     hire_date     DATE          NULL,
-    password_hash VARCHAR(255)  NOT NULL DEFAULT '123456',
     is_active     BIT           NOT NULL DEFAULT 1,
-    role          VARCHAR(10)   NOT NULL DEFAULT 'STAFF', -- ADMIN | STAFF
+    role          VARCHAR(10)   NOT NULL DEFAULT 'STAFF',
 
     CONSTRAINT PK_employees PRIMARY KEY (id),
     CONSTRAINT FK_employees_persons FOREIGN KEY (id) REFERENCES tbl_persons(id) ON DELETE CASCADE,
@@ -116,7 +119,6 @@ CREATE TABLE tbl_customers (
     address         NVARCHAR(200) NULL,
     loyalty_points  INT           NOT NULL DEFAULT 0,
     total_spent     DECIMAL(18,2) NOT NULL DEFAULT 0,
-    password_hash   VARCHAR(255)  NOT NULL DEFAULT '123456', -- Dùng cho login khách hàng
 
     CONSTRAINT PK_customers PRIMARY KEY (id),
     CONSTRAINT FK_customers_persons FOREIGN KEY (id) REFERENCES tbl_persons(id) ON DELETE CASCADE
@@ -405,7 +407,7 @@ GO
 CREATE OR ALTER VIEW vw_employees AS
 SELECT
     p.id, p.full_name, p.date_of_birth, p.gender, p.id_card,
-    p.phone_number, p.email, p.created_at,
+    p.phone_number, p.email, p.account, p.created_at,
     e.dept_id, d.dept_name, e.level, e.position,
     e.salary, e.hire_date, e.is_active, e.role
 FROM tbl_employees e
@@ -418,7 +420,7 @@ GO
 CREATE OR ALTER VIEW vw_customers AS
 SELECT
     p.id, p.full_name, p.date_of_birth, p.gender, p.id_card,
-    p.phone_number, p.email, p.created_at,
+    p.phone_number, p.email, p.account, p.created_at,
     c.type_customer, c.address, c.loyalty_points, c.total_spent
 FROM tbl_customers c
 JOIN tbl_persons p ON c.id = p.id
@@ -505,58 +507,75 @@ GO
 --  ❻  SAMPLE DATA (v2.2 — Role-Based)
 -- ================================================================
 
--- Departments
+-- ================================================================
+--  ❻  SAMPLE DATA (v2.3 — Realistic Data & Refactored Auth)
+-- ================================================================
+
+-- ── Departments ──────────────────────────────────────────────────
 INSERT INTO tbl_departments(dept_id, dept_name)
-VALUES ('DP01', N'Management'), ('DP02', N'Reception'), ('DP03', N'Facility');
-
--- ── Persons & Employees ──────────────────────────────────────────
--- Admin
-INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number)
-VALUES ('NV001', N'Nguyễn Admin', 'EMPLOYEE', 'ID001', 'admin@resort.com', '0901000001');
-INSERT INTO tbl_employees(id, dept_id, salary, role, position, hire_date)
-VALUES ('NV001', 'DP01', 30000000, 'ADMIN', N'Quản lý hệ thống', '2020-01-01');
-
--- Nhân viên lễ tân
-INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number)
-VALUES ('NV002', N'Trần Lễ Tân', 'EMPLOYEE', 'ID003', 'staff1@resort.com', '0901000002');
-INSERT INTO tbl_employees(id, dept_id, salary, role, position, hire_date)
-VALUES ('NV002', 'DP02', 12000000, 'STAFF', N'Lễ tân', '2022-06-15');
-
--- ── Customers ────────────────────────────────────────────────────
-INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number)
-VALUES ('KH001', N'Nguyễn Văn A', 'CUSTOMER', 'ID002', 'customer1@gmail.com', '0912000001');
-INSERT INTO tbl_customers(id, type_customer, address)
-VALUES ('KH001', N'Gold', N'123 Đường Lê Lợi, TP.HCM');
-
-INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number)
-VALUES ('KH002', N'Trần Thị B', 'CUSTOMER', 'ID004', 'customer2@gmail.com', '0912000002');
-INSERT INTO tbl_customers(id, type_customer, address)
-VALUES ('KH002', N'Normal', N'456 Đường Nguyễn Huệ, Đà Nẵng');
-
--- ── Facilities ───────────────────────────────────────────────────
-INSERT INTO tbl_facilities(service_code, service_name, cost, facility_type, max_people, status, description)
-VALUES
-    ('VL001', N'Ocean Villa', 5000000, 'VILLA', 6, 'AVAILABLE', N'Villa view biển, hồ bơi riêng'),
-    ('VL002', N'Garden Villa', 3500000, 'VILLA', 4, 'AVAILABLE', N'Villa view vườn, yên tĩnh'),
-    ('RM001', N'Deluxe Room', 1200000, 'ROOM',  2, 'AVAILABLE', N'Phòng deluxe tầng 3');
-INSERT INTO tbl_villas(service_code, room_standard, pool_area, num_of_floor)
-VALUES ('VL001', '5 Star', 50.0, 2), ('VL002', '4 Star', 30.0, 1);
-INSERT INTO tbl_rooms(service_code, free_services, floor_number)
-VALUES ('RM001', N'Breakfast, WiFi', 3);
-
--- ── Bookings ─────────────────────────────────────────────────────
-INSERT INTO tbl_bookings(booking_id, start_date, end_date, customer_id, facility_id, status, adults, children)
-VALUES
-    ('BK001', '2025-05-01', '2025-05-05', 'KH001', 'VL001', 'CONFIRMED', 2, 1),
-    ('BK002', '2025-06-10', '2025-06-14', 'KH002', 'RM001', 'PENDING',   2, 0);
-
--- ── Contract mẫu ─────────────────────────────────────────────────
-INSERT INTO tbl_contracts(contract_id, booking_id, deposit, total_payment, paid_amount, employee_id, status, signed_date)
-VALUES ('CT001', 'BK001', 5000000, 20000000, 5000000, 'NV002', 'ACTIVE', '2025-04-20');
-
-PRINT 'ResortDB v2.2 Role-Based Successfully!';
+VALUES 
+    ('DP01', N'Ban Giám Đốc'), 
+    ('DP02', N'Tiếp Tân & Chăm Sóc Khách Hàng'), 
+    ('DP03', N'IT & Vận Hành Hệ Thống');
 GO
 
-select * from vw_monthly_revenue;
+-- ── Persons & Employees (Tài khoản nhân viên) ────────────────────
+-- Admin
+INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number, account, password_hash)
+VALUES ('NV001', N'Phạm Tuấn Việt', 'EMPLOYEE', '044203001111', 'tuanviet1520@gmail.com', '0814577495', 'admin_viet', '$2a$10$wYQ.2P8z.yW.M.R7.Q.1234567890dummyhash1');
+INSERT INTO tbl_employees(id, dept_id, salary, role, position, hire_date)
+VALUES ('NV001', 'DP03', 25000000, 'ADMIN', N'Quản trị viên hệ thống', '2023-09-01');
 
-select * from vw_monthly_revenue;   
+-- Lễ tân
+INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number, account, password_hash)
+VALUES ('NV002', N'Quân', 'EMPLOYEE', '044203002222', 'quan.reception@resort.com', '0901000002', 'staff_quan', '$2a$10$xyz.2P8z.yW.M.R7.Q.0987654321dummyhash2');
+INSERT INTO tbl_employees(id, dept_id, salary, role, position, hire_date)
+VALUES ('NV002', 'DP02', 12000000, 'STAFF', N'Trưởng ca Lễ tân', '2024-02-15');
+
+-- ── Persons & Customers (Tài khoản khách hàng) ───────────────────
+-- Khách hàng VIP
+INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number, account, password_hash)
+VALUES ('KH001', N'Quốc', 'CUSTOMER', '044203003333', 'quoc.vip@gmail.com', '0912000001', 'quoc_vip', '$2a$10$abc.2P8z.yW.M.R7.Q.1122334455dummyhash3');
+INSERT INTO tbl_customers(id, type_customer, address, loyalty_points, total_spent)
+VALUES ('KH001', N'Diamond', N'Ba Đồn, Quảng Trị, Việt Nam', 1500, 45000000);
+
+-- Khách hàng vãng lai
+INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number, account, password_hash)
+VALUES ('KH002', N'Trần Thị Mai', 'CUSTOMER', '044203004444', 'maitran.88@gmail.com', '0933445566', 'mai_tran', '$2a$10$def.2P8z.yW.M.R7.Q.6677889900dummyhash4');
+INSERT INTO tbl_customers(id, type_customer, address, loyalty_points, total_spent)
+VALUES ('KH002', N'Normal', N'Hải Châu, Đà Nẵng', 100, 2500000);
+GO
+
+-- ── Facilities (Cơ sở vật chất) ──────────────────────────────────
+INSERT INTO tbl_facilities(service_code, service_name, cost, facility_type, max_people, status, description)
+VALUES
+    ('VL001', N'Presidential Ocean Villa', 15000000, 'VILLA', 8, 'AVAILABLE', N'Villa mặt biển VIP nhất, hồ bơi vô cực riêng, quản gia 24/7'),
+    ('VL002', N'Family Garden Villa', 6500000, 'VILLA', 6, 'AVAILABLE', N'Villa vườn nhiệt đới, không gian nướng BBQ ngoài trời'),
+    ('RM001', N'Ocean View Suite', 2500000, 'ROOM',  2, 'AVAILABLE', N'Phòng Suite tầng 5, view toàn cảnh biển bình minh');
+GO
+
+INSERT INTO tbl_villas(service_code, room_standard, pool_area, num_of_floor)
+VALUES ('VL001', '5 Star Diamond', 80.0, 2), ('VL002', '4 Star Premium', 45.0, 1);
+GO
+
+INSERT INTO tbl_rooms(service_code, free_services, floor_number)
+VALUES ('RM001', N'Buffet sáng, Massage 60p, Minibar', 5);
+GO
+
+-- ── Bookings (Đặt phòng) ─────────────────────────────────────────
+-- Booking đã xác nhận
+INSERT INTO tbl_bookings(booking_id, start_date, end_date, customer_id, facility_id, status, adults, children)
+VALUES
+    ('BK_20260315_01', '2026-04-30', '2026-05-03', 'KH001', 'VL001', 'CONFIRMED', 4, 2),
+    ('BK_20260315_02', '2026-05-10', '2026-05-12', 'KH002', 'RM001', 'PENDING',   2, 0);
+GO
+
+-- ── Contracts (Hợp đồng thanh toán) ──────────────────────────────
+-- Hợp đồng cọc cho booking VL001 của khách hàng VIP
+INSERT INTO tbl_contracts(contract_id, booking_id, deposit, total_payment, paid_amount, employee_id, status, signed_date)
+VALUES ('CT_2026_001', 'BK_20260315_01', 15000000, 45000000, 15000000, 'NV002', 'ACTIVE', '2026-03-10');
+GO
+
+PRINT 'ResortDB Sample Data Inserted Successfully!';
+GO
+

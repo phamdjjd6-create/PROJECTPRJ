@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 @Entity
 @Table(name = "tbl_employees")
 @PrimaryKeyJoinColumn(name = "id")
+@DiscriminatorValue("EMPLOYEE")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor

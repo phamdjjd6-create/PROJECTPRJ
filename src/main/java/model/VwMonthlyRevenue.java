@@ -6,6 +6,8 @@ package model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
@@ -20,6 +22,7 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "vw_monthly_revenue")
 @XmlRootElement
+@IdClass(VwMonthlyRevenue.RevenueId.class)
 @NamedQueries({
     @NamedQuery(name = "VwMonthlyRevenue.findAll", query = "SELECT v FROM VwMonthlyRevenue v"),
     @NamedQuery(name = "VwMonthlyRevenue.findByYr", query = "SELECT v FROM VwMonthlyRevenue v WHERE v.yr = :yr"),
@@ -30,8 +33,11 @@ import java.math.BigDecimal;
 public class VwMonthlyRevenue implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    // Composite PK: yr + mo
+    @Id
     @Column(name = "yr")
     private Integer yr;
+    @Id
     @Column(name = "mo")
     private Integer mo;
     @Column(name = "payment_count")
@@ -84,5 +90,18 @@ public class VwMonthlyRevenue implements Serializable {
     public void setAvgPayment(BigDecimal avgPayment) {
         this.avgPayment = avgPayment;
     }
-    
+
+    // ── Composite PK class ───────────────────────────────────────
+    public static class RevenueId implements Serializable {
+        private Integer yr;
+        private Integer mo;
+        public RevenueId() {}
+        public RevenueId(Integer yr, Integer mo) { this.yr = yr; this.mo = mo; }
+        @Override public boolean equals(Object o) {
+            if (!(o instanceof RevenueId)) return false;
+            RevenueId r = (RevenueId) o;
+            return java.util.Objects.equals(yr, r.yr) && java.util.Objects.equals(mo, r.mo);
+        }
+        @Override public int hashCode() { return java.util.Objects.hash(yr, mo); }
+    }
 }

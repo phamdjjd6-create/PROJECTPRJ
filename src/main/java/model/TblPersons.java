@@ -12,7 +12,8 @@ import lombok.AllArgsConstructor;
 @Entity
 @Table(name = "tbl_persons")
 @Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "person_type")
+@DiscriminatorColumn(name = "person_type", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorValue("CUSTOMER") // instance trực tiếp = khách hàng
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -53,6 +54,14 @@ public class TblPersons implements Serializable {
     @Column(name = "email")
     private String email;
 
+    @Size(max = 50)
+    @Column(name = "account")
+    private String account; // Tên đăng nhập, unique (nullable)
+
+    @Size(max = 255)
+    @Column(name = "password_hash")
+    private String passwordHash; // Mật khẩu đã mã hóa BCrypt
+
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 10)
@@ -75,4 +84,108 @@ public class TblPersons implements Serializable {
     @NotNull
     @Column(name = "is_deleted")
     private boolean isDeleted;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public Date getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(Date dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getIdCard() {
+        return idCard;
+    }
+
+    public void setIdCard(String idCard) {
+        this.idCard = idCard;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getAccount() {
+        return account;
+    }
+
+    public void setAccount(String account) {
+        this.account = account;
+    }
+
+    public String getPersonType() {
+        return personType;
+    }
+
+    public void setPersonType(String personType) {
+        this.personType = personType;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public boolean isIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
 }
