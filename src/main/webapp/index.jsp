@@ -2,12 +2,19 @@
 <%@ page import="model.TblPersons" %>
 <%
     // Bảo vệ trang — chưa login thì redirect về login
-    TblPersons currentUser = (TblPersons) session.getAttribute("account");
-    if (currentUser == null) {
-        response.sendRedirect("login");
-        return;
+//    TblPersons currentUser = (TblPersons) session.getAttribute("account");
+//    if (currentUser == null) {
+//        response.sendRedirect("login");
+//        return;
+//    }
+//    String fullName = currentUser.getFullName();
+TblPersons currentUser = (TblPersons) session.getAttribute("account");
+    String account = null;
+    
+    // Nếu đã đăng nhập thì lấy tên, KHÔNG redirect người chưa đăng nhập nữa
+    if (currentUser != null) {
+        account = currentUser.getFullName();
     }
-    String fullName = currentUser.getFullName();
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -695,6 +702,21 @@
             .footer-inner { grid-template-columns: 1fr; }
             .hero h1 { font-size: 38px; }
         }
+        .btn-nav-login {
+            padding: 8px 24px;
+            background: var(--gold);
+            color: var(--dark);
+            border: 1px solid var(--gold);
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.25s;
+        }
+        .btn-nav-login:hover {
+            background: var(--gold-light);
+            box-shadow: 0 4px 12px rgba(201,168,76,0.3);
+        }
     </style>
 </head>
 <body>
@@ -709,8 +731,22 @@
         <li><a href="contracts">Hợp Đồng</a></li>
     </ul>
     <div class="nav-right">
-        <span class="nav-greeting">Xin chào, <strong><%= fullName %></strong></span>
-        <a href="logout" class="btn-nav-logout">Đăng xuất</a>
+<!--        <span class="nav-greeting">Xin chào, <strong><%= account %></strong></span>
+        <a href="logout" class="btn-nav-logout">Đăng xuất</a>-->
+        
+        <% 
+            // Kiểm tra nếu fullName có dữ liệu nghĩa là đã đăng nhập
+            if (account != null && !account.trim().isEmpty()) { 
+        %>
+            <span class="nav-greeting">Xin chào, <strong><%= account %></strong></span>
+            <a href="logout" class="btn-nav-logout">Đăng xuất</a>
+        <% 
+            } else { 
+        %>
+            <a href="login.jsp" class="btn-nav-login">Đăng nhập</a>
+        <% 
+            } 
+        %>
     </div>
 </nav>
 
@@ -796,25 +832,25 @@
         <p class="section-desc">Từ đặt phòng đến quản lý hợp đồng, tất cả trong một nơi.</p>
         <div class="features-grid">
             <a href="booking" class="feature-card">
-                <span class="feature-icon">🏖️</span>
+<!--                <span class="feature-icon">🏖</span>-->
                 <h3>Đặt Phòng</h3>
                 <p>Chọn villa hoặc phòng yêu thích và đặt ngay trong vài bước đơn giản.</p>
                 <span class="feature-arrow">Đặt ngay →</span>
             </a>
             <a href="booking?view=my" class="feature-card">
-                <span class="feature-icon">📋</span>
+<!--                <span class="feature-icon">📋</span>-->
                 <h3>Booking Của Tôi</h3>
                 <p>Xem lịch sử đặt phòng, trạng thái và chi tiết các booking của bạn.</p>
                 <span class="feature-arrow">Xem ngay →</span>
             </a>
             <a href="contracts" class="feature-card">
-                <span class="feature-icon">📄</span>
+<!--                <span class="feature-icon">📄</span>-->
                 <h3>Hợp Đồng</h3>
                 <p>Tra cứu và quản lý hợp đồng, theo dõi tình trạng thanh toán.</p>
                 <span class="feature-arrow">Xem ngay →</span>
             </a>
             <a href="#promotions" class="feature-card">
-                <span class="feature-icon">🎁</span>
+<!--                <span class="feature-icon">🎁</span>-->
                 <h3>Khuyến Mãi</h3>
                 <p>Khám phá ưu đãi đặc biệt và mã giảm giá dành riêng cho bạn.</p>
                 <span class="feature-arrow">Xem ưu đãi →</span>
@@ -920,9 +956,9 @@
                 <div class="promo-desc">Đặt phòng trước 30 ngày để nhận ưu đãi giảm 20% cho tất cả các loại phòng và villa.</div>
                 <div class="promo-code">
                     <span>EARLYBIRD20</span>
-                    <button onclick="copyCode('EARLYBIRD20', this)">📋 Sao chép</button>
+                    <button onclick="copyCode('EARLYBIRD20', this)">Sao chép</button>
                 </div>
-                <div class="promo-expiry">⏰ Hết hạn: 31/05/2026</div>
+                <div class="promo-expiry">Hết hạn: 31/05/2026</div>
             </div>
             <div class="promo-card">
                 <div class="promo-discount">15%</div>
@@ -930,9 +966,9 @@
                 <div class="promo-desc">Đặt phòng vào thứ 6, thứ 7 nhận ngay ưu đãi 15% kèm bữa ăn sáng miễn phí cho 2 người.</div>
                 <div class="promo-code">
                     <span>WEEKEND15</span>
-                    <button onclick="copyCode('WEEKEND15', this)">📋 Sao chép</button>
+                    <button onclick="copyCode('WEEKEND15', this)">Sao chép</button>
                 </div>
-                <div class="promo-expiry">⏰ Hết hạn: 30/06/2026</div>
+                <div class="promo-expiry">Hết hạn: 30/06/2026</div>
             </div>
             <div class="promo-card">
                 <div class="promo-discount">30%</div>
@@ -940,9 +976,9 @@
                 <div class="promo-desc">Danh hiệu Diamond/Gold được hưởng ưu đãi 30% cho lần đặt phòng tiếp theo. Không giới hạn loại phòng.</div>
                 <div class="promo-code">
                     <span>VIP2026</span>
-                    <button onclick="copyCode('VIP2026', this)">📋 Sao chép</button>
+                    <button onclick="copyCode('VIP2026', this)">Sao chép</button>
                 </div>
-                <div class="promo-expiry">⏰ Hết hạn: 31/12/2026</div>
+                <div class="promo-expiry">Hết hạn: 31/12/2026</div>
             </div>
         </div>
     </div>
@@ -955,22 +991,22 @@
         <h2 class="section-title">Quản Lý <em>Nhanh</em></h2>
         <div class="account-cards">
             <a href="booking?view=my" class="account-card">
-                <div class="account-card-icon">📋</div>
+<!--                <div class="account-card-icon">📋</div>-->
                 <h4>Booking Của Tôi</h4>
                 <p>Xem và quản lý đặt phòng</p>
             </a>
             <a href="contracts" class="account-card">
-                <div class="account-card-icon">📄</div>
+<!--                <div class="account-card-icon">📄</div>-->
                 <h4>Hợp Đồng</h4>
                 <p>Tra cứu hợp đồng & thanh toán</p>
             </a>
             <a href="profile" class="account-card">
-                <div class="account-card-icon">👤</div>
+<!--                <div class="account-card-icon">👤</div>-->
                 <h4>Hồ Sơ</h4>
                 <p>Cập nhật thông tin cá nhân</p>
             </a>
             <a href="#promotions" class="account-card">
-                <div class="account-card-icon">🎁</div>
+<!--                <div class="account-card-icon">🎁</div>-->
                 <h4>Ưu Đãi Của Tôi</h4>
                 <p>Voucher &amp; điểm thưởng</p>
             </a>
