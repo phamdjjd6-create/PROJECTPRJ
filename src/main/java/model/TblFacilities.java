@@ -95,6 +95,11 @@ public class TblFacilities implements Serializable {
     @Column(name = "is_deleted")
     private boolean isDeleted;
 
+    @Basic(optional = false)
+    @NotNull
+    @Column(name = "usage_count")
+    private int usageCount;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "facilityId")
     private Collection<TblBookings> tblBookingsCollection;
 }

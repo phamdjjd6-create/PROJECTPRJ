@@ -144,6 +144,7 @@ CREATE TABLE tbl_facilities (
     created_at    DATETIME      NOT NULL DEFAULT GETDATE(),
     updated_at    DATETIME      NOT NULL DEFAULT GETDATE(),
     is_deleted    BIT           NOT NULL DEFAULT 0,
+    usage_count   INT           NOT NULL DEFAULT 0,
 
     CONSTRAINT PK_facilities PRIMARY KEY (service_code),
     CONSTRAINT CK_facilities_type   CHECK (facility_type IN ('VILLA','HOUSE','ROOM')),
