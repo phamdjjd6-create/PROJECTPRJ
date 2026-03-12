@@ -4,9 +4,6 @@ import DAO.BookingDAO;
 import DAO.CustomerDAO;
 import DAO.PromotionDAO;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,11 +15,12 @@ import model.TblPromotions;
 import model.VwCustomers;
 
 public class PromotionService implements IService<TblPromotions, Integer> {
-    private final PromotionDAO promotionDAO = new PromotionDAO();
+    private final PromotionDAO promotionDAO;
     private final BookingDAO bookingDAO;
     private final CustomerDAO customerDAO;
 
     public PromotionService() {
+        this.promotionDAO = new PromotionDAO();
         this.bookingDAO = new BookingDAO();
         this.customerDAO = new CustomerDAO();
     }
@@ -53,12 +51,8 @@ public class PromotionService implements IService<TblPromotions, Integer> {
      * Get a list of customers who made bookings in a specific year.
      */
     public List<VwCustomers> getCustomersByYear(int year) {
-        List<TblBookings> allBookings = bookingDAO.findAll();
-        Set<String> customerIds = allBookings.stream()
-                .filter(b -> {
-                    LocalDate date = b.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                    return date.getYear() == year;
-                })
+        List<TblBookings> yearBookings = bookingDAO.findByYear(year);
+        Set<String> customerIds = yearBookings.stream()
                 .map(b -> b.getCustomerId().getId())
                 .collect(Collectors.toSet());
 
@@ -76,11 +70,7 @@ public class PromotionService implements IService<TblPromotions, Integer> {
         int month = now.getMonthValue();
         int year = now.getYear();
 
-        List<TblBookings> monthBookings = bookingDAO.findAll().stream()
-                .filter(b -> {
-                    LocalDate date = b.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                    return date.getMonthValue() == month && date.getYear() == year;
-                })
+        List<TblBookings> monthBookings = bookingDAO.findByMonth(year, month).stream()
                 .sorted((b1, b2) -> b1.getDateBooking().compareTo(b2.getDateBooking()))
                 .toList();
 
@@ -101,11 +91,7 @@ public class PromotionService implements IService<TblPromotions, Integer> {
      * Count unique customers who booked in a given month/year.
      */
     public int getCountOfUniqueCustomersInMonth(int year, int month) {
-        return (int) bookingDAO.findAll().stream()
-                .filter(b -> {
-                    LocalDate date = b.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                    return date.getMonthValue() == month && date.getYear() == year;
-                })
+        return (int) bookingDAO.findByMonth(year, month).stream()
                 .map(b -> b.getCustomerId().getId())
                 .distinct()
                 .count();

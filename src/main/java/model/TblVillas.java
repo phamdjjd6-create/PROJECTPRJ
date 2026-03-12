@@ -1,21 +1,12 @@
 package model;
 
 import jakarta.persistence.*;
-import java.io.Serializable;
 import java.math.BigDecimal;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "tbl_villas")
 @PrimaryKeyJoinColumn(name = "service_code")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class TblVillas extends TblFacilities implements Serializable {
+public class TblVillas extends TblFacilities {
 
     private static final long serialVersionUID = 1L;
 
@@ -27,4 +18,31 @@ public class TblVillas extends TblFacilities implements Serializable {
 
     @Column(name = "num_of_floor")
     private Integer numOfFloor;
+
+    public TblVillas() {
+    }
+
+    public String getRoomStandard() {
+        return roomStandard;
+    }
+
+    public void setRoomStandard(String roomStandard) {
+        this.roomStandard = roomStandard;
+    }
+
+    public BigDecimal getPoolArea() {
+        return poolArea;
+    }
+
+    public void setPoolArea(BigDecimal poolArea) {
+        this.poolArea = poolArea;
+    }
+
+    public Integer getNumOfFloor() {
+        return numOfFloor;
+    }
+
+    public void setNumOfFloor(Integer numOfFloor) {
+        this.numOfFloor = numOfFloor;
+    }
 }

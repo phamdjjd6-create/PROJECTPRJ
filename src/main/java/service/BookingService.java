@@ -8,6 +8,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import model.TblBookings;
 
@@ -34,6 +35,12 @@ public class BookingService implements IService<TblBookings, String> {
 
     @Override
     public void save(TblBookings booking) {
+        if (booking.getBookingId() == null || booking.getBookingId().isEmpty()) {
+            booking.setBookingId(bookingDAO.generateBookingId());
+        }
+        if (booking.getDateBooking() == null) {
+            booking.setDateBooking(new Date());
+        }
         validateBooking(booking);
         bookingDAO.save(booking);
         
@@ -82,8 +89,17 @@ public class BookingService implements IService<TblBookings, String> {
     private void validateBooking(TblBookings b) {
         if (b == null) throw new IllegalArgumentException("Dữ liệu Booking rỗng.");
 
-        if (bookingDAO.findById(b.getBookingId()) != null) {
-            // This check might be handled by JPA persistence exception but explicit is better
+        // Check if customer and facility exist
+        if (customerDAO.findById(b.getCustomerId().getId()) == null) {
+            throw new IllegalArgumentException("Không tìm thấy khách hàng: " + b.getCustomerId().getId());
+        }
+
+        if (facilityDAO.findByCode(b.getFacilityId().getServiceCode()) == null) {
+            throw new IllegalArgumentException("Không tìm thấy dịch vụ: " + b.getFacilityId().getServiceCode());
+        }
+
+        if (b.getStartDate() == null || b.getEndDate() == null) {
+             throw new IllegalArgumentException("Ngày bắt đầu và kết thúc không được để trống.");
         }
 
         LocalDate start = b.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
@@ -91,14 +107,6 @@ public class BookingService implements IService<TblBookings, String> {
         
         if (end.isBefore(start)) {
             throw new IllegalArgumentException("Ngày kết thúc phải sau hoặc bằng ngày bắt đầu.");
-        }
-
-        if (customerDAO.findById(b.getCustomerId().getId()) == null) {
-            throw new IllegalArgumentException("Không tìm thấy khách hàng: " + b.getCustomerId().getId());
-        }
-
-        if (facilityDAO.findByCode(b.getFacilityId().getServiceCode()) == null) {
-            throw new IllegalArgumentException("Không tìm thấy dịch vụ: " + b.getFacilityId().getServiceCode());
         }
     }
 }

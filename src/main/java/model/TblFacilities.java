@@ -19,9 +19,6 @@ import lombok.AllArgsConstructor;
 @Table(name = "tbl_facilities")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "facility_type")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class TblFacilities implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -102,4 +99,127 @@ public class TblFacilities implements Serializable {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "facilityId")
     private Collection<TblBookings> tblBookingsCollection;
+
+    public TblFacilities() {
+    }
+
+    public String getServiceCode() {
+        return serviceCode;
+    }
+
+    public void setServiceCode(String serviceCode) {
+        this.serviceCode = serviceCode;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public BigDecimal getUsableArea() {
+        return usableArea;
+    }
+
+    public void setUsableArea(BigDecimal usableArea) {
+        this.usableArea = usableArea;
+    }
+
+    public BigDecimal getCost() {
+        return cost;
+    }
+
+    public void setCost(BigDecimal cost) {
+        this.cost = cost;
+    }
+
+    public int getMaxPeople() {
+        return maxPeople;
+    }
+
+    public void setMaxPeople(int maxPeople) {
+        this.maxPeople = maxPeople;
+    }
+
+    public String getRentalType() {
+        return rentalType;
+    }
+
+    public void setRentalType(String rentalType) {
+        this.rentalType = rentalType;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getFacilityType() {
+        return facilityType;
+    }
+
+    public void setFacilityType(String facilityType) {
+        this.facilityType = facilityType;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public int getUsageCount() {
+        return usageCount;
+    }
+
+    public void setUsageCount(int usageCount) {
+        this.usageCount = usageCount;
+    }
+
+    public Collection<TblBookings> getTblBookingsCollection() {
+        return tblBookingsCollection;
+    }
+
+    public void setTblBookingsCollection(Collection<TblBookings> tblBookingsCollection) {
+        this.tblBookingsCollection = tblBookingsCollection;
+    }
 }

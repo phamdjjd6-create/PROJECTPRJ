@@ -79,7 +79,7 @@ public class RegisterController extends HttpServlet {
         person.setPersonType("CUSTOMER");
         person.setCreatedAt(new Date());
         person.setUpdatedAt(new Date());
-        person.setIsDeleted(false);
+        person.setDeleted(false);
 
         // ── Lưu vào database ─────────────────────────────────────
         boolean success = dao.registerCustomer(person);

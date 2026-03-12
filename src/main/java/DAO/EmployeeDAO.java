@@ -13,7 +13,7 @@ public class EmployeeDAO {
             Persistence.createEntityManagerFactory("ResortPU");
 
     public List<VwEmployees> findAll() {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             return em.createQuery("SELECT e FROM VwEmployees e", VwEmployees.class)
                     .getResultList();
@@ -23,7 +23,7 @@ public class EmployeeDAO {
     }
 
     public List<TblEmployees> findAllEntities() {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             return em.createQuery("SELECT e FROM TblEmployees e WHERE e.isDeleted = false", TblEmployees.class)
                     .getResultList();
@@ -33,7 +33,7 @@ public class EmployeeDAO {
     }
 
     public TblEmployees findById(String id) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             return em.find(TblEmployees.class, id);
         } finally {
@@ -42,7 +42,7 @@ public class EmployeeDAO {
     }
 
     public void save(TblEmployees employee) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             em.getTransaction().begin();
             if (em.find(TblEmployees.class, employee.getId()) == null) {

@@ -7,15 +7,9 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "tbl_vouchers")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class TblVouchers implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -57,4 +51,71 @@ public class TblVouchers implements Serializable {
     @JoinColumn(name = "customer_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private TblCustomers customerId;
+
+    public TblVouchers() {
+    }
+
+    public Integer getVoucherId() {
+        return voucherId;
+    }
+
+    public void setVoucherId(Integer voucherId) {
+        this.voucherId = voucherId;
+    }
+
+    public int getDiscountPercent() {
+        return discountPercent;
+    }
+
+    public void setDiscountPercent(int discountPercent) {
+        this.discountPercent = discountPercent;
+    }
+
+    public Date getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(Date expiryDate) {
+        this.expiryDate = expiryDate;
+    }
+
+    public boolean isIsUsed() {
+        return isUsed;
+    }
+
+    public void setIsUsed(boolean isUsed) {
+        this.isUsed = isUsed;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public BigDecimal getMinOrderValue() {
+        return minOrderValue;
+    }
+
+    public void setMinOrderValue(BigDecimal minOrderValue) {
+        this.minOrderValue = minOrderValue;
+    }
+
+    public Collection<TblBookings> getTblBookingsCollection() {
+        return tblBookingsCollection;
+    }
+
+    public void setTblBookingsCollection(Collection<TblBookings> tblBookingsCollection) {
+        this.tblBookingsCollection = tblBookingsCollection;
+    }
+
+    public TblCustomers getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(TblCustomers customerId) {
+        this.customerId = customerId;
+    }
 }

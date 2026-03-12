@@ -37,7 +37,7 @@ public class CustomerService implements IService<TblCustomers, String> {
     public void delete(String id) {
         TblCustomers customer = customerDAO.findById(id);
         if (customer != null) {
-            customer.getTblPersons().setIsDeleted(true);
+            customer.getTblPersons().setDeleted(true);
             customerDAO.save(customer);
         } else {
             throw new IllegalArgumentException("Không tìm thấy khách hàng để xóa: " + id);

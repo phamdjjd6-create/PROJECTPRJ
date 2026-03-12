@@ -11,9 +11,6 @@ import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "tbl_bookings")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class TblBookings implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -77,4 +74,103 @@ public class TblBookings implements Serializable {
     @JoinColumn(name = "created_by", referencedColumnName = "id")
     @ManyToOne
     private TblEmployees createdBy;
+
+    public TblBookings() {
+    }
+
+    public String getBookingId() {
+        return bookingId;
+    }
+
+    public void setBookingId(String bookingId) {
+        this.bookingId = bookingId;
+    }
+
+    public Date getDateBooking() {
+        return dateBooking;
+    }
+
+    public void setDateBooking(Date dateBooking) {
+        this.dateBooking = dateBooking;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getSpecialReq() {
+        return specialReq;
+    }
+
+    public void setSpecialReq(String specialReq) {
+        this.specialReq = specialReq;
+    }
+
+    public int getAdults() {
+        return adults;
+    }
+
+    public void setAdults(int adults) {
+        this.adults = adults;
+    }
+
+    public int getChildren() {
+        return children;
+    }
+
+    public void setChildren(int children) {
+        this.children = children;
+    }
+
+    public TblCustomers getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(TblCustomers customerId) {
+        this.customerId = customerId;
+    }
+
+    public TblFacilities getFacilityId() {
+        return facilityId;
+    }
+
+    public void setFacilityId(TblFacilities facilityId) {
+        this.facilityId = facilityId;
+    }
+
+    public TblVouchers getVoucherId() {
+        return voucherId;
+    }
+
+    public void setVoucherId(TblVouchers voucherId) {
+        this.voucherId = voucherId;
+    }
+
+    public TblEmployees getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(TblEmployees createdBy) {
+        this.createdBy = createdBy;
+    }
 }

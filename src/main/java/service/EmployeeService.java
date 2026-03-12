@@ -37,7 +37,7 @@ public class EmployeeService implements IService<TblEmployees, String> {
     public void delete(String id) {
         TblEmployees employee = employeeDAO.findById(id);
         if (employee != null) {
-            employee.setIsDeleted(true);
+            employee.setDeleted(true);
             employeeDAO.save(employee);
         } else {
             throw new IllegalArgumentException("Không tìm thấy nhân viên để xóa: " + id);

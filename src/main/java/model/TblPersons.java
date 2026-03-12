@@ -5,19 +5,16 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "tbl_persons")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "person_type", discriminatorType = DiscriminatorType.STRING)
 @DiscriminatorValue("CUSTOMER") // instance trực tiếp = khách hàng
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class TblPersons implements Serializable {
+
+    public TblPersons() {
+    }
 
     private static final long serialVersionUID = 1L;
 
@@ -173,11 +170,11 @@ public class TblPersons implements Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public boolean isIsDeleted() {
+    public boolean isDeleted() {
         return isDeleted;
     }
 
-    public void setIsDeleted(boolean isDeleted) {
+    public void setDeleted(boolean isDeleted) {
         this.isDeleted = isDeleted;
     }
 
