@@ -50,14 +50,14 @@ public class LoginController extends HttpServlet {
         TblPersons acc = dao.findByUsername(username);
 
         // ── Kiểm tra tồn tại & BCrypt verify ────────────────────
-        if (acc == null || !BCrypt.verifyer()
+        if (acc == null || acc.getPasswordHash() == null || !BCrypt.verifyer()
                 .verify(password.toCharArray(), acc.getPasswordHash()).verified) {
             error(request, response, "Tên tài khoản hoặc mật khẩu không đúng!");
             return;
         }
 
         // ── Kiểm tra tài khoản bị khóa (soft-delete) ────────────
-        if (acc.isIsDeleted()) {
+        if (acc.isDeleted()) {
             error(request, response, "Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.");
             return;
         }

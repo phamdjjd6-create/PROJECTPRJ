@@ -1,20 +1,11 @@
 package model;
 
 import jakarta.persistence.*;
-import java.io.Serializable;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "tbl_houses")
 @PrimaryKeyJoinColumn(name = "service_code")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class TblHouses extends TblFacilities implements Serializable {
+public class TblHouses extends TblFacilities {
 
     private static final long serialVersionUID = 1L;
 
@@ -23,4 +14,23 @@ public class TblHouses extends TblFacilities implements Serializable {
 
     @Column(name = "num_of_floor")
     private Integer numOfFloor;
+
+    public TblHouses() {
+    }
+
+    public String getRoomStandard() {
+        return roomStandard;
+    }
+
+    public void setRoomStandard(String roomStandard) {
+        this.roomStandard = roomStandard;
+    }
+
+    public Integer getNumOfFloor() {
+        return numOfFloor;
+    }
+
+    public void setNumOfFloor(Integer numOfFloor) {
+        this.numOfFloor = numOfFloor;
+    }
 }

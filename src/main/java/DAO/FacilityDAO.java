@@ -1,18 +1,14 @@
 package DAO;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import java.util.List;
 import model.TblFacilities;
 
 public class FacilityDAO {
 
-    private static final EntityManagerFactory emf = 
-            Persistence.createEntityManagerFactory("ResortPU");
 
     public List<TblFacilities> findAll() {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             return em.createQuery("SELECT f FROM TblFacilities f WHERE f.isDeleted = false", TblFacilities.class)
                     .getResultList();
@@ -22,7 +18,7 @@ public class FacilityDAO {
     }
 
     public TblFacilities findByCode(String code) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             return em.find(TblFacilities.class, code);
         } finally {
@@ -31,7 +27,7 @@ public class FacilityDAO {
     }
 
     public void save(TblFacilities facility) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             em.getTransaction().begin();
             if (em.find(TblFacilities.class, facility.getServiceCode()) == null) {
@@ -49,7 +45,7 @@ public class FacilityDAO {
     }
 
     public void increaseUsage(String code) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             em.getTransaction().begin();
             TblFacilities facility = em.find(TblFacilities.class, code);
@@ -70,7 +66,7 @@ public class FacilityDAO {
     }
 
     public void resetUsage(String code) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             em.getTransaction().begin();
             TblFacilities facility = em.find(TblFacilities.class, code);
@@ -89,7 +85,7 @@ public class FacilityDAO {
     }
 
     public void delete(String code) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             em.getTransaction().begin();
             TblFacilities facility = em.find(TblFacilities.class, code);

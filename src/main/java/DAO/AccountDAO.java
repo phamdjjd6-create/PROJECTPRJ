@@ -1,8 +1,6 @@
 package DAO;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import java.math.BigDecimal;
 import model.TblCustomers;
 import model.TblPersons;
@@ -12,13 +10,12 @@ import model.TblPersons;
  */
 public class AccountDAO {
 
-    private static final EntityManagerFactory emf =
-            Persistence.createEntityManagerFactory("ResortPU");
 
+    // Use JpaUtil for centralized EntityManagerFactory
     // ── Tìm theo account (username) ─────────────────────────────-
     // Dùng createQuery (JPQL): tên class Java, không phải tên bảng
     public TblPersons findByUsername(String username) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             return em.createQuery(
                     "SELECT p FROM TblPersons p WHERE p.account = :username",
@@ -34,7 +31,7 @@ public class AccountDAO {
 
     // ── Tìm theo email ──────────────────────────────────────────-
     public TblPersons findByEmail(String email) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             return em.createQuery(
                     "SELECT p FROM TblPersons p WHERE p.email = :email",
@@ -57,7 +54,7 @@ public class AccountDAO {
      * @return true nếu thành công
      */
     public boolean registerCustomer(TblPersons person) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             em.getTransaction().begin();
 

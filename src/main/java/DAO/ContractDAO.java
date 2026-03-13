@@ -1,18 +1,12 @@
 package DAO;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import java.util.List;
 import model.TblContracts;
 
 public class ContractDAO {
-
-    private static final EntityManagerFactory emf = 
-            Persistence.createEntityManagerFactory("ResortPU");
-
     public List<TblContracts> findAll() {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             return em.createQuery("SELECT c FROM TblContracts c", TblContracts.class)
                     .getResultList();
@@ -22,7 +16,7 @@ public class ContractDAO {
     }
 
     public TblContracts findById(String id) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             return em.find(TblContracts.class, id);
         } finally {
@@ -31,7 +25,7 @@ public class ContractDAO {
     }
 
     public void save(TblContracts contract) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             em.getTransaction().begin();
             if (em.find(TblContracts.class, contract.getContractId()) == null) {
