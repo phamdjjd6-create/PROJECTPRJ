@@ -257,19 +257,19 @@
         <div class="brand-tagline">Luxury · Nature · Serenity</div>
         <div class="perks">
             <div class="perk">
-                <div class="perk-icon">🏖️</div>
+                <div class="perk-icon">★</div>
                 <span>Đặt phòng nhanh chóng, dễ dàng</span>
             </div>
             <div class="perk">
-                <div class="perk-icon">🎁</div>
+                <div class="perk-icon">★</div>
                 <span>Nhận ưu đãi dành riêng cho thành viên</span>
             </div>
             <div class="perk">
-                <div class="perk-icon">📄</div>
+                <div class="perk-icon">★</div>
                 <span>Quản lý hợp đồng &amp; booking mọi nơi</span>
             </div>
             <div class="perk">
-                <div class="perk-icon">⭐</div>
+                <div class="perk-icon">★</div>
                 <span>Tích điểm đổi quà với mỗi kỳ nghỉ</span>
             </div>
         </div>
@@ -310,7 +310,7 @@
                                placeholder="Nguyễn Văn A"
                                value="<%= request.getParameter("fullName") != null ? request.getParameter("fullName") : "" %>"
                                required maxlength="100" autocomplete="name">
-                        <span class="input-icon">👤</span>
+<!--                        <span class="input-icon">👤</span>-->
                     </div>
                 </div>
                 <div class="form-group">
@@ -320,7 +320,7 @@
                                placeholder="nguyenvana"
                                value="<%= request.getParameter("username") != null ? request.getParameter("username") : "" %>"
                                required maxlength="50" autocomplete="username">
-                        <span class="input-icon">🔖</span>
+<!--                        <span class="input-icon">🔖</span>-->
                     </div>
                 </div>
             </div>
@@ -359,7 +359,7 @@
                                placeholder="email@gmail.com"
                                value="<%= request.getParameter("email") != null ? request.getParameter("email") : "" %>"
                                required maxlength="100" autocomplete="email">
-                        <span class="input-icon">✉️</span>
+<!--                        <span class="input-icon">✉️</span>-->
                     </div>
                 </div>
                 <div class="form-group">
@@ -369,7 +369,7 @@
                                placeholder="0912 345 678"
                                value="<%= request.getParameter("phone") != null ? request.getParameter("phone") : "" %>"
                                maxlength="20" autocomplete="tel">
-                        <span class="input-icon">📱</span>
+<!--                        <span class="input-icon">📱</span>-->
                     </div>
                 </div>
             </div>
