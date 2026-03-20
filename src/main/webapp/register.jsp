@@ -322,11 +322,35 @@
                                required maxlength="50" autocomplete="username">
                         <span class="input-icon">🔖</span>
                     </div>
-                    <div class="field-hint">Dùng để đăng nhập, không dấu</div>
                 </div>
             </div>
 
-            <%-- Hàng 2: Email + SĐT --%>
+            <%-- Hàng 2: Ngày sinh (dob) + Giới tính --%>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="dateOfBirth">Ngày Sinh <span class="required">*</span></label>
+                    <div class="input-wrap">
+                        <input type="date" id="dateOfBirth" name="dateOfBirth"
+                               value="<%= request.getParameter("dateOfBirth") != null ? request.getParameter("dateOfBirth") : "" %>"
+                               required class="form-control" style="width: 100%; padding: 12px 14px 12px 40px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 11px; color: #fff; font-size: 13.5px; outline: none;">
+                        <span class="input-icon">📅</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="gender">Giới tính <span class="required">*</span></label>
+                    <div class="input-wrap">
+                        <select id="gender" name="gender" required style="width: 100%; padding: 12px 14px 12px 40px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 11px; color: #fff; font-size: 13.5px; -webkit-appearance: none; outline: none;">
+                            <option value="" <%= request.getParameter("gender") == null ? "selected" : "" %> style="color: black;">Chọn giới tính</option>
+                            <option value="Male" <%= "Male".equals(request.getParameter("gender")) ? "selected" : "" %> style="color: black;">Nam</option>
+                            <option value="Female" <%= "Female".equals(request.getParameter("gender")) ? "selected" : "" %> style="color: black;">Nữ</option>
+                            <option value="Other" <%= "Other".equals(request.getParameter("gender")) ? "selected" : "" %> style="color: black;">Khác</option>
+                        </select>
+                        <span class="input-icon">🚻</span>
+                    </div>
+                </div>
+            </div>
+
+            <%-- Hàng 3: Email + SĐT --%>
             <div class="form-row">
                 <div class="form-group">
                     <label for="email">Email <span class="required">*</span></label>
@@ -394,6 +418,12 @@
 </div>
 
 <script>
+    // ── Generate Max Date (18 Years Ago) ─────────────────────────
+    const today = new Date();
+    const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+    const maxDateStr = maxDate.toISOString().split("T")[0];
+    document.getElementById('dateOfBirth').setAttribute('max', maxDateStr);
+
     // ── Toggle password visibility ──────────────────────────────
     function togglePwd(fieldId, btn) {
         const inp = document.getElementById(fieldId);
@@ -427,19 +457,36 @@
         label.style.color    = lvl.color;
     }
 
+    function calculateAge(dob) {
+        const birthDate = new Date(dob);
+        const diff = Date.now() - birthDate.getTime();
+        const age = new Date(diff); 
+        return Math.abs(age.getUTCFullYear() - 1970);
+    }
+
     // ── Client-side validate trước khi submit ───────────────────
     document.getElementById('registerForm').addEventListener('submit', function(e) {
         const username = document.getElementById('username').value.trim();
         const fullName = document.getElementById('fullName').value.trim();
         const email    = document.getElementById('email').value.trim();
+        const gender   = document.getElementById('gender').value.trim();
+        const dob      = document.getElementById('dateOfBirth').value.trim();
         const pwd      = document.getElementById('password').value;
         const conf     = document.getElementById('confPass').value;
 
-        if (!username || !fullName || !email) {
+        if (!username || !fullName || !email || !gender || !dob) {
             e.preventDefault();
             showAlert('Vui lòng điền đầy đủ các trường bắt buộc!');
             return;
         }
+
+        const age = calculateAge(dob);
+        if (age < 18) {
+            e.preventDefault();
+            showAlert('Xin lỗi, bạn phải đủ 18 tuổi để thực hiện đăng ký!');
+            return;
+        }
+
         if (/\s/.test(username)) {
             e.preventDefault();
             showAlert('Tên tài khoản không được chứa khoảng trắng!');

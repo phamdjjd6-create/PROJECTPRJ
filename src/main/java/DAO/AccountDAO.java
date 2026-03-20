@@ -108,4 +108,23 @@ public class AccountDAO {
             return "KH001";
         }
     }
+
+    /**
+     * Cập nhật thông tin người dùng (Profile)
+     */
+    public boolean updatePerson(TblPersons person) {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.merge(person);
+            em.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            e.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
 }

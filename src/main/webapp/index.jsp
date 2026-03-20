@@ -717,6 +717,21 @@ TblPersons currentUser = (TblPersons) session.getAttribute("account");
             background: var(--gold-light);
             box-shadow: 0 4px 12px rgba(201,168,76,0.3);
         }
+        .btn-nav-register {
+            padding: 8px 24px;
+            background: transparent;
+            color: var(--gold);
+            border: 1px solid rgba(201,168,76,0.4);
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.25s;
+        }
+        .btn-nav-register:hover {
+            background: var(--gold);
+            color: var(--dark);
+        }
     </style>
 </head>
 <body>
@@ -744,6 +759,7 @@ TblPersons currentUser = (TblPersons) session.getAttribute("account");
             } else { 
         %>
             <a href="login.jsp" class="btn-nav-login">Đăng nhập</a>
+            <a href="register" class="btn-nav-register">Đăng ký</a>
         <% 
             } 
         %>

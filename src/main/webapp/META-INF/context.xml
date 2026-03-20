@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context path="/ResortManagement77">
-  <Resource auth="Container" driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver" maxActive="20" maxIdle="10" maxWait="-1" name="jdbc/ResortDB" password="123123" type="javax.sql.DataSource" url="jdbc:sqlserver://MSI:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true" username="sa"/>
+  <Resource auth="Container" driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver" maxActive="20" maxIdle="10" maxWait="-1" name="jdbc/ResortDB" password="123" type="javax.sql.DataSource" url="jdbc:sqlserver://DESKTOP-6OHTON0:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true" username="sa"/>
 </Context>

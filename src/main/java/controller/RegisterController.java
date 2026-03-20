@@ -33,13 +33,39 @@ public class RegisterController extends HttpServlet {
         String fullName = trim(request.getParameter("fullName"));
         String phone = trim(request.getParameter("phone"));
         String email = trim(request.getParameter("email"));
+        String gender = trim(request.getParameter("gender"));
+        String dateOfBirthStr = trim(request.getParameter("dateOfBirth"));
         String password = request.getParameter("password");
         String confPassword = request.getParameter("confPass");
 
         // ── Validate bắt buộc ────────────────────────────────────
-        if (username.isEmpty() || fullName.isEmpty() || email.isEmpty()
+        if (username.isEmpty() || fullName.isEmpty() || email.isEmpty() || gender.isEmpty() || dateOfBirthStr.isEmpty()
                 || password == null || password.isEmpty()) {
             error(request, response, "Vui lòng điền đầy đủ thông tin bắt buộc!");
+            return;
+        }
+
+        // ── Validate Tuổi >= 18 ──────────────────────────────────
+        Date dateOfBirth = null;
+        try {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+            dateOfBirth = sdf.parse(dateOfBirthStr);
+
+            java.util.Calendar dobCal = java.util.Calendar.getInstance();
+            dobCal.setTime(dateOfBirth);
+            
+            java.util.Calendar today = java.util.Calendar.getInstance();
+            int age = today.get(java.util.Calendar.YEAR) - dobCal.get(java.util.Calendar.YEAR);
+            if (today.get(java.util.Calendar.DAY_OF_YEAR) < dobCal.get(java.util.Calendar.DAY_OF_YEAR)){
+                age--;
+            }
+            
+            if (age < 18) {
+                error(request, response, "Xin lỗi, bạn phải đủ 18 tuổi để đăng ký tài khoản!");
+                return;
+            }
+        } catch (Exception e) {
+            error(request, response, "Định dạng ngày sinh không hợp lệ!");
             return;
         }
 
@@ -75,6 +101,8 @@ public class RegisterController extends HttpServlet {
         person.setFullName(fullName);
         person.setPhoneNumber(phone.isEmpty() ? null : phone); 
         person.setEmail(email);
+        person.setGender(gender);
+        person.setDateOfBirth(dateOfBirth);
         person.setPasswordHash(hashedPassword);
         person.setPersonType("CUSTOMER");
         person.setCreatedAt(new Date());

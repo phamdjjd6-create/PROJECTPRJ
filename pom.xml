@@ -44,9 +44,7 @@
             <version>${jstl.version}</version>
         </dependency>
 
-        <!-- 3. EclipseLink 4.0 - JPA Implementation
-             Đây là provider bạn chọn trong NetBeans (EclipseLink JPA 2.2)
-             Bản 4.0 hỗ trợ Jakarta EE 10 / JPA 3.1               -->
+        
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>eclipselink</artifactId>

@@ -580,3 +580,5 @@ GO
 PRINT 'ResortDB Sample Data Inserted Successfully!';
 GO
 
+select * from tbl_persons
+select * from tbl_facilities
