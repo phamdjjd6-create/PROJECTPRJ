@@ -424,5 +424,7 @@
             'Hiển thị <strong>' + visible + '</strong> hợp đồng';
     }
 </script>
+<!-- CHATBOT WIDGET -->
+<jsp:include page="/chat_widget.jsp"/>
 </body>
 </html>

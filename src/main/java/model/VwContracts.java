@@ -43,7 +43,6 @@ import java.util.Date;
     @NamedQuery(name = "VwContracts.findByCustomerId", query = "SELECT v FROM VwContracts v WHERE v.customerId = :customerId"),
     @NamedQuery(name = "VwContracts.findByStartDate", query = "SELECT v FROM VwContracts v WHERE v.startDate = :startDate"),
     @NamedQuery(name = "VwContracts.findByEndDate", query = "SELECT v FROM VwContracts v WHERE v.endDate = :endDate"),
-    @NamedQuery(name = "VwContracts.findByFacilityId", query = "SELECT v FROM VwContracts v WHERE v.facilityId = :facilityId"),
     @NamedQuery(name = "VwContracts.findByCustomerName", query = "SELECT v FROM VwContracts v WHERE v.customerName = :customerName")})
 public class VwContracts implements Serializable {
 
@@ -106,10 +105,7 @@ public class VwContracts implements Serializable {
     @Size(min = 1, max = 10)
     @Column(name = "end_date")
     private String endDate;
-    @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 20)
-    @Column(name = "facility_id")
+    @jakarta.persistence.Transient
     private String facilityId;
     @Basic(optional = false)
     @NotNull

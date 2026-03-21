@@ -89,9 +89,7 @@ public class TblFacilities implements Serializable {
     @Column(name = "is_deleted")
     private boolean deleted;
 
-    @Basic(optional = false)
-    @NotNull
-    @Column(name = "usage_count")
+    @Transient
     private int usageCount;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "facilityId")
