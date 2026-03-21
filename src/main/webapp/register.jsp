@@ -521,5 +521,7 @@
         div.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 </script>
+<!-- CHATBOT WIDGET -->
+<jsp:include page="/chat_widget.jsp"/>
 </body>
 </html>

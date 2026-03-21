@@ -6,15 +6,9 @@ import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "tbl_booking_services")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class TblBookingServices implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -53,4 +47,35 @@ public class TblBookingServices implements Serializable {
     @JoinColumn(name = "service_id", referencedColumnName = "service_id")
     @ManyToOne(optional = false)
     private TblServices serviceId;
+
+    public TblBookingServices() {
+    }
+
+    public TblBookingServices(Integer id, int quantity, BigDecimal unitPrice, BigDecimal totalPrice, Date serviceDate, String note, TblBookings bookingId, TblServices serviceId) {
+        this.id = id;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+        this.totalPrice = totalPrice;
+        this.serviceDate = serviceDate;
+        this.note = note;
+        this.bookingId = bookingId;
+        this.serviceId = serviceId;
+    }
+
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
+    public BigDecimal getUnitPrice() { return unitPrice; }
+    public void setUnitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; }
+    public BigDecimal getTotalPrice() { return totalPrice; }
+    public void setTotalPrice(BigDecimal totalPrice) { this.totalPrice = totalPrice; }
+    public Date getServiceDate() { return serviceDate; }
+    public void setServiceDate(Date serviceDate) { this.serviceDate = serviceDate; }
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
+    public TblBookings getBookingId() { return bookingId; }
+    public void setBookingId(TblBookings bookingId) { this.bookingId = bookingId; }
+    public TblServices getServiceId() { return serviceId; }
+    public void setServiceId(TblServices serviceId) { this.serviceId = serviceId; }
 }

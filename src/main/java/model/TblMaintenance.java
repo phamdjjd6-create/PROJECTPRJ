@@ -6,15 +6,9 @@ import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "tbl_maintenance")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class TblMaintenance implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -55,4 +49,35 @@ public class TblMaintenance implements Serializable {
     @JoinColumn(name = "assigned_to", referencedColumnName = "id")
     @ManyToOne
     private TblEmployees assignedTo;
+
+    public TblMaintenance() {
+    }
+
+    public TblMaintenance(Integer maintenanceId, Date startDate, Date endDate, String reason, String status, BigDecimal cost, TblFacilities facilityId, TblEmployees assignedTo) {
+        this.maintenanceId = maintenanceId;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.reason = reason;
+        this.status = status;
+        this.cost = cost;
+        this.facilityId = facilityId;
+        this.assignedTo = assignedTo;
+    }
+
+    public Integer getMaintenanceId() { return maintenanceId; }
+    public void setMaintenanceId(Integer maintenanceId) { this.maintenanceId = maintenanceId; }
+    public Date getStartDate() { return startDate; }
+    public void setStartDate(Date startDate) { this.startDate = startDate; }
+    public Date getEndDate() { return endDate; }
+    public void setEndDate(Date endDate) { this.endDate = endDate; }
+    public String getReason() { return reason; }
+    public void setReason(String reason) { this.reason = reason; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public BigDecimal getCost() { return cost; }
+    public void setCost(BigDecimal cost) { this.cost = cost; }
+    public TblFacilities getFacilityId() { return facilityId; }
+    public void setFacilityId(TblFacilities facilityId) { this.facilityId = facilityId; }
+    public TblEmployees getAssignedTo() { return assignedTo; }
+    public void setAssignedTo(TblEmployees assignedTo) { this.assignedTo = assignedTo; }
 }

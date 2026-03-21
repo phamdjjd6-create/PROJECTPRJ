@@ -27,6 +27,18 @@ public class PromotionDAO {
         }
     }
 
+    public TblPromotions findByCode(String code) {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            List<TblPromotions> list = em.createQuery("SELECT p FROM TblPromotions p WHERE p.promoCode = :code AND p.isActive = true", TblPromotions.class)
+                    .setParameter("code", code.toUpperCase())
+                    .getResultList();
+            return list.isEmpty() ? null : list.get(0);
+        } finally {
+            em.close();
+        }
+    }
+
     public void save(TblPromotions promotion) {
         EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
