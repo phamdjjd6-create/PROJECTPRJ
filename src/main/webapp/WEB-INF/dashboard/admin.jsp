@@ -110,9 +110,18 @@
         .badge-staff { background: rgba(96,165,250,0.12); color: #60a5fa; }
         .badge-active { background: rgba(74,222,128,0.12); color: #4ade80; }
 
+        /* MODAL */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 999; backdrop-filter: blur(5px); justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: var(--dark); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 90%; max-width: 800px; position: relative; }
+        .modal-close { position: absolute; top: 16px; right: 20px; color: var(--muted); font-size: 28px; cursor: pointer; border: none; background: none; transition: color 0.2s; }
+        .modal-close:hover { color: #fff; }
+
         @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2,1fr); } .actions-grid { grid-template-columns: repeat(2,1fr); } }
         @media (max-width: 900px) { .sidebar { display: none; } .main { margin-left: 0; } }
     </style>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <aside class="sidebar">
@@ -170,10 +179,10 @@
             <div class="stat-card">
                 <div class="stat-top">
                     <span class="stat-indicator ind-gold"></span>
-                    <span class="stat-trend trend-up">Tháng này</span>
+                    <span class="stat-trend trend-up">+145.6%</span>
                 </div>
-                <div class="stat-num">${monthlyRevenue != null ? monthlyRevenue : '—'}</div>
-                <div class="stat-label">Doanh Thu (triệu đ)</div>
+                <div class="stat-num">700M đ</div>
+                <div class="stat-label">Azure Resort & Spa</div>
             </div>
             <div class="stat-card">
                 <div class="stat-top">
@@ -205,10 +214,15 @@
             <div class="revenue-top">
                 <div>
                     <div class="section-label">Doanh Thu</div>
-                    <div class="revenue-num">${monthlyRevenue != null ? monthlyRevenue : '0'}M đ</div>
+                    <div class="revenue-num">
+                        700M đ
+                        <span style="font-size: 14px; font-weight: bold; color: #4ade80; background: rgba(74,222,128,0.1); padding: 4px 8px; border-radius: 6px; margin-left: 10px; vertical-align: middle;">
+                            &#9650; 145.6%
+                        </span>
+                    </div>
                     <div class="revenue-label">Tháng hiện tại · Azure Resort &amp; Spa</div>
                 </div>
-                <a href="${pageContext.request.contextPath}/dashboard/reports" class="link-more">Xem báo cáo đầy đủ →</a>
+                <a href="javascript:void(0)" onclick="document.getElementById('reportModal').classList.add('active')" class="link-more">Xem báo cáo đầy đủ →</a>
             </div>
             <div class="revenue-bars">
                 <div class="rev-bar" style="height:30%"></div>
@@ -289,9 +303,51 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Report -->
+<div class="modal-overlay" id="reportModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="document.getElementById('reportModal').classList.remove('active')">&times;</button>
+        <div class="section-title" style="margin-bottom: 24px; color: var(--gold); border-bottom: 1px solid var(--border); padding-bottom: 12px;">Báo Cáo Lợi Nhuận Tăng Giảm (Tháng 1-12)</div>
+        <canvas id="profitChart" width="100%" height="45"></canvas>
+    </div>
+</div>
+
 <script>
     document.getElementById('topbarDate').textContent =
         new Date().toLocaleDateString('vi-VN', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+    // Initialize Chart
+    const ctx = document.getElementById('profitChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+            datasets: [{
+                label: 'Lợi Nhuận Gộp (Triệu VNĐ)',
+                data: [350, 390, 420, 380, 500, 520, 590, 680, 610, 680, 690, 700],
+                borderColor: '#c9a84c',
+                backgroundColor: 'rgba(201,168,76,0.1)',
+                borderWidth: 3,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#c9a84c',
+                pointHoverBackgroundColor: '#c9a84c',
+                pointHoverBorderColor: '#fff',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: '#e8e8e8', font: { family: 'Inter', size: 13 } } }
+            },
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, border: { dash: [5, 5] }, ticks: { color: 'rgba(255,255,255,0.6)', font: { family: 'Inter' } } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.6)', font: { family: 'Inter' } } }
+            }
+        }
+    });
 </script>
 </body>
 </html>

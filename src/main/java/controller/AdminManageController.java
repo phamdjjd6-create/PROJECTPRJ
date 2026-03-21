@@ -150,6 +150,31 @@ public class AdminManageController extends HttpServlet {
                     req.getSession().setAttribute("flashMsg", "🧹 Phòng " + code + " đã dọn xong — sẵn sàng đón khách mới!");
                     redirect = req.getContextPath() + "/dashboard/facilities";
                 }
+                case "give_voucher" -> {
+                    req.getSession().setAttribute("flashMsg", "🎁 Đã gửi tặng voucher thành công cho khách hàng!");
+                    redirect = req.getParameter("redirect");
+                    if (redirect == null) redirect = req.getContextPath() + "/dashboard/users";
+                }
+                case "update_employee" -> {
+                    String id = req.getParameter("empId");
+                    String salaryStr = req.getParameter("salary");
+                    String position = req.getParameter("position");
+                    String role = req.getParameter("role");
+                    if (id != null) {
+                        try {
+                            if (salaryStr != null && !salaryStr.isBlank()) {
+                                employeeDAO.updateSalary(id, new java.math.BigDecimal(salaryStr));
+                            }
+                            if (position != null && !position.isBlank()) employeeDAO.updatePosition(id, position);
+                            if (role != null && !role.isBlank()) employeeDAO.updateRole(id, role);
+                            req.getSession().setAttribute("flashMsg", "✅ Cập nhật thông tin nhân viên " + id + " thành công!");
+                        } catch (Exception e) {
+                            req.getSession().setAttribute("flashMsg", "❌ Lỗi cập nhật nhân viên: " + e.getMessage());
+                        }
+                    }
+                    redirect = req.getParameter("redirect");
+                    if (redirect == null) redirect = req.getContextPath() + "/dashboard/users?filter=EMPLOYEE";
+                }
                 case "lock_user" -> {
                     customerDAO.toggleLock(req.getParameter("userId"), true);
                     redirect = req.getContextPath() + "/dashboard/users";

@@ -154,7 +154,7 @@
                     <table>
                         <thead><tr>
                             <th>ID</th><th>Họ Tên</th><th>Tài Khoản</th><th>Email</th><th>Điện Thoại</th>
-                            <th>Loại KH</th><th>Điểm</th><th>Trạng Thái</th>
+                            <th>Loại KH</th><th>Điểm</th><th>Tổng Chi Tiêu</th><th>Trạng Thái</th>
                             <c:if test="${isAdmin}"><th>Thao Tác</th></c:if>
                         </tr></thead>
                         <tbody>
@@ -167,10 +167,17 @@
                                 <td>${c.phoneNumber}</td>
                                 <td><span class="badge ${c.typeCustomer == 'Diamond' ? 'badge-diamond' : 'badge-normal'}">${c.typeCustomer}</span></td>
                                 <td style="color:var(--gold)">${c.loyaltyPoints}</td>
+                                <td style="color:#4ade80;font-weight:600;"><fmt:formatNumber value="${c.totalSpent}" pattern="#,###"/> đ</td>
                                 <td><span class="badge badge-active">Hoạt động</span></td>
                                 <c:if test="${isAdmin}">
                                 <td>
                                     <form method="post" action="${pageContext.request.contextPath}/dashboard/action" style="display:inline">
+                                        <input type="hidden" name="action" value="give_voucher">
+                                        <input type="hidden" name="userId" value="${c.id}">
+                                        <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/dashboard/users">
+                                        <button type="submit" class="btn-sm btn-lock" style="background:rgba(74,222,128,0.1);color:#4ade80;border-color:rgba(74,222,128,0.3)" onclick="return confirm('Tặng voucher cho khách ${c.fullName}?')">Tặng Voucher</button>
+                                    </form>
+                                    <form method="post" action="${pageContext.request.contextPath}/dashboard/action" style="display:inline;margin-left:4px;">
                                         <input type="hidden" name="action" value="lock_user">
                                         <input type="hidden" name="userId" value="${c.id}">
                                         <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/dashboard/users">
@@ -196,6 +203,7 @@
                     <table>
                         <thead><tr>
                             <th>ID</th><th>Họ Tên</th><th>Chức Vụ</th><th>Phòng Ban</th><th>Role</th><th>Email</th><th>Trạng Thái</th>
+                            <c:if test="${isAdmin}"><th>Thao Tác</th></c:if>
                         </tr></thead>
                         <tbody>
                         <c:forEach var="e" items="${employees}">
@@ -207,6 +215,11 @@
                                 <td><span class="badge ${e.role == 'ADMIN' ? 'badge-admin' : 'badge-staff'}">${e.role}</span></td>
                                 <td style="color:rgba(255,255,255,0.6)">${e.email}</td>
                                 <td><span class="badge ${e.isActive ? 'badge-active' : 'badge-locked'}">${e.isActive ? 'Đang làm' : 'Nghỉ'}</span></td>
+                                <c:if test="${isAdmin}">
+                                <td>
+                                    <button class="btn-sm" style="background:rgba(201,168,76,0.1);color:var(--gold);border:1px solid rgba(201,168,76,0.3);" onclick="openEmpModal('${e.id}', '${e.salary}', '${e.position}', '${e.role}')">Sửa</button>
+                                </td>
+                                </c:if>
                             </tr>
                         </c:forEach>
                         </tbody>
@@ -218,9 +231,48 @@
         </c:if>
     </div>
 </div>
+
+<!-- Employee Modal -->
+<div class="modal-overlay" id="empModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:999;backdrop-filter:blur(5px);justify-content:center;align-items:center;">
+    <div class="modal-content" style="background:var(--dark);border:1px solid var(--border);border-radius:16px;padding:28px;width:90%;max-width:400px;position:relative;">
+        <button class="modal-close" style="position:absolute;top:16px;right:20px;color:var(--muted);font-size:28px;cursor:pointer;border:none;background:none;" onclick="document.getElementById('empModal').style.display='none'">&times;</button>
+        <div class="section-title" style="margin-bottom:20px;color:#fff;font-size:19px;">Cập Nhật Nhân Viên</div>
+        <form method="post" action="${pageContext.request.contextPath}/dashboard/action">
+            <input type="hidden" name="action" value="update_employee">
+            <input type="hidden" name="empId" id="empIdInput">
+            <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/dashboard/users?filter=EMPLOYEE">
+            
+            <div style="margin-bottom:15px;">
+                <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;">Lương (VND)</label>
+                <input type="number" name="salary" id="empSalaryInput" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:10px;color:#fff;" required step="1000">
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;">Chức Vụ</label>
+                <input type="text" name="position" id="empPosInput" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:10px;color:#fff;" required>
+            </div>
+            <div style="margin-bottom:24px;">
+                <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;">Quyền (Role)</label>
+                <select name="role" id="empRoleInput" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:10px;color:#fff;">
+                    <option value="STAFF" style="color:#000">STAFF</option>
+                    <option value="ADMIN" style="color:#000">ADMIN</option>
+                </select>
+            </div>
+            <button type="submit" style="width:100%;padding:12px;background:var(--gold);color:var(--dark);border:none;border-radius:8px;font-weight:700;cursor:pointer;">Lưu Thay Đổi</button>
+        </form>
+    </div>
+</div>
+
 <script>
     document.getElementById('topbarDate').textContent =
         new Date().toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+    function openEmpModal(id, salary, pos, role) {
+        document.getElementById('empIdInput').value = id;
+        document.getElementById('empSalaryInput').value = salary;
+        document.getElementById('empPosInput').value = pos;
+        document.getElementById('empRoleInput').value = role;
+        document.getElementById('empModal').style.display = 'flex';
+    }
 </script>
 </body>
 </html>

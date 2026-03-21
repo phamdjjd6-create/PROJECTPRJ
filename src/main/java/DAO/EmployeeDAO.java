@@ -6,6 +6,7 @@ import model.TblEmployees;
 import model.VwEmployees;
 
 public class EmployeeDAO {
+    private final EmployeeDAO employeeDAO = new EmployeeDAO();
 
     public List<VwEmployees> findAll() {
         EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
@@ -53,4 +54,53 @@ public class EmployeeDAO {
             em.close();
         }
     }
+    public boolean updateSalary(String id, java.math.BigDecimal salary) {
+    EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+    try {
+        em.getTransaction().begin();
+        TblEmployees emp = em.find(TblEmployees.class, id);
+        if (emp == null) return false;
+        emp.setSalary(salary);
+        em.merge(emp);
+        em.getTransaction().commit();
+        return true;
+    } catch (Exception e) {
+        if (em.getTransaction().isActive()) em.getTransaction().rollback();
+        return false;
+    } finally { em.close(); }
+}
+
+// Cập nhật chức vụ nhân viên
+public boolean updatePosition(String id, String position) {
+    EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+    try {
+        em.getTransaction().begin();
+        TblEmployees emp = em.find(TblEmployees.class, id);
+        if (emp == null) return false;
+        emp.setPosition(position);
+        em.merge(emp);
+        em.getTransaction().commit();
+        return true;
+    } catch (Exception e) {
+        if (em.getTransaction().isActive()) em.getTransaction().rollback();
+        return false;
+    } finally { em.close(); }
+}
+
+// Cập nhật quyền nhân viên (STAFF ↔ ADMIN)
+public boolean updateRole(String id, String role) {
+    EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+    try {
+        em.getTransaction().begin();
+        TblEmployees emp = em.find(TblEmployees.class, id);
+        if (emp == null) return false;
+        emp.setRole(role);
+        em.merge(emp);
+        em.getTransaction().commit();
+        return true;
+    } catch (Exception e) {
+        if (em.getTransaction().isActive()) em.getTransaction().rollback();
+        return false;
+    } finally { em.close(); }
+}
 }
