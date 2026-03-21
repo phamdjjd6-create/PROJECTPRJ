@@ -246,7 +246,7 @@ CREATE TABLE tbl_contracts (
     CONSTRAINT FK_contracts_booking  FOREIGN KEY (booking_id)  REFERENCES tbl_bookings(booking_id),
     CONSTRAINT FK_contracts_employee FOREIGN KEY (employee_id) REFERENCES tbl_employees(id),
     CONSTRAINT UQ_contracts_booking  UNIQUE (booking_id),
-    CONSTRAINT CK_contracts_status   CHECK (status IN ('DRAFT','ACTIVE','EXPIRED','CANCELLED'))
+    CONSTRAINT CK_contracts_status   CHECK (status IN ('DRAFT','ACTIVE','COMPLETED','EXPIRED','CANCELLED'))
 );
 GO
 
@@ -431,19 +431,28 @@ GO
 -- View: hợp đồng kèm thông tin booking, khách hàng, nhân viên
 CREATE OR ALTER VIEW vw_contracts AS
 SELECT
-    ct.contract_id, ct.deposit, ct.total_payment, ct.paid_amount,
-    ct.status AS contract_status, ct.signed_date, ct.notes,
-    b.booking_id, b.start_date, b.end_date, b.status AS booking_status,
-    pc.id AS customer_id, pc.full_name AS customer_name,
-    pe.id AS employee_id, pe.full_name AS employee_name,
-    f.service_name AS facility_name, f.facility_type,
-    f.cost AS cost_per_night
+    ct.contract_id,
+    ct.deposit,
+    ct.total_payment,
+    ct.paid_amount,
+    (ct.total_payment - ct.paid_amount) AS remaining_amount,
+    ct.status,
+    ct.signed_date,
+    ct.notes,
+    b.booking_id,
+    CONVERT(VARCHAR(10), b.start_date, 120) AS start_date,
+    CONVERT(VARCHAR(10), b.end_date,   120) AS end_date,
+    b.facility_id,
+    pc.id          AS customer_id,
+    pc.full_name   AS customer_name,
+    pe.id          AS employee_id,
+    pe.full_name   AS employee_name
 FROM tbl_contracts ct
-JOIN tbl_bookings b    ON ct.booking_id = b.booking_id
-JOIN tbl_persons  pc   ON b.customer_id = pc.id
-JOIN tbl_facilities f  ON b.facility_id = f.service_code
-LEFT JOIN tbl_employees e  ON ct.employee_id = e.id
-LEFT JOIN tbl_persons   pe ON e.id = pe.id;
+JOIN tbl_bookings  b   ON ct.booking_id  = b.booking_id
+JOIN tbl_persons   pc  ON b.customer_id  = pc.id
+JOIN tbl_facilities f  ON b.facility_id  = f.service_code
+LEFT JOIN tbl_employees e   ON ct.employee_id = e.id
+LEFT JOIN tbl_persons   pe  ON e.id = pe.id;
 GO
 
 -- View: đánh giá kèm tên khách hàng và cơ sở vật chất
@@ -512,6 +521,27 @@ GO
 --  ❻  SAMPLE DATA (v2.3 — Realistic Data & Refactored Auth)
 -- ================================================================
 
+-- ── Xóa data cũ trước khi insert (theo thứ tự FK) ───────────────
+DELETE FROM tbl_audit_log;
+DELETE FROM tbl_reviews;
+DELETE FROM tbl_payments;
+DELETE FROM tbl_booking_services;
+DELETE FROM tbl_contracts;
+DELETE FROM tbl_bookings;
+DELETE FROM tbl_vouchers;
+DELETE FROM tbl_maintenance;
+DELETE FROM tbl_promotions;
+DELETE FROM tbl_rooms;
+DELETE FROM tbl_villas;
+DELETE FROM tbl_houses;
+DELETE FROM tbl_facilities;
+DELETE FROM tbl_customers;
+DELETE FROM tbl_employees;
+UPDATE tbl_departments SET manager_id = NULL;
+DELETE FROM tbl_departments;
+DELETE FROM tbl_persons;
+GO
+
 -- ── Departments ──────────────────────────────────────────────────
 INSERT INTO tbl_departments(dept_id, dept_name)
 VALUES 
@@ -521,60 +551,107 @@ VALUES
 GO
 
 -- ── Persons & Employees (Tài khoản nhân viên) ────────────────────
--- Admin
+-- !! Hash được generate bởi at.favre.lib:bcrypt:0.10.2, password = 123456
+-- !! Nếu hash sai, chạy /hashgen để tự động update DB
+-- Admin — password: 123456
 INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number, account, password_hash)
-VALUES ('NV001', N'Phạm Tuấn Việt', 'EMPLOYEE', '044203001111', 'tuanviet1520@gmail.com', '0814577495', 'admin_viet', '$2a$10$wYQ.2P8z.yW.M.R7.Q.1234567890dummyhash1');
+VALUES ('NV001', N'Phạm Tuấn Việt', 'EMPLOYEE', '044203001111', 'tuanviet1520@gmail.com', '0814577495', 'admin',
+        '123456');
 INSERT INTO tbl_employees(id, dept_id, salary, role, position, hire_date)
 VALUES ('NV001', 'DP03', 25000000, 'ADMIN', N'Quản trị viên hệ thống', '2023-09-01');
 
--- Lễ tân
+-- Lễ tân — password: 123456
 INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number, account, password_hash)
-VALUES ('NV002', N'Quân', 'EMPLOYEE', '044203002222', 'quan.reception@resort.com', '0901000002', 'staff_quan', '$2a$10$xyz.2P8z.yW.M.R7.Q.0987654321dummyhash2');
+VALUES ('NV002', N'Nguyễn Văn Quân', 'EMPLOYEE', '044203002222', 'quan.reception@resort.com', '0901000002', 'staff',
+        '123456');
 INSERT INTO tbl_employees(id, dept_id, salary, role, position, hire_date)
 VALUES ('NV002', 'DP02', 12000000, 'STAFF', N'Trưởng ca Lễ tân', '2024-02-15');
 
 -- ── Persons & Customers (Tài khoản khách hàng) ───────────────────
--- Khách hàng VIP
+-- Khách hàng VIP — password: 123456
 INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number, account, password_hash)
-VALUES ('KH001', N'Quốc', 'CUSTOMER', '044203003333', 'quoc.vip@gmail.com', '0912000001', 'quoc_vip', '$2a$10$abc.2P8z.yW.M.R7.Q.1122334455dummyhash3');
+VALUES ('KH001', N'Nguyễn Văn Quốc', 'CUSTOMER', '044203003333', 'quoc.vip@gmail.com', '0912000001', 'customer',
+        '123456');
 INSERT INTO tbl_customers(id, type_customer, address, loyalty_points, total_spent)
 VALUES ('KH001', N'Diamond', N'Ba Đồn, Quảng Trị, Việt Nam', 1500, 45000000);
 
--- Khách hàng vãng lai
+-- Khách hàng thường — password: 123456
 INSERT INTO tbl_persons(id, full_name, person_type, id_card, email, phone_number, account, password_hash)
-VALUES ('KH002', N'Trần Thị Mai', 'CUSTOMER', '044203004444', 'maitran.88@gmail.com', '0933445566', 'mai_tran', '$2a$10$def.2P8z.yW.M.R7.Q.6677889900dummyhash4');
+VALUES ('KH002', N'Trần Thị Mai', 'CUSTOMER', '044203004444', 'maitran.88@gmail.com', '0933445566', 'mai_tran',
+        '123456');
 INSERT INTO tbl_customers(id, type_customer, address, loyalty_points, total_spent)
 VALUES ('KH002', N'Normal', N'Hải Châu, Đà Nẵng', 100, 2500000);
 GO
 
 -- ── Facilities (Cơ sở vật chất) ──────────────────────────────────
-INSERT INTO tbl_facilities(service_code, service_name, cost, facility_type, max_people, status, description)
+INSERT INTO tbl_facilities(service_code, service_name, usable_area, cost, facility_type, max_people, rental_type, status, description, image_url)
 VALUES
-    ('VL001', N'Presidential Ocean Villa', 15000000, 'VILLA', 8, 'AVAILABLE', N'Villa mặt biển VIP nhất, hồ bơi vô cực riêng, quản gia 24/7'),
-    ('VL002', N'Family Garden Villa', 6500000, 'VILLA', 6, 'AVAILABLE', N'Villa vườn nhiệt đới, không gian nướng BBQ ngoài trời'),
-    ('RM001', N'Ocean View Suite', 2500000, 'ROOM',  2, 'AVAILABLE', N'Phòng Suite tầng 5, view toàn cảnh biển bình minh');
+    ('VL001', N'Presidential Ocean Villa', 320.0, 15000000, 'VILLA', 8, 'NIGHTLY', 'AVAILABLE',
+     N'Villa mặt biển đẳng cấp nhất khu resort. Hồ bơi vô cực riêng nhìn thẳng ra biển, phòng khách rộng rãi với nội thất cao cấp, quản gia phục vụ 24/7. Không gian lý tưởng cho gia đình hoặc nhóm bạn muốn tận hưởng kỳ nghỉ xa xỉ.',
+     'assets/img/villa-ocean.png'),
+
+    ('VL002', N'Family Garden Villa', 180.0, 6500000, 'VILLA', 6, 'NIGHTLY', 'AVAILABLE',
+     N'Villa vườn nhiệt đới xanh mát, thiết kế mở hòa quyện với thiên nhiên. Sân vườn riêng với khu vực nướng BBQ ngoài trời, hồ bơi gia đình và khu vui chơi trẻ em. Phù hợp cho gia đình muốn nghỉ dưỡng gần gũi thiên nhiên.',
+     'assets/img/villa-pool.png'),
+
+    ('HS001', N'Tropical Beach House', 250.0, 9500000, 'HOUSE', 10, 'NIGHTLY', 'AVAILABLE',
+     N'Biệt thự bãi biển phong cách nhiệt đới với 4 phòng ngủ rộng rãi. Sân thượng ngắm hoàng hôn, bếp đầy đủ tiện nghi, phòng sinh hoạt chung rộng lớn. Lý tưởng cho nhóm lớn hoặc tiệc gia đình.',
+     'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800&q=80'),
+
+    ('HS002', N'Garden Bungalow House', 150.0, 4800000, 'HOUSE', 6, 'NIGHTLY', 'AVAILABLE',
+     N'Ngôi nhà bungalow ấm cúng giữa vườn cây xanh mát. 3 phòng ngủ thoáng đãng, phòng bếp hiện đại, sân vườn riêng với ghế thư giãn. Không gian yên tĩnh, thích hợp cho cặp đôi hoặc gia đình nhỏ.',
+     'https://images.unsplash.com/photo-1510798831971-661eb04b3739?w=800&q=80'),
+
+    ('RM001', N'Ocean View Suite', 65.0, 2500000, 'ROOM', 2, 'NIGHTLY', 'AVAILABLE',
+     N'Phòng Suite tầng 5 với tầm nhìn toàn cảnh biển tuyệt đẹp. Giường King-size cao cấp, bồn tắm đứng nhìn ra biển, ban công riêng. Bao gồm buffet sáng, massage 60 phút và minibar miễn phí.',
+     'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80'),
+
+    ('RM002', N'Deluxe Garden Room', 45.0, 1200000, 'ROOM', 2, 'NIGHTLY', 'AVAILABLE',
+     N'Phòng Deluxe nhìn ra vườn nhiệt đới xanh mát. Thiết kế hiện đại với tông màu trung tính ấm áp, giường Queen-size, khu vực làm việc riêng. Bao gồm bữa sáng và wifi tốc độ cao.',
+     'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80'),
+
+    ('RM003', N'Premium Pool Access Room', 55.0, 1800000, 'ROOM', 3, 'NIGHTLY', 'AVAILABLE',
+     N'Phòng cao cấp với lối ra hồ bơi riêng trực tiếp từ phòng. Thiết kế resort sang trọng, giường King-size, phòng tắm đứng và bồn tắm. Bao gồm buffet sáng và 1 lần spa miễn phí.',
+     'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80');
 GO
 
 INSERT INTO tbl_villas(service_code, room_standard, pool_area, num_of_floor)
-VALUES ('VL001', '5 Star Diamond', 80.0, 2), ('VL002', '4 Star Premium', 45.0, 1);
+VALUES
+    ('VL001', N'5 Star Diamond', 80.0, 2),
+    ('VL002', N'4 Star Premium', 45.0, 1);
+GO
+
+INSERT INTO tbl_houses(service_code, room_standard, num_of_floor)
+VALUES
+    ('HS001', N'5 Star Luxury', 2),
+    ('HS002', N'4 Star Comfort', 1);
 GO
 
 INSERT INTO tbl_rooms(service_code, free_services, floor_number)
-VALUES ('RM001', N'Buffet sáng, Massage 60p, Minibar', 5);
+VALUES
+    ('RM001', N'Buffet sáng, Massage 60p, Minibar', 5),
+    ('RM002', N'Bữa sáng, Wifi cao cấp', 2),
+    ('RM003', N'Buffet sáng, Spa 1 lần, Minibar', 3);
 GO
 
 -- ── Bookings (Đặt phòng) ─────────────────────────────────────────
--- Booking đã xác nhận
 INSERT INTO tbl_bookings(booking_id, start_date, end_date, customer_id, facility_id, status, adults, children)
 VALUES
     ('BK_20260315_01', '2026-04-30', '2026-05-03', 'KH001', 'VL001', 'CONFIRMED', 4, 2),
-    ('BK_20260315_02', '2026-05-10', '2026-05-12', 'KH002', 'RM001', 'PENDING',   2, 0);
+    ('BK_20260315_02', '2026-05-10', '2026-05-12', 'KH001', 'RM001', 'CONFIRMED', 2, 0),
+    ('BK_20260315_03', '2026-03-01', '2026-03-05', 'KH001', 'HS001', 'CHECKED_OUT', 6, 2),
+    ('BK_20260315_04', '2026-06-15', '2026-06-18', 'KH002', 'RM002', 'PENDING',   2, 0);
 GO
 
 -- ── Contracts (Hợp đồng thanh toán) ──────────────────────────────
--- Hợp đồng cọc cho booking VL001 của khách hàng VIP
-INSERT INTO tbl_contracts(contract_id, booking_id, deposit, total_payment, paid_amount, employee_id, status, signed_date)
-VALUES ('CT_2026_001', 'BK_20260315_01', 15000000, 45000000, 15000000, 'NV002', 'ACTIVE', '2026-03-10');
+INSERT INTO tbl_contracts(contract_id, booking_id, deposit, total_payment, paid_amount, employee_id, status, signed_date, notes)
+VALUES
+    ('CT_2026_001', 'BK_20260315_01', 15000000, 45000000, 15000000, 'NV002', 'ACTIVE',    '2026-03-10',
+     N'Khách VIP Diamond — ưu tiên phục vụ. Đã đặt cọc 15 triệu, còn lại thanh toán khi nhận phòng.'),
+    ('CT_2026_002', 'BK_20260315_02',  2500000,  5000000,  5000000, 'NV002', 'ACTIVE',    '2026-03-12',
+     N'Đã thanh toán đầy đủ. Bao gồm buffet sáng và massage 60 phút.'),
+    ('CT_2026_003', 'BK_20260315_03', 10000000, 38000000, 38000000, 'NV002', 'COMPLETED', '2026-02-20',
+     N'Hợp đồng đã hoàn tất. Khách đã trả phòng ngày 05/03/2026.');
 GO
 
 PRINT 'ResortDB Sample Data Inserted Successfully!';

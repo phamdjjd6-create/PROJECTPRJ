@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "tbl_villas")
+@DiscriminatorValue("VILLA")
 @PrimaryKeyJoinColumn(name = "service_code")
 public class TblVillas extends TblFacilities {
 

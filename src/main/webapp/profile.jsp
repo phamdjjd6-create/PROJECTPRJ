@@ -1,25 +1,10 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="model.TblPersons" %>
-<%@ page import="java.text.SimpleDateFormat" %>
-<%
-    TblPersons currentUser = (TblPersons) session.getAttribute("account");
-    if (currentUser == null) {
-        response.sendRedirect("login");
-        return;
-    }
-    String accountName = currentUser.getFullName();
-    
-    // Formatting Date of Birth for the input field
-    String dobFormatted = "";
-    if(currentUser.getDateOfBirth() != null){
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        dobFormatted = sdf.format(currentUser.getDateOfBirth());
-    }
-
-    // Retrieve messages from request
-    String successMessage = (String) request.getAttribute("successMessage");
-    String errorMessage = (String) request.getAttribute("errorMessage");
-%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<c:if test="${empty sessionScope.account}">
+    <c:redirect url="/login"/>
+</c:if>
+<c:set var="currentUser" value="${sessionScope.account}"/>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -82,7 +67,6 @@
             border: 1px solid rgba(201,168,76,0.4); background: transparent; color: var(--gold);
         }
         .btn-nav-logout:hover { background: var(--gold); color: var(--dark); }
-
 
         /* PROFILE SECTION */
         .profile-page-wrap {
@@ -172,16 +156,16 @@
 <body>
 
 <nav class="navbar" id="navbar">
-    <a href="index.jsp" class="nav-brand">Azure <span>Resort</span></a>
+    <a href="${pageContext.request.contextPath}/" class="nav-brand">Azure <span>Resort</span></a>
     <ul class="nav-links">
-        <li><a href="index.jsp#rooms">Phòng &amp; Villa</a></li>
-        <li><a href="index.jsp#promotions">Khuyến Mãi</a></li>
-        <li><a href="booking">Đặt Phòng</a></li>
-        <li><a href="contracts">Hợp Đồng</a></li>
+        <li><a href="${pageContext.request.contextPath}/rooms.jsp">Phòng &amp; Villa</a></li>
+        <li><a href="${pageContext.request.contextPath}/#promotions">Khuyến Mãi</a></li>
+        <li><a href="${pageContext.request.contextPath}/booking">Đặt Phòng</a></li>
+        <li><a href="${pageContext.request.contextPath}/contracts">Hợp Đồng</a></li>
     </ul>
     <div class="nav-right">
-        <span class="nav-greeting">Xin chào, <strong><%= accountName %></strong></span>
-        <a href="logout" class="btn-nav-logout">Đăng xuất</a>
+        <span class="nav-greeting">Xin chào, <strong>${currentUser.fullName}</strong></span>
+        <a href="${pageContext.request.contextPath}/logout" class="btn-nav-logout">Đăng xuất</a>
     </div>
 </nav>
 
@@ -193,64 +177,60 @@
             <p>Cập nhật thông tin cá nhân của bạn để chúng tôi có thể phục vụ tốt hơn.</p>
         </div>
 
-        <form action="profile" method="POST" class="profile-form">
-            <% if(successMessage != null) { %>
-                <div class="alert alert-success">
-                    <%= successMessage %>
-                </div>
-            <% } %>
-
-            <% if(errorMessage != null) { %>
-                <div class="alert alert-error">
-                    <%= errorMessage %>
-                </div>
-            <% } %>
+        <form action="${pageContext.request.contextPath}/profile" method="POST" class="profile-form">
+            <c:if test="${not empty requestScope.successMessage}">
+                <div class="alert alert-success">${requestScope.successMessage}</div>
+            </c:if>
+            <c:if test="${not empty requestScope.errorMessage}">
+                <div class="alert alert-error">${requestScope.errorMessage}</div>
+            </c:if>
 
             <div class="form-group full-width">
                 <label>Tên Đăng Nhập (Username)</label>
-                <input type="text" class="form-control" value="<%= currentUser.getAccount() != null ? currentUser.getAccount() : "" %>" disabled>
+                <input type="text" class="form-control" value="${currentUser.account}" disabled>
             </div>
 
             <div class="form-group full-width">
                 <label>Mã Khách Hàng (Customer ID)</label>
-                <input type="text" class="form-control" value="<%= currentUser.getId() %>" disabled>
+                <input type="text" class="form-control" value="${currentUser.id}" disabled>
             </div>
 
             <div class="form-group full-width">
                 <label for="fullName">Họ và Tên</label>
-                <input type="text" name="fullName" id="fullName" class="form-control" value="<%= currentUser.getFullName() != null ? currentUser.getFullName() : "" %>" required>
+                <input type="text" name="fullName" id="fullName" class="form-control" value="${currentUser.fullName}" required>
             </div>
 
             <div class="form-group">
                 <label for="dateOfBirth">Ngày Sinh</label>
-                <input type="date" name="dateOfBirth" id="dateOfBirth" class="form-control" value="<%= dobFormatted %>">
+                <fmt:formatDate var="dobFormatted" value="${currentUser.dateOfBirth}" pattern="yyyy-MM-dd"/>
+                <input type="date" name="dateOfBirth" id="dateOfBirth" class="form-control" value="${dobFormatted}">
             </div>
 
             <div class="form-group">
                 <label for="gender">Giới Tính</label>
                 <select name="gender" id="gender" class="form-control">
-                    <option value="" <%= currentUser.getGender() == null ? "selected" : "" %>>Khác</option>
-                    <option value="Male" <%= "Male".equals(currentUser.getGender()) ? "selected" : "" %>>Nam</option>
-                    <option value="Female" <%= "Female".equals(currentUser.getGender()) ? "selected" : "" %>>Nữ</option>
+                    <option value="" ${empty currentUser.gender ? 'selected' : ''}>Khác</option>
+                    <option value="Male" ${currentUser.gender == 'Male' ? 'selected' : ''}>Nam</option>
+                    <option value="Female" ${currentUser.gender == 'Female' ? 'selected' : ''}>Nữ</option>
                 </select>
             </div>
 
             <div class="form-group">
                 <label for="phoneNumber">Số Điện Thoại</label>
-                <input type="tel" name="phoneNumber" id="phoneNumber" class="form-control" value="<%= currentUser.getPhoneNumber() != null ? currentUser.getPhoneNumber() : "" %>">
+                <input type="tel" name="phoneNumber" id="phoneNumber" class="form-control" value="${currentUser.phoneNumber}">
             </div>
 
             <div class="form-group">
                 <label for="idCard">CMND / CCCD / Passport</label>
-                <input type="text" name="idCard" id="idCard" class="form-control" value="<%= currentUser.getIdCard() != null ? currentUser.getIdCard() : "" %>">
+                <input type="text" name="idCard" id="idCard" class="form-control" value="${currentUser.idCard}">
             </div>
 
             <div class="form-group full-width">
                 <label for="email">Địa Chỉ Email</label>
-                <input type="email" name="email" id="email" class="form-control" value="<%= currentUser.getEmail() != null ? currentUser.getEmail() : "" %>">
+                <input type="email" name="email" id="email" class="form-control" value="${currentUser.email}">
             </div>
 
-            <button type="submit" class="submit-btn" id="submitBtn">Lưu Thay Đổi</button>
+            <button type="submit" class="submit-btn">Lưu Thay Đổi</button>
         </form>
     </div>
 </div>
@@ -263,15 +243,15 @@
         </div>
         <div class="footer-col">
             <h4>Khám Phá</h4>
-            <a href="index.jsp#rooms">Phòng &amp; Villa</a>
-            <a href="index.jsp#promotions">Khuyến Mãi</a>
-            <a href="booking">Đặt Phòng</a>
+            <a href="${pageContext.request.contextPath}/rooms.jsp">Phòng &amp; Villa</a>
+            <a href="${pageContext.request.contextPath}/#promotions">Khuyến Mãi</a>
+            <a href="${pageContext.request.contextPath}/booking">Đặt Phòng</a>
         </div>
         <div class="footer-col">
             <h4>Tài Khoản</h4>
-            <a href="booking?view=my">Booking Của Tôi</a>
-            <a href="contracts">Hợp Đồng</a>
-            <a href="profile">Hồ Sơ</a>
+            <a href="${pageContext.request.contextPath}/booking?view=my">Booking Của Tôi</a>
+            <a href="${pageContext.request.contextPath}/contracts">Hợp Đồng</a>
+            <a href="${pageContext.request.contextPath}/profile">Hồ Sơ</a>
         </div>
         <div class="footer-col">
             <h4>Liên Hệ</h4>
@@ -287,11 +267,9 @@
 </footer>
 
 <script>
-    // ── Generate Max Date (18 Years Ago) ─────────────────────────
     const today = new Date();
     const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
-    const maxDateStr = maxDate.toISOString().split("T")[0];
-    document.getElementById('dateOfBirth').setAttribute('max', maxDateStr);
+    document.getElementById('dateOfBirth').setAttribute('max', maxDate.toISOString().split('T')[0]);
 </script>
 
 </body>

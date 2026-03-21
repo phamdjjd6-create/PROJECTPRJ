@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Calendar;
 import model.TblBookings;
+import model.VwBookings;
 
 public class BookingDAO {
 
@@ -94,8 +95,58 @@ public class BookingDAO {
         }
     }
 
-    public List<TblBookings> findByMonth(int year, int month) {
+    public List<VwBookings> findRecent(int limit) {
         EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            return em.createQuery("SELECT b FROM VwBookings b ORDER BY b.dateBooking DESC", VwBookings.class)
+                    .setMaxResults(limit)
+                    .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    public List<VwBookings> findByStatus(String status) {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            return em.createQuery("SELECT b FROM VwBookings b WHERE b.status = :s ORDER BY b.dateBooking DESC", VwBookings.class)
+                    .setParameter("s", status).getResultList();
+        } finally { em.close(); }
+    }
+
+    public List<VwBookings> findAllView() {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            return em.createQuery("SELECT b FROM VwBookings b ORDER BY b.dateBooking DESC", VwBookings.class)
+                    .getResultList();
+        } finally { em.close(); }
+    }
+
+    public long countByStatus(String status) {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            return (long) em.createQuery("SELECT COUNT(b) FROM TblBookings b WHERE b.status = :s")
+                    .setParameter("s", status).getSingleResult();
+        } finally { em.close(); }
+    }
+
+    public boolean updateStatus(String bookingId, String newStatus) {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            em.getTransaction().begin();
+            TblBookings b = em.find(TblBookings.class, bookingId);
+            if (b == null) return false;
+            b.setStatus(newStatus);
+            em.merge(b);
+            em.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            return false;
+        } finally { em.close(); }
+    }
+
+    public List<TblBookings> findByMonth(int year, int month) {        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             Calendar cal = Calendar.getInstance();
             cal.set(year, month - 1, 1, 0, 0, 0);

@@ -4,13 +4,9 @@ import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "vw_bookings")
-@Data
-@NoArgsConstructor
 public class VwBookings implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -63,4 +59,51 @@ public class VwBookings implements Serializable {
 
     @Column(name = "discount_percent")
     private Integer discountPercent;
+
+    public VwBookings() {}
+
+    public String getBookingId() { return bookingId; }
+    public void setBookingId(String bookingId) { this.bookingId = bookingId; }
+
+    public Date getDateBooking() { return dateBooking; }
+    public void setDateBooking(Date dateBooking) { this.dateBooking = dateBooking; }
+
+    public Date getStartDate() { return startDate; }
+    public void setStartDate(Date startDate) { this.startDate = startDate; }
+
+    public Date getEndDate() { return endDate; }
+    public void setEndDate(Date endDate) { this.endDate = endDate; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public int getAdults() { return adults; }
+    public void setAdults(int adults) { this.adults = adults; }
+
+    public int getChildren() { return children; }
+    public void setChildren(int children) { this.children = children; }
+
+    public String getSpecialReq() { return specialReq; }
+    public void setSpecialReq(String specialReq) { this.specialReq = specialReq; }
+
+    public String getCustomerId() { return customerId; }
+    public void setCustomerId(String customerId) { this.customerId = customerId; }
+
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+
+    public String getFacilityId() { return facilityId; }
+    public void setFacilityId(String facilityId) { this.facilityId = facilityId; }
+
+    public String getFacilityName() { return facilityName; }
+    public void setFacilityName(String facilityName) { this.facilityName = facilityName; }
+
+    public String getFacilityType() { return facilityType; }
+    public void setFacilityType(String facilityType) { this.facilityType = facilityType; }
+
+    public BigDecimal getCostPerNight() { return costPerNight; }
+    public void setCostPerNight(BigDecimal costPerNight) { this.costPerNight = costPerNight; }
+
+    public Integer getDiscountPercent() { return discountPercent; }
+    public void setDiscountPercent(Integer discountPercent) { this.discountPercent = discountPercent; }
 }

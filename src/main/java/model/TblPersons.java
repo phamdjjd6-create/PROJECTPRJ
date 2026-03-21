@@ -10,7 +10,7 @@ import java.util.Date;
 @Table(name = "tbl_persons")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "person_type", discriminatorType = DiscriminatorType.STRING)
-@DiscriminatorValue("CUSTOMER") // instance trực tiếp = khách hàng
+@DiscriminatorValue("CUSTOMER")
 public class TblPersons implements Serializable {
 
     public TblPersons() {
@@ -80,7 +80,7 @@ public class TblPersons implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Column(name = "is_deleted")
-    private boolean isDeleted;
+    private boolean deleted;
 
     public String getId() {
         return id;
@@ -171,11 +171,11 @@ public class TblPersons implements Serializable {
     }
 
     public boolean isDeleted() {
-        return isDeleted;
+        return deleted;
     }
 
-    public void setDeleted(boolean isDeleted) {
-        this.isDeleted = isDeleted;
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     public String getPasswordHash() {

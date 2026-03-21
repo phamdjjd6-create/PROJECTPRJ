@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "tbl_rooms")
+@DiscriminatorValue("ROOM")
 @PrimaryKeyJoinColumn(name = "service_code")
 public class TblRooms extends TblFacilities {
 

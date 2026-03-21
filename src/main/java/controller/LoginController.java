@@ -47,12 +47,43 @@ public class LoginController extends HttpServlet {
         }
 
         // ── Tìm tài khoản trong DB ───────────────────────────────
-        TblPersons acc = dao.findByUsername(username);
+        TblPersons acc = null;
+        try {
+            acc = dao.findByUsername(username);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            error(request, response, "Lỗi DB: " + ex.getClass().getSimpleName() + " — " + ex.getMessage());
+            return;
+        }
 
-        // ── Kiểm tra tồn tại & BCrypt verify ────────────────────
-        if (acc == null || acc.getPasswordHash() == null || !BCrypt.verifyer()
-                .verify(password.toCharArray(), acc.getPasswordHash()).verified) {
-            error(request, response, "Tên tài khoản hoặc mật khẩu không đúng!");
+        // ── Kiểm tra tồn tại ────────────────────────────────────
+        if (acc == null) {
+            error(request, response, "Không tìm thấy tài khoản: \"" + username + "\"");
+            return;
+        }
+        if (acc.getPasswordHash() == null) {
+            error(request, response, "Tài khoản chưa có mật khẩu. Liên hệ quản trị viên.");
+            return;
+        }
+
+        // ── BCrypt verify ────────────────────────────────────────
+        boolean pwdOk;
+        try {
+            String storedHash = acc.getPasswordHash();
+            // Thử BCrypt trước
+            if (storedHash != null && storedHash.startsWith("$2")) {
+                pwdOk = BCrypt.verifyer().verify(password.toCharArray(), storedHash).verified;
+            } else {
+                // Fallback: plain text (chỉ dùng khi chưa hash)
+                pwdOk = password.equals(storedHash);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            error(request, response, "Lỗi BCrypt: " + ex.getMessage());
+            return;
+        }
+        if (!pwdOk) {
+            error(request, response, "Sai mật khẩu! Hash trong DB: " + acc.getPasswordHash().substring(0, 29) + "...");
             return;
         }
 
@@ -67,17 +98,20 @@ public class LoginController extends HttpServlet {
         session.setAttribute("account", acc);
         session.setAttribute("userId", acc.getId());
         session.setAttribute("fullName", acc.getFullName());
-        session.setAttribute("personType", acc.getPersonType()); // EMPLOYEE | CUSTOMER
+
+        // personType: ưu tiên từ instanceof (tránh null khi EclipseLink không populate discriminator)
+        String role = (acc instanceof model.TblEmployees) ? "EMPLOYEE" : "CUSTOMER";
+        session.setAttribute("personType", role);
 
         // ── Phân quyền redirect ──────────────────────────────────
         redirectByRole(session, response);
     }
 
     /**
-     * Redirect về đúng dashboard theo role:
-     * - CUSTOMER → index.jsp (trang đặt phòng)
-     * - EMPLOYEE (STAFF) → dashboard/staff.jsp
-     * - EMPLOYEE (ADMIN) → dashboard/admin.jsp
+     * Redirect về đúng trang theo role:
+     * - CUSTOMER → /
+     * - EMPLOYEE STAFF → /dashboard/staff
+     * - EMPLOYEE ADMIN → /dashboard/admin
      */
     private void redirectByRole(HttpSession session, HttpServletResponse response)
             throws IOException {
@@ -88,13 +122,15 @@ public class LoginController extends HttpServlet {
             return;
         }
 
-        String personType = acc.getPersonType();
-        if ("CUSTOMER".equals(personType)) {
-            response.sendRedirect("index.jsp");
+        if (acc instanceof model.TblEmployees) {
+            model.TblEmployees emp = (model.TblEmployees) acc;
+            if ("ADMIN".equals(emp.getRole())) {
+                response.sendRedirect("dashboard/admin");
+            } else {
+                response.sendRedirect("dashboard/staff");
+            }
         } else {
-            // Nhân viên — cần load thêm role từ DB nếu cần phân biệt ADMIN/STAFF
-            // Tạm thời redirect về staff dashboard
-            response.sendRedirect("dashboard/staff.jsp");
+            response.sendRedirect("index.jsp");
         }
     }
 

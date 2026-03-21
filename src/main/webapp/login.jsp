@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -283,18 +284,18 @@
         </div>
 
         <%-- Alert messages --%>
-        <% if (request.getAttribute("error") != null) { %>
+        <c:if test="${not empty requestScope.error}">
         <div class="alert alert-error">
             <span>⚠️</span>
-            <span><%= request.getAttribute("error") %></span>
+            <span>${requestScope.error}</span>
         </div>
-        <% } %>
-        <% if (request.getParameter("registered") != null) { %>
+        </c:if>
+        <c:if test="${not empty param.registered}">
         <div class="alert alert-success">
             <span>✅</span>
             <span>Đăng ký thành công! Vui lòng đăng nhập.</span>
         </div>
-        <% } %>
+        </c:if>
 
         <form action="login" method="POST" id="loginForm">
 
@@ -303,7 +304,7 @@
                 <div class="input-wrap">
                     <input type="text" id="username" name="username"
                            placeholder="Nhập tên tài khoản"
-                           value="<%= request.getParameter("username") != null ? request.getParameter("username") : "" %>"
+                           value="${not empty param.username ? param.username : ''}"
                            required autocomplete="username">
                     <span class="input-icon">👤</span>
                 </div>

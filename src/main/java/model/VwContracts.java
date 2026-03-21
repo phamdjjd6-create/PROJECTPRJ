@@ -116,7 +116,6 @@ public class VwContracts implements Serializable {
     @Size(min = 1, max = 100)
     @Column(name = "customer_name")
     private String customerName;
-
     public VwContracts() {
     }
 

@@ -47,8 +47,12 @@ public class AuthenticationFilter implements Filter {
                                          requestURI.equals(registerURI) ||
                                          requestURI.equals(registerServletURI) ||
                                          requestURI.equals(indexURI) ||
-                                         requestURI.equals(rootURI);
-
+                                         requestURI.equals(rootURI) ||
+                                         requestURI.equals(httpRequest.getContextPath() + "/index") ||
+                                         requestURI.startsWith(httpRequest.getContextPath() + "/facility-detail") ||
+                                         requestURI.startsWith(httpRequest.getContextPath() + "/facilities") ||
+                                         requestURI.equals(httpRequest.getContextPath() + "/rooms.jsp") ||
+                                         requestURI.equals(httpRequest.getContextPath() + "/rooms");
         boolean isLoggedIn = session != null && session.getAttribute("account") != null;
 
         if (isLoggedIn || isPublicOrLoginRequest || isStaticResource) {

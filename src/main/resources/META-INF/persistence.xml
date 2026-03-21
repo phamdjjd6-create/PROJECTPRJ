@@ -46,7 +46,7 @@
       <property name="jakarta.persistence.jdbc.driver"
                 value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
       <property name="jakarta.persistence.jdbc.url"
-                value="jdbc:sqlserver://DESKTOP-6OHTON0:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true"/>
+                value="jdbc:sqlserver://localhost:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true"/>
       <property name="jakarta.persistence.jdbc.user"     value="sa"/>
       <property name="jakarta.persistence.jdbc.password" value="123"/>
 
@@ -59,6 +59,10 @@
 
       <!-- Tắt shared cache (tránh stale data) -->
       <property name="eclipselink.cache.shared.default" value="false"/>
+
+      <!-- Tomcat: không dùng JTA/JNDI, chỉ dùng RESOURCE_LOCAL -->
+      <property name="eclipselink.target-server" value="None"/>
+      <property name="eclipselink.weaving" value="false"/>
     </properties>
   </persistence-unit>
 </persistence>

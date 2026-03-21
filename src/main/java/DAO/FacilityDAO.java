@@ -10,7 +10,7 @@ public class FacilityDAO {
     public List<TblFacilities> findAll() {
         EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
-            return em.createQuery("SELECT f FROM TblFacilities f WHERE f.isDeleted = false", TblFacilities.class)
+            return em.createQuery("SELECT f FROM TblFacilities f WHERE f.deleted = false", TblFacilities.class)
                     .getResultList();
         } finally {
             em.close();
@@ -51,9 +51,6 @@ public class FacilityDAO {
             TblFacilities facility = em.find(TblFacilities.class, code);
             if (facility != null) {
                 facility.setUsageCount(facility.getUsageCount() + 1);
-                if (facility.getUsageCount() >= 5) {
-                    facility.setStatus("MAINTENANCE");
-                }
                 em.merge(facility);
             }
             em.getTransaction().commit();
@@ -90,7 +87,7 @@ public class FacilityDAO {
             em.getTransaction().begin();
             TblFacilities facility = em.find(TblFacilities.class, code);
             if (facility != null) {
-                facility.setDeleted(true); // Soft delete
+                facility.setDeleted(true);
                 em.merge(facility);
             }
             em.getTransaction().commit();
@@ -100,5 +97,29 @@ public class FacilityDAO {
         } finally {
             em.close();
         }
+    }
+
+    public long countByStatus(String status) {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            return (long) em.createQuery("SELECT COUNT(f) FROM TblFacilities f WHERE f.status = :s AND f.deleted = false")
+                    .setParameter("s", status).getSingleResult();
+        } finally { em.close(); }
+    }
+
+    public boolean updateStatus(String code, String newStatus) {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            em.getTransaction().begin();
+            TblFacilities f = em.find(TblFacilities.class, code);
+            if (f == null) return false;
+            f.setStatus(newStatus);
+            em.merge(f);
+            em.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            return false;
+        } finally { em.close(); }
     }
 }

@@ -104,6 +104,14 @@ public class VwEmployees implements Serializable {
     @Column(name = "is_active")
     private boolean isActive;
 
+    @Size(max = 10)
+    @Column(name = "role")
+    private String role;
+
+    @Size(max = 50)
+    @Column(name = "account")
+    private String account;
+
     public VwEmployees() {
     }
 
@@ -225,6 +233,22 @@ public class VwEmployees implements Serializable {
 
     public void setIsActive(boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getAccount() {
+        return account;
+    }
+
+    public void setAccount(String account) {
+        this.account = account;
     }
     
 }

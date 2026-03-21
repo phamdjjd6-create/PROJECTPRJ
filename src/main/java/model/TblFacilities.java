@@ -7,9 +7,6 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 /**
  * Base Entity for all Resort Facilities (Villa, House, Room)
@@ -90,7 +87,7 @@ public class TblFacilities implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Column(name = "is_deleted")
-    private boolean isDeleted;
+    private boolean deleted;
 
     @Basic(optional = false)
     @NotNull
@@ -200,11 +197,11 @@ public class TblFacilities implements Serializable {
     }
 
     public boolean isDeleted() {
-        return isDeleted;
+        return deleted;
     }
 
-    public void setDeleted(boolean isDeleted) {
-        this.isDeleted = isDeleted;
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     public int getUsageCount() {

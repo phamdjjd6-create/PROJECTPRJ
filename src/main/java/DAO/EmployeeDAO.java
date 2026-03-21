@@ -1,16 +1,11 @@
 package DAO;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import java.util.List;
 import model.TblEmployees;
 import model.VwEmployees;
 
 public class EmployeeDAO {
-
-    private static final EntityManagerFactory emf = 
-            Persistence.createEntityManagerFactory("ResortPU");
 
     public List<VwEmployees> findAll() {
         EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
@@ -25,7 +20,7 @@ public class EmployeeDAO {
     public List<TblEmployees> findAllEntities() {
         EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
-            return em.createQuery("SELECT e FROM TblEmployees e WHERE e.isDeleted = false", TblEmployees.class)
+            return em.createQuery("SELECT e FROM TblEmployees e WHERE e.deleted = false", TblEmployees.class)
                     .getResultList();
         } finally {
             em.close();

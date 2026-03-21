@@ -1,12 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="model.TblPersons" %>
-<%
-    TblPersons currentUser = (TblPersons) session.getAttribute("account");
-    String account = null;
-    if (currentUser != null) {
-        account = currentUser.getFullName();
-    }
-%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -254,12 +247,15 @@
         <li><a href="contracts">Hợp Đồng</a></li>
     </ul>
     <div class="nav-right">
-        <% if (account != null && !account.trim().isEmpty()) { %>
-            <span class="nav-greeting">Xin chào, <strong><%= account %></strong></span>
-            <a href="logout" class="btn-nav-logout">Đăng xuất</a>
-        <% } else { %>
-            <a href="login.jsp" class="btn-nav-login">Đăng nhập</a>
-        <% } %>
+        <c:choose>
+            <c:when test="${not empty sessionScope.account}">
+                <span class="nav-greeting">Xin chào, <strong>${sessionScope.account.fullName}</strong></span>
+                <a href="logout" class="btn-nav-logout">Đăng xuất</a>
+            </c:when>
+            <c:otherwise>
+                <a href="login.jsp" class="btn-nav-login">Đăng nhập</a>
+            </c:otherwise>
+        </c:choose>
     </div>
 </nav>
 
@@ -274,43 +270,36 @@
 
         <form action="booking" method="POST" class="booking-form" id="bookingForm">
             <!-- Hidden Fields (Can be passed from previous page via URL/JS, or filled by user) -->
-            <%
-                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
-                java.util.Date today = new java.util.Date();
-                String todayStr = sdf.format(today);
-                
-                String facilityParam = request.getParameter("facility");
-                String checkinParam = request.getParameter("checkin");
-                String checkoutParam = request.getParameter("checkout");
-                String adultsParam = request.getParameter("adults");
-            %>
             
             <div class="form-group full-width">
                 <label for="facilityId">Loại Phòng / Villa</label>
                 <select name="facilityId" id="facilityId" class="form-control" required>
-                    <option value="" disabled <%= facilityParam == null ? "selected" : "" %>>-- Chọn Phòng / Villa --</option>
-                    <option value="VL001" <%= "VL001".equals(facilityParam) ? "selected" : "" %>>Presidential Ocean Villa (VIP) - 15,000,000 đ/đêm</option>
-                    <option value="VL002" <%= "VL002".equals(facilityParam) ? "selected" : "" %>>Family Garden Villa - 6,500,000 đ/đêm</option>
-                    <option value="RM001" <%= "RM001".equals(facilityParam) ? "selected" : "" %>>Ocean View Suite - 2,500,000 đ/đêm</option>
-                    <!-- More options can be dynamically generated here -->
+                    <option value="" disabled ${empty param.facility ? 'selected' : ''}>-- Chọn Phòng / Villa --</option>
+                    <option value="VL001" ${param.facility == 'VL001' ? 'selected' : ''}>Presidential Ocean Villa (5★ Diamond) - 15,000,000 đ/đêm</option>
+                    <option value="VL002" ${param.facility == 'VL002' ? 'selected' : ''}>Family Garden Villa (4★ Premium) - 6,500,000 đ/đêm</option>
+                    <option value="HS001" ${param.facility == 'HS001' ? 'selected' : ''}>Tropical Beach House (5★ Luxury) - 9,500,000 đ/đêm</option>
+                    <option value="HS002" ${param.facility == 'HS002' ? 'selected' : ''}>Garden Bungalow House (4★ Comfort) - 4,800,000 đ/đêm</option>
+                    <option value="RM001" ${param.facility == 'RM001' ? 'selected' : ''}>Ocean View Suite - 2,500,000 đ/đêm</option>
+                    <option value="RM002" ${param.facility == 'RM002' ? 'selected' : ''}>Deluxe Garden Room - 1,200,000 đ/đêm</option>
+                    <option value="RM003" ${param.facility == 'RM003' ? 'selected' : ''}>Premium Pool Access Room - 1,800,000 đ/đêm</option>
                 </select>
             </div>
 
             <div class="form-group">
                 <label for="startDate">Ngày Nhận Phòng (Check-in)</label>
-                <input type="date" name="startDate" id="startDate" class="form-control" required min="<%= todayStr %>" value="<%= checkinParam != null ? checkinParam : "" %>">
+                <input type="date" name="startDate" id="startDate" class="form-control" required value="${param.checkin}">
                 <div class="error-message" id="startDateError">Ngày nhận phòng không hợp lệ.</div>
             </div>
 
             <div class="form-group">
                 <label for="endDate">Ngày Trả Phòng (Check-out)</label>
-                <input type="date" name="endDate" id="endDate" class="form-control" required min="<%= todayStr %>" value="<%= checkoutParam != null ? checkoutParam : "" %>">
+                <input type="date" name="endDate" id="endDate" class="form-control" required value="${param.checkout}">
                 <div class="error-message" id="endDateError">Ngày trả phòng phải sau ngày nhận phòng.</div>
             </div>
 
             <div class="form-group">
                 <label for="adults">Người Lớn</label>
-                <input type="number" name="adults" id="adults" class="form-control" required min="1" max="10" placeholder="VD: 2" value="<%= adultsParam != null ? adultsParam : "1" %>">
+                <input type="number" name="adults" id="adults" class="form-control" required min="1" max="10" placeholder="VD: 2" value="${not empty param.adults ? param.adults : '1'}">
             </div>
 
             <div class="form-group">
@@ -366,6 +355,11 @@
 </footer>
 
 <script>
+    // Set min date to today
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById('startDate').min = todayStr;
+    document.getElementById('endDate').min = todayStr;
+
     // Validation Logic
     const startDateInput = document.getElementById('startDate');
     const endDateInput = document.getElementById('endDate');
