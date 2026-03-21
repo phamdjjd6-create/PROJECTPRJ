@@ -15,6 +15,7 @@ SELECT
     CONVERT(VARCHAR(10), b.start_date, 120) AS start_date,
     CONVERT(VARCHAR(10), b.end_date,   120) AS end_date,
     b.facility_id,
+    f.facility_type,
     pc.id          AS customer_id,
     pc.full_name   AS customer_name,
     pe.id          AS employee_id,

@@ -245,7 +245,7 @@
                     <button class="tab active" onclick="filterBy('ALL',this)">Tất Cả (${total})</button>
                     <button class="tab" onclick="filterBy('ACTIVE',this)">Đang Hiệu Lực</button>
                     <button class="tab" onclick="filterBy('COMPLETED',this)">Hoàn Thành</button>
-                    <button class="tab" onclick="filterBy('DRAFT',this)">Nháp</button>
+                    <button class="tab" onclick="filterBy('DRAFT',this)">Chờ Duyệt</button>
                     <button class="tab" onclick="filterBy('CANCELLED',this)">Đã Hủy</button>
                 </div>
                 <span class="result-count" id="resultCount">Hiển thị <strong>${total}</strong> hợp đồng</span>
@@ -279,7 +279,7 @@
                         <c:otherwise>
                             <c:set var="accentClass" value="accent-draft"/>
                             <c:set var="badgeClass"  value="badge-draft"/>
-                            <c:set var="statusLabel" value="Nháp"/>
+                            <c:set var="statusLabel" value="Chờ Duyệt"/>
                         </c:otherwise>
                     </c:choose>
 
@@ -382,9 +382,8 @@
 
                             <!-- Footer actions -->
                             <div class="card-footer">
-                                <a href="${pageContext.request.contextPath}/rooms.jsp" class="btn-action btn-outline">Đặt Phòng Mới</a>
-                                <c:if test="${ct.status == 'ACTIVE'}">
-                                    <a href="${pageContext.request.contextPath}/booking" class="btn-action btn-primary">Thanh Toán Thêm</a>
+                                <c:if test="${ct.status == 'ACTIVE' && ct.remainingAmount > 0}">
+                                    <span style="font-size:12px;color:#fbbf24;align-self:center">⏳ Vui lòng liên hệ nhân viên để thanh toán thêm</span>
                                 </c:if>
                             </div>
                         </div>
@@ -402,12 +401,22 @@
     </div>
 </footer>
 
+<!-- FLASH TOAST -->
+<c:if test="${not empty sessionScope.paymentFlash}">
+    <div class="flash-toast ${sessionScope.paymentFlash.startsWith('✅') ? 'flash-success' : 'flash-error'}" id="flashToast">
+        ${sessionScope.paymentFlash}
+    </div>
+    <c:remove var="paymentFlash" scope="session"/>
+</c:if>
+
 <script>
     // Animate progress bars on load
     window.addEventListener('load', () => {
         document.querySelectorAll('.progress-fill').forEach(el => {
             el.style.width = el.dataset.width;
         });
+        const toast = document.getElementById('flashToast');
+        if (toast) setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.5s'; setTimeout(() => toast.remove(), 500); }, 4000);
     });
 
     // Filter contracts
@@ -423,8 +432,23 @@
         document.getElementById('resultCount').innerHTML =
             'Hiển thị <strong>' + visible + '</strong> hợp đồng';
     }
+
+    function openPayModal(contractId, remaining) {
+        document.getElementById('modalContractId').value = contractId;
+        document.getElementById('modalRemaining').textContent = new Intl.NumberFormat('vi-VN').format(remaining) + ' đ';
+        document.getElementById('modalAmount').max = remaining;
+        document.getElementById('modalAmount').value = '';
+        document.getElementById('payModal').classList.add('open');
+    }
+
+    function closePayModal() {
+        document.getElementById('payModal').classList.remove('open');
+    }
+
+    // Close modal on overlay click
+    document.getElementById('payModal').addEventListener('click', function(e) {
+        if (e.target === this) closePayModal();
+    });
 </script>
-<!-- CHATBOT WIDGET -->
-<jsp:include page="/chat_widget.jsp"/>
 </body>
 </html>

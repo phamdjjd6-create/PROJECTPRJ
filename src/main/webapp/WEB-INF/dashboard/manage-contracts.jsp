@@ -2,6 +2,7 @@
 <%@ page import="model.TblPersons, model.TblEmployees" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%
     TblPersons acc = (TblPersons) session.getAttribute("account");
     if (acc == null) { response.sendRedirect(request.getContextPath() + "/login"); return; }
@@ -101,6 +102,8 @@
         .btn-action{padding:8px 20px;border-radius:50px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all 0.25s;font-family:'Inter',sans-serif}
         .btn-approve{background:linear-gradient(135deg,#4ade80,#22c55e);color:#000}
         .btn-approve:hover{transform:scale(1.04)}
+        .btn-deposit{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--dark);font-weight:700}
+        .btn-deposit:hover{transform:scale(1.04);box-shadow:0 6px 20px rgba(201,168,76,0.35)}
         .btn-reject{background:rgba(248,113,113,0.1);color:#f87171;border:1px solid rgba(248,113,113,0.3)}
         .btn-reject:hover{background:#f87171;color:#fff}
         .btn-complete{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--dark)}
@@ -108,6 +111,26 @@
 
         .empty{padding:60px;text-align:center;color:var(--muted)}
         .empty .icon{font-size:48px;margin-bottom:12px;opacity:0.3}
+
+        /* Modal */
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+        .modal-overlay.open{display:flex}
+        .modal{background:#0d1526;border:1px solid rgba(201,168,76,0.2);border-radius:24px;padding:36px;width:100%;max-width:440px}
+        .modal h3{font-family:'Playfair Display',serif;font-size:20px;color:#fff;margin-bottom:6px}
+        .modal .modal-sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+        .modal .remaining-info{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#fbbf24}
+        .modal .remaining-info strong{font-size:16px}
+        .modal-field{margin-bottom:16px}
+        .modal-field label{display:block;font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:8px}
+        .modal-field input,.modal-field select{width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;color:#fff;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s}
+        .modal-field input:focus,.modal-field select:focus{border-color:var(--gold)}
+        .modal-field select option{background:#0d1526}
+        .modal-hint{font-size:11px;color:var(--muted);margin-top:5px}
+        .modal-actions{display:flex;gap:10px;margin-top:24px}
+        .modal-actions .btn-cancel{flex:1;padding:12px;border-radius:50px;background:transparent;border:1.5px solid rgba(255,255,255,0.15);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s}
+        .modal-actions .btn-cancel:hover{color:#fff;border-color:rgba(255,255,255,0.3)}
+        .modal-actions .btn-pay{flex:2;padding:12px;border-radius:50px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--dark);font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.25s}
+        .modal-actions .btn-pay:hover{transform:scale(1.03)}
     </style>
 </head>
 <body>
@@ -253,14 +276,21 @@
 
                             <!-- Actions -->
                             <c:if test="${ct.status == 'DRAFT'}">
+                            <%-- Tính % cọc theo loại facility từ facilityId prefix --%>
+                            <c:choose>
+                                <c:when test="${fn:startsWith(ct.facilityId, 'VL') || fn:startsWith(ct.facilityId, 'vl')}"><c:set var="depositPct" value="50"/><c:set var="facilityLabel" value="Villa"/></c:when>
+                                <c:when test="${fn:startsWith(ct.facilityId, 'HS') || fn:startsWith(ct.facilityId, 'hs')}"><c:set var="depositPct" value="40"/><c:set var="facilityLabel" value="House"/></c:when>
+                                <c:otherwise><c:set var="depositPct" value="30"/><c:set var="facilityLabel" value="Phòng"/></c:otherwise>
+                            </c:choose>
+                            <c:set var="depositPreview" value="${ct.totalPayment * depositPct / 100}"/>
                             <div class="card-actions">
+                                <%-- Nút xác nhận đặt cọc --%>
                                 <form method="post" action="${pageContext.request.contextPath}/dashboard/action" style="display:inline">
-                                    <input type="hidden" name="action" value="approve_contract">
+                                    <input type="hidden" name="action" value="confirm_deposit">
                                     <input type="hidden" name="contractId" value="${ct.contractId}">
-                                    <button type="submit" class="btn-action ${ct.deposit > 0 ? 'btn-approve' : 'btn-action'}"
-                                        style="${ct.deposit <= 0 ? 'background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.3)' : ''}"
-                                        onclick="return confirm('${ct.deposit > 0 ? 'Duyệt hợp đồng này?' : 'Khách chưa đặt cọc. Vẫn muốn gửi yêu cầu duyệt?'}')">
-                                        ${ct.deposit > 0 ? '✅ Duyệt Ngay' : '⏳ Gửi Chờ Duyệt'}
+                                    <button type="submit" class="btn-action btn-deposit"
+                                        onclick="return confirm('Xác nhận đặt cọc ${depositPct}% = ${depositPreview} đ cho hợp đồng ${ct.contractId}?')">
+                                        💰 Xác Nhận Đặt Cọc ${depositPct}% (<fmt:formatNumber value="${depositPreview}" type="number" groupingUsed="true"/> đ)
                                     </button>
                                 </form>
                                 <form method="post" action="${pageContext.request.contextPath}/dashboard/action" style="display:inline">
@@ -272,12 +302,15 @@
                             </c:if>
                             <c:if test="${ct.status == 'ACTIVE' && ct.remainingAmount <= 0}">
                             <div class="card-actions">
-                                <form method="post" action="${pageContext.request.contextPath}/dashboard/action" style="display:inline">
-                                    <input type="hidden" name="action" value="reject_contract">
-                                    <input type="hidden" name="contractId" value="${ct.contractId}">
-                                    <%-- Reuse reject_contract action with COMPLETED status via custom action --%>
-                                </form>
                                 <span style="font-size:12px;color:#4ade80">✅ Đã thanh toán đủ — sẵn sàng hoàn tất</span>
+                            </div>
+                            </c:if>
+                            <c:if test="${ct.status == 'ACTIVE' && ct.remainingAmount > 0}">
+                            <div class="card-actions">
+                                <button type="button" class="btn-action btn-complete"
+                                    onclick="openPayModal('${ct.contractId}', ${ct.remainingAmount})">
+                                    💳 Xác Nhận Thanh Toán Thêm
+                                </button>
                             </div>
                             </c:if>
                         </div>
@@ -294,6 +327,67 @@
 <script>
     const d = new Date();
     document.getElementById('topbarDate').textContent = d.toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+</script>
+
+<!-- PAYMENT MODAL -->
+<div class="modal-overlay" id="payModal">
+    <div class="modal">
+        <h3>💳 Xác Nhận Thanh Toán Thêm</h3>
+        <p class="modal-sub">Ghi nhận khoản thanh toán từ khách hàng</p>
+        <div class="remaining-info">
+            Còn phải trả: <strong id="modalRemaining">—</strong>
+        </div>
+        <form method="post" action="${pageContext.request.contextPath}/dashboard/action">
+            <input type="hidden" name="action" value="add_payment">
+            <input type="hidden" name="contractId" id="modalContractId">
+            <div class="modal-field">
+                <label>Số Tiền (đ)</label>
+                <input type="number" name="amount" id="modalAmount" min="1000" step="1000" required>
+                <div class="modal-hint">Nhập số ngàn — VD: nhập <strong>5000</strong> = 5.000.000 đ</div>
+            </div>
+            <div class="modal-field">
+                <label>Phương Thức</label>
+                <select name="method">
+                    <option value="CASH">Tiền mặt</option>
+                    <option value="BANK_TRANSFER">Chuyển khoản</option>
+                    <option value="CARD">Thẻ tín dụng</option>
+                    <option value="MOMO">MoMo</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closePayModal()">Huỷ</button>
+                <button type="submit" class="btn-pay">Xác Nhận</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<c:if test="${not empty sessionScope.flashMsg}">
+<script>
+    // Flash already shown in .flash div above, clear after 4s
+    setTimeout(() => {
+        const f = document.querySelector('.flash');
+        if (f) { f.style.opacity='0'; f.style.transition='opacity 0.5s'; setTimeout(()=>f.remove(),500); }
+    }, 4000);
+</script>
+</c:if>
+
+<script>
+    function openPayModal(contractId, remaining) {
+        document.getElementById('modalContractId').value = contractId;
+        document.getElementById('modalRemaining').textContent = new Intl.NumberFormat('vi-VN').format(remaining) + ' đ';
+        // Mặc định = số tiền còn lại, làm tròn xuống ngàn, hiển thị dạng "ngàn đồng"
+        const defaultVal = Math.floor(remaining / 1000) * 1000;
+        document.getElementById('modalAmount').value = defaultVal;
+        document.getElementById('modalAmount').max = remaining;
+        document.getElementById('payModal').classList.add('open');
+    }
+    function closePayModal() {
+        document.getElementById('payModal').classList.remove('open');
+    }
+    document.getElementById('payModal').addEventListener('click', function(e) {
+        if (e.target === this) closePayModal();
+    });
 </script>
 </body>
 </html>

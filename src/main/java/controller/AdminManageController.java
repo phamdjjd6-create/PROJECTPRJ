@@ -82,7 +82,13 @@ public class AdminManageController extends HttpServlet {
                     VwBookings bk = bookingDAO.findAllView().stream()
                         .filter(b -> b.getBookingId().equals(id)).findFirst().orElse(null);
                     if (bk != null) facilityDAO.updateStatus(bk.getFacilityId(), "OCCUPIED");
-                    req.getSession().setAttribute("flashMsg", "✅ Đã duyệt booking " + id);
+                    // Tạo contract khi admin duyệt
+                    try {
+                        contractDAO.createForBooking(id, emp.getId());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    req.getSession().setAttribute("flashMsg", "✅ Đã duyệt booking " + id + " và tạo hợp đồng.");
                     redirect = req.getContextPath() + "/dashboard/bookings";
                 }
                 case "reject_booking" -> {
@@ -123,6 +129,43 @@ public class AdminManageController extends HttpServlet {
                         }
                     }
                     redirect = req.getContextPath() + "/dashboard/bookings";
+                }
+                case "add_payment" -> {
+                    String id = req.getParameter("contractId");
+                    String amtStr = req.getParameter("amount");
+                    String method = req.getParameter("method");
+                    String note   = req.getParameter("note");
+                    try {
+                        java.math.BigDecimal amount = new java.math.BigDecimal(amtStr.trim());
+                        if (amount.compareTo(java.math.BigDecimal.ZERO) <= 0) throw new Exception("Số tiền phải > 0");
+                        String result = contractDAO.addPayment(id, amount, method, note);
+                        if (result.startsWith("OK:")) {
+                            String[] parts = result.split(":");
+                            boolean done = "COMPLETED".equals(parts.length > 2 ? parts[2] : "");
+                            req.getSession().setAttribute("flashMsg",
+                                done ? "✅ Thanh toán đủ! Hợp đồng " + id + " đã hoàn thành."
+                                     : "✅ Đã ghi nhận thanh toán cho hợp đồng " + id);
+                        } else {
+                            req.getSession().setAttribute("flashMsg", "❌ " + result.replace("ERROR:", ""));
+                        }
+                    } catch (Exception e) {
+                        req.getSession().setAttribute("flashMsg", "❌ Lỗi: " + e.getMessage());
+                    }
+                    redirect = req.getContextPath() + "/dashboard/contracts";
+                }
+                case "confirm_deposit" -> {                    String id = req.getParameter("contractId");
+                    String result = contractDAO.confirmDeposit(id, emp.getId());
+                    if (result.startsWith("OK:")) {
+                        String[] parts = result.split(":");
+                        String amt = parts.length > 1 ? parts[1] : "?";
+                        String type = parts.length > 2 ? parts[2] : "";
+                        int pct = "VILLA".equalsIgnoreCase(type) ? 50 : "HOUSE".equalsIgnoreCase(type) ? 40 : 30;
+                        req.getSession().setAttribute("flashMsg",
+                            "✅ Đã xác nhận đặt cọc " + pct + "% — " + String.format("%,.0f", Double.parseDouble(amt)) + " đ. Hợp đồng đã kích hoạt!");
+                    } else {
+                        req.getSession().setAttribute("flashMsg", "❌ Lỗi: " + result);
+                    }
+                    redirect = req.getContextPath() + "/dashboard/contracts";
                 }
                 case "approve_contract" -> {
                     String id = req.getParameter("contractId");

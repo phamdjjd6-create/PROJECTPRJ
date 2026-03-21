@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Azure Resort & Spa — Đặt Phòng</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/drum-datepicker.css">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -170,7 +171,9 @@
             background: rgba(0, 0, 0, 0.4);
         }
 
-        .form-control::placeholder {
+        input[type="date"] {
+            color-scheme: dark;
+        }        .form-control::placeholder {
             color: rgba(255, 255, 255, 0.3);
         }
 
@@ -183,6 +186,38 @@
             resize: vertical;
             min-height: 120px;
         }
+
+        .price-preview {
+            grid-column: 1 / -1;
+            background: rgba(201,168,76,0.06);
+            border: 1px solid rgba(201,168,76,0.2);
+            border-radius: 14px;
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+        }
+        .price-row.price-total {
+            border-top: 1px solid rgba(201,168,76,0.2);
+            padding-top: 10px;
+            margin-top: 2px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .price-row.price-total span:last-child {
+            color: var(--gold);
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+        }
+        .price-label { color: rgba(255,255,255,0.5); font-size: 13px; }
 
         .submit-btn {
             grid-column: 1 / -1;
@@ -299,12 +334,16 @@
 
             <div class="form-group">
                 <label for="adults">Người Lớn</label>
-                <input type="number" name="adults" id="adults" class="form-control" required min="1" max="10" placeholder="VD: 2" value="${not empty param.adults ? param.adults : '1'}">
+                <input type="number" name="adults" id="adults" class="form-control" required min="1" max="15" placeholder="VD: 2" value="${not empty param.adults ? param.adults : '1'}">
             </div>
 
             <div class="form-group">
                 <label for="children">Trẻ Em (0 - 12T)</label>
-                <input type="number" name="children" id="children" class="form-control" required min="0" max="10" placeholder="VD: 1" value="0">
+                <input type="number" name="children" id="children" class="form-control" required min="0" max="15" placeholder="VD: 1" value="0">
+                <div class="error-message" id="guestError" style="display:none"></div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px">
+                    Villa: tối đa 15 người &nbsp;·&nbsp; House: tối đa 5 người &nbsp;·&nbsp; Phòng: tối đa 3 người
+                </div>
             </div>
 
             <div class="form-group full-width">
@@ -315,6 +354,22 @@
             <div class="form-group full-width">
                 <label for="specialReq">Yêu Cầu Đặc Biệt</label>
                 <textarea name="specialReq" id="specialReq" class="form-control" placeholder="Ví dụ: Đón sân bay, ăn chay, chuẩn bị giường cho em bé..."></textarea>
+            </div>
+
+            <!-- Price Preview -->
+            <div class="price-preview full-width" id="pricePreview" style="display:none">
+                <div class="price-row">
+                    <span class="price-label">Đơn giá</span>
+                    <span id="pricePerNight">—</span>
+                </div>
+                <div class="price-row">
+                    <span class="price-label">Số đêm</span>
+                    <span id="priceNights">—</span>
+                </div>
+                <div class="price-row price-total">
+                    <span class="price-label">Tổng tiền</span>
+                    <span id="priceTotal">—</span>
+                </div>
             </div>
 
             <button type="submit" class="submit-btn" id="submitBtn">Xác Nhận Đặt Phòng</button>
@@ -362,8 +417,7 @@
 
     // Validation Logic
     const startDateInput = document.getElementById('startDate');
-    const endDateInput = document.getElementById('endDate');
-    const endDateError = document.getElementById('endDateError');
+    const endDateInput = document.getElementById('endDate');    const endDateError = document.getElementById('endDateError');
     const bookingForm = document.getElementById('bookingForm');
 
     // Make sure End Date is always greater than or equal to Start Date + 1 day
@@ -395,14 +449,99 @@
             endDateError.style.display = 'none';
         }
 
+        if (!validateGuests()) valid = false;
+
         if (!valid) {
             e.preventDefault();
         }
     });
 
+    // ── Guest limit by facility type ──
+    const facilityLimits = {
+        'VL001': 15, 'VL002': 15,
+        'HS001': 5,  'HS002': 5,
+        'RM001': 3,  'RM002': 3, 'RM003': 3
+    };
+
+    function updateGuestLimit() {
+        const facilityId = document.getElementById('facilityId').value;
+        const limit = facilityId.startsWith('VL') ? 15 : facilityId.startsWith('HS') ? 5 : facilityId.startsWith('RM') ? 3 : 15;
+        document.getElementById('adults').max = limit;
+        document.getElementById('children').max = limit;
+        validateGuests();
+    }
+
+    function validateGuests() {
+        const facilityId = document.getElementById('facilityId').value;
+        const limit = facilityId.startsWith('VL') ? 15 : facilityId.startsWith('HS') ? 5 : facilityId.startsWith('RM') ? 3 : null;
+        const adults = parseInt(document.getElementById('adults').value) || 0;
+        const children = parseInt(document.getElementById('children').value) || 0;
+        const total = adults + children;
+        const guestError = document.getElementById('guestError');
+        if (limit && total > limit) {
+            guestError.textContent = `Giới hạn số người thuê.`;
+            guestError.style.display = 'block';
+            return false;
+        }
+        guestError.style.display = 'none';
+        return true;
+    }
+
+    document.getElementById('facilityId').addEventListener('change', updateGuestLimit);
+    document.getElementById('adults').addEventListener('input', validateGuests);
+    document.getElementById('children').addEventListener('input', validateGuests);
+    const facilityPrices = {
+        'VL001': 15000000, 'VL002': 6500000,
+        'HS001': 9500000,  'HS002': 4800000,
+        'RM001': 2500000,  'RM002': 1200000, 'RM003': 1800000
+    };
+
+    function updatePrice() {
+        const facilityId = document.getElementById('facilityId').value;
+        const startVal   = document.getElementById('startDate').value;
+        const endVal     = document.getElementById('endDate').value;
+        const preview    = document.getElementById('pricePreview');
+
+        if (!facilityId || !startVal || !endVal) { preview.style.display = 'none'; return; }
+
+        const price  = facilityPrices[facilityId];
+        const nights = Math.round((new Date(endVal) - new Date(startVal)) / 86400000);
+        if (!price || nights <= 0) { preview.style.display = 'none'; return; }
+
+        const fmt = n => new Intl.NumberFormat('vi-VN').format(n) + ' đ';
+        document.getElementById('pricePerNight').textContent = fmt(price) + '/đêm';
+        document.getElementById('priceNights').textContent   = nights + ' đêm';
+        document.getElementById('priceTotal').textContent    = fmt(price * nights);
+        preview.style.display = 'flex';
+    }
+
+    document.getElementById('facilityId').addEventListener('change', updatePrice);
+    document.getElementById('startDate').addEventListener('change', updatePrice);
+    document.getElementById('endDate').addEventListener('change', updatePrice);
+
+</script>
+<script src="assets/js/drum-datepicker.js"></script>
+<script>
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    const startPicker = new DrumDatePicker(document.getElementById('startDate'), {
+        minDate: today,
+        onChange: (val) => {
+            const next = new Date(val);
+            next.setDate(next.getDate() + 1);
+            endPicker.selected = { d: next.getDate(), m: next.getMonth()+1, y: next.getFullYear() };
+            endPicker._renderDrums();
+            endPicker._confirm();
+            updatePrice();
+        }
+    });
+
+    const endPicker = new DrumDatePicker(document.getElementById('endDate'), {
+        minDate: today,
+        onChange: () => updatePrice()
+    });
 </script>
 
-<!-- CHATBOT WIDGET -->
-<jsp:include page="/chat_widget.jsp"/>
 </body>
 </html>

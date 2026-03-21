@@ -6,7 +6,6 @@ import model.TblEmployees;
 import model.VwEmployees;
 
 public class EmployeeDAO {
-    private final EmployeeDAO employeeDAO = new EmployeeDAO();
 
     public List<VwEmployees> findAll() {
         EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();

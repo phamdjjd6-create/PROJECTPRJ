@@ -313,7 +313,5 @@
             window.scrollY > 20 ? 'rgba(10,10,15,0.98)' : 'rgba(10,10,15,0.95)';
     });
 </script>
-<!-- CHATBOT WIDGET -->
-<jsp:include page="/chat_widget.jsp"/>
 </body>
 </html>

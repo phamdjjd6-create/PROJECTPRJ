@@ -107,6 +107,8 @@ public class VwContracts implements Serializable {
     private String endDate;
     @jakarta.persistence.Transient
     private String facilityId;
+    @jakarta.persistence.Transient
+    private String facilityType;
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 100)
@@ -233,6 +235,24 @@ public class VwContracts implements Serializable {
 
     public void setFacilityId(String facilityId) {
         this.facilityId = facilityId;
+    }
+
+    public String getFacilityType() {
+        return facilityType;
+    }
+
+    public void setFacilityType(String facilityType) {
+        this.facilityType = facilityType;
+    }
+
+    /** Suy ra loại facility từ facilityId prefix nếu facilityType chưa được set */
+    public String resolveFacilityType() {
+        if (facilityType != null && !facilityType.isEmpty()) return facilityType;
+        if (facilityId == null) return "ROOM";
+        String id = facilityId.toUpperCase();
+        if (id.startsWith("VL")) return "VILLA";
+        if (id.startsWith("HS")) return "HOUSE";
+        return "ROOM";
     }
 
     public String getCustomerName() {

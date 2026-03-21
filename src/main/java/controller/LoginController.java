@@ -83,7 +83,7 @@ public class LoginController extends HttpServlet {
             return;
         }
         if (!pwdOk) {
-            error(request, response, "Sai mật khẩu! Hash trong DB: " + acc.getPasswordHash().substring(0, 29) + "...");
+            error(request, response, "Tên tài khoản hoặc mật khẩu không đúng!");
             return;
         }
 

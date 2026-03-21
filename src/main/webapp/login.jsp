@@ -151,7 +151,7 @@
             left: 14px; top: 50%;
             transform: translateY(-50%);
             font-size: 16px;
-            color: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.6);
             pointer-events: none;
             transition: color 0.2s;
         }
@@ -352,7 +352,5 @@
         btn.disabled = true;
     });
 </script>
-<!-- CHATBOT WIDGET -->
-<jsp:include page="/chat_widget.jsp"/>
 </body>
 </html>

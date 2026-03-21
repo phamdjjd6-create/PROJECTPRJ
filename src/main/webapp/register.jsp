@@ -8,6 +8,7 @@
     <title>Đăng Ký — Azure Resort & Spa</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/drum-datepicker.css">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -142,7 +143,7 @@
         .input-icon {
             position: absolute; left: 13px; top: 50%;
             transform: translateY(-50%);
-            font-size: 15px; color: rgba(255,255,255,0.2);
+            font-size: 15px; color: rgba(255,255,255,0.6);
             pointer-events: none; transition: color 0.2s;
         }
         input[type="text"],
@@ -164,6 +165,11 @@
             box-shadow: 0 0 0 3px rgba(201,168,76,0.08);
         }
         .input-wrap:has(input:focus) .input-icon { color: var(--gold); }
+
+        input[type="date"] {
+            color-scheme: dark;
+        }
+
 
         /* Password field with toggle */
         input[type="password"] { padding-right: 42px; }
@@ -418,12 +424,15 @@
     </div>
 </div>
 
+<script src="assets/js/drum-datepicker.js"></script>
 <script>
-    // ── Generate Max Date (18 Years Ago) ─────────────────────────
     const today = new Date();
     const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
-    const maxDateStr = maxDate.toISOString().split("T")[0];
-    document.getElementById('dateOfBirth').setAttribute('max', maxDateStr);
+
+    new DrumDatePicker(document.getElementById('dateOfBirth'), {
+        maxDate: maxDate
+    });
+
 
     // ── Toggle password visibility ──────────────────────────────
     function togglePwd(fieldId, btn) {
@@ -521,7 +530,5 @@
         div.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 </script>
-<!-- CHATBOT WIDGET -->
-<jsp:include page="/chat_widget.jsp"/>
 </body>
 </html>

@@ -61,12 +61,40 @@ public class BookingController extends HttpServlet {
 
         TblPersons account = (TblPersons) session.getAttribute("account");
 
+        // Hủy booking
+        if ("cancel".equals(request.getParameter("action"))) {
+            String bookingId = request.getParameter("bookingId");
+            try {
+                TblBookings bk = bookingDAO.findById(bookingId);
+                if (bk == null) {
+                    session.setAttribute("bookingFlash", "❌ Không tìm thấy booking " + bookingId);
+                } else if (!"PENDING".equals(bk.getStatus())) {
+                    session.setAttribute("bookingFlash", "❌ Không thể hủy — booking đang ở trạng thái: " + bk.getStatus());
+                } else {
+                    bookingDAO.updateStatus(bookingId, "CANCELLED");
+                    contractDAO.cancelByBookingId(bookingId);
+                    session.setAttribute("bookingFlash", "✅ Đã hủy booking " + bookingId + " thành công.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                session.setAttribute("bookingFlash", "❌ Lỗi: " + e.getMessage());
+            }
+            response.sendRedirect(request.getContextPath() + "/booking?view=my");
+            return;
+        }
+
         try {
             String facilityId = request.getParameter("facilityId");
             String startDateStr = request.getParameter("startDate");
             String endDateStr = request.getParameter("endDate");
             int adults = Integer.parseInt(request.getParameter("adults"));
             int children = Integer.parseInt(request.getParameter("children"));
+
+            // Validate guest limit by facility type
+            int maxGuests = facilityId.startsWith("VL") ? 15 : facilityId.startsWith("HS") ? 5 : 3;
+            if (adults + children > maxGuests) {
+                throw new Exception("Tổng số khách vượt quá giới hạn cho loại này (tối đa " + maxGuests + " người).");
+            }
             String voucherCode = request.getParameter("voucherId");
             String specialReq = request.getParameter("specialReq");
 
@@ -135,23 +163,9 @@ public class BookingController extends HttpServlet {
             
             bookingDAO.save(booking);
 
-            // Create Contract
-            TblContracts contract = new TblContracts();
-            contract.setContractId("CT" + System.currentTimeMillis() % 1000000);
-            contract.setBookingId(booking);
-            contract.setDeposit(BigDecimal.ZERO);
-            contract.setTotalPayment(totalPayment);
-            contract.setPaidAmount(BigDecimal.ZERO);
-            contract.setStatus("DRAFT");
-            contract.setSignedDate(new Date());
-            if (appliedPromo != null) {
-                contract.setNotes("Áp dụng mã: " + appliedPromo.getPromoCode());
-            }
-
-            contractDAO.save(contract);
-
-            // Redirect to Contracts view
-            response.sendRedirect(request.getContextPath() + "/contracts");
+            // Contract sẽ được tạo khi admin duyệt booking
+            session.setAttribute("bookingFlash", "✅ Đặt phòng thành công! Vui lòng chờ admin xác nhận.");
+            response.sendRedirect(request.getContextPath() + "/booking?view=my");
 
         } catch (Exception e) {
             e.printStackTrace();

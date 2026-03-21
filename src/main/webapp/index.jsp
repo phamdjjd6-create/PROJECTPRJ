@@ -277,8 +277,5 @@
     }
 </script>
 
-<!-- CHATBOT WIDGET -->
-<jsp:include page="/chat_widget.jsp"/>
-
 </body>
 </html>

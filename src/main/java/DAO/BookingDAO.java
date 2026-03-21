@@ -49,8 +49,11 @@ public class BookingDAO {
     public List<TblBookings> findByCustomerId(String customerId) {
         EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
-            return em.createQuery("SELECT b FROM TblBookings b WHERE b.customerId.id = :customerId", TblBookings.class)
+            return em.createQuery(
+                    "SELECT b FROM TblBookings b WHERE b.customerId.id = :customerId ORDER BY b.dateBooking DESC",
+                    TblBookings.class)
                     .setParameter("customerId", customerId)
+                    .setHint("jakarta.persistence.cache.retrieveMode", "BYPASS")
                     .getResultList();
         } finally {
             em.close();

@@ -115,6 +115,7 @@
         .form-control:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.2); background: rgba(0, 0, 0, 0.4); }
         .form-control:disabled { background: rgba(255,255,255,0.02); color: rgba(255,255,255,0.4); cursor: not-allowed; }
         select.form-control option { background: var(--navy); color: #fff; }
+        input[type="date"] { color-scheme: dark; }
 
         .submit-btn {
             grid-column: 1 / -1; padding: 18px;
