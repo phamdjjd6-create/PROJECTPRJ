@@ -9,6 +9,19 @@
     <title>Azure Resort &amp; Spa — Trang Chủ</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#c9a84c',
+                        dark: '#0a0a0f',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
@@ -16,11 +29,20 @@
             --dark: #0a0a0f; --navy: #0d1526;
             --text: #e8e8e8; --text-muted: rgba(255,255,255,0.5);
         }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+
         html { scroll-behavior: smooth; }
         body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--text); overflow-x: hidden; }
-        .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 0 60px; height: 72px; display: flex; align-items: center; justify-content: space-between; transition: background 0.3s; }
-        .navbar.scrolled { background: rgba(10,10,15,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(201,168,76,0.15); }
-        .nav-brand { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #fff; text-decoration: none; }
+        .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 0 60px; height: 80px; display: flex; align-items: center; justify-content: space-between; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .navbar.scrolled { height: 64px; background: rgba(10,10,15,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(201,168,76,0.2); box-shadow: 0 4px 30px rgba(0,0,0,0.5), 0 0 20px rgba(201,168,76,0.05); }
+        .nav-brand { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #fff; text-decoration: none; transition: transform 0.3s; }
+        .navbar.scrolled .nav-brand { transform: scale(0.9); }
         .nav-brand span { color: var(--gold); }
         .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
         .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 13.5px; font-weight: 500; letter-spacing: 0.5px; transition: color 0.2s; position: relative; }
@@ -36,20 +58,13 @@
         .btn-nav-login:hover { background: var(--gold-light); }
         .btn-nav-register { padding: 8px 24px; background: transparent; color: var(--gold); border: 1px solid rgba(201,168,76,0.4); border-radius: 50px; font-size: 13px; font-weight: 600; text-decoration: none; transition: all 0.25s; }
         .btn-nav-register:hover { background: var(--gold); color: var(--dark); }
-        .hero { height: 100vh; position: relative; display: flex; align-items: center; justify-content: center; text-align: center; background: url('assets/img/hero-bg.png') center/cover no-repeat; overflow: hidden; }
-        .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.6) 60%, var(--dark) 100%); }
-        .hero-content { position: relative; z-index: 1; max-width: 780px; padding: 0 24px; animation: fadeUp 1s ease; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
-        .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.3); padding: 8px 20px; border-radius: 50px; color: var(--gold-light); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 24px; }
-        .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(42px,6vw,76px); font-weight: 700; color: #fff; line-height: 1.1; margin-bottom: 20px; }
-        .hero h1 em { color: var(--gold); font-style: italic; }
-        .hero-sub { color: rgba(255,255,255,0.65); font-size: 17px; font-weight: 300; line-height: 1.7; margin-bottom: 40px; }
-        .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
         .btn-primary { padding: 15px 40px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--dark); border: none; border-radius: 50px; font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; text-decoration: none; cursor: pointer; transition: all 0.3s; box-shadow: 0 8px 28px rgba(201,168,76,0.3); }
         .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(201,168,76,0.4); }
         .btn-outline { padding: 14px 36px; background: transparent; border: 1.5px solid rgba(255,255,255,0.4); color: #fff; border-radius: 50px; font-size: 14px; font-weight: 500; text-decoration: none; transition: all 0.3s; }
         .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
-        .hero-scroll { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; color: rgba(255,255,255,0.4); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; animation: bounce 2s infinite; }
+
         @keyframes bounce { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(8px); } }
 
         section { padding: 96px 60px; }
@@ -134,89 +149,139 @@
 
 <!-- NAVBAR -->
 <nav class="navbar" id="navbar">
-    <a href="index.jsp" class="nav-brand">Azure <span>Resort</span></a>
+    <a href="${pageContext.request.contextPath}/" class="nav-brand">Azure <span>Resort</span></a>
     <ul class="nav-links">
-        <li><a href="rooms">Phòng &amp; Villa</a></li>
+        <li><a href="${pageContext.request.contextPath}/rooms">Phòng &amp; Villa</a></li>
         <li><a href="#promotions">Khuyến Mãi</a></li>
-        <li><a href="booking">Đặt Phòng</a></li>
-        <li><a href="contracts">Hợp Đồng</a></li>
-        <li><a href="account.jsp">Tài Khoản</a></li>
+        <li><a href="${pageContext.request.contextPath}/booking">Đặt Phòng</a></li>
+        <li><a href="${pageContext.request.contextPath}/contracts">Hợp Đồng</a></li>
+        <li><a href="${pageContext.request.contextPath}/account.jsp">Tài Khoản</a></li>
+        <c:if test="${sessionScope.account.personType == 'EMPLOYEE'}">
+            <li><a href="${pageContext.request.contextPath}/dashboard/admin" class="text-gold font-bold hover:text-white transition-colors">Bảng điều khiển</a></li>
+        </c:if>
     </ul>
     <div class="nav-right">
         <c:choose>
             <c:when test="${not empty sessionScope.account}">
                 <span class="nav-greeting">Xin chào, <strong>${sessionScope.account.fullName}</strong></span>
-                <a href="logout" class="btn-nav-logout">Đăng xuất</a>
+                <a href="${pageContext.request.contextPath}/logout" class="btn-nav-logout">Đăng xuất</a>
             </c:when>
             <c:otherwise>
-                <a href="login.jsp" class="btn-nav-login">Đăng nhập</a>
-                <a href="register" class="btn-nav-register">Đăng ký</a>
+                <a href="${pageContext.request.contextPath}/login.jsp" class="btn-nav-login">Đăng nhập</a>
+                <a href="${pageContext.request.contextPath}/register.jsp" class="btn-nav-register">Đăng ký</a>
             </c:otherwise>
         </c:choose>
     </div>
 </nav>
 
 <!-- HERO -->
-<section class="hero">
-    <div class="hero-content">
-        <div class="hero-badge">✦ Luxury 5-Star Resort ✦</div>
-        <h1>Thiên Đường Nghỉ Dưỡng<br><em>Giữa Biển Xanh</em></h1>
-        <p class="hero-sub">Trải nghiệm kỳ nghỉ đẳng cấp thế giới tại Azure Resort &amp; Spa —<br>nơi thiên nhiên hòa quyện cùng sự xa xỉ tuyệt đích.</p>
-        <div class="hero-actions">
-            <a href="rooms" class="btn-primary">Khám Phá Phòng</a>
-            <a href="booking" class="btn-outline">Đặt Phòng Ngay</a>
+<section class="relative h-screen overflow-hidden flex items-center justify-center">
+    <!-- Background Slider -->
+    <div id="hero-slider" class="absolute inset-0 z-0">
+        <div class="slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100" 
+             style="background-image: url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1920&q=80')"></div>
+        <div class="slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" 
+             style="background-image: url('https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1920&q=80')"></div>
+        <div class="slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" 
+             style="background-image: url('https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1920&q=80')"></div>
+    </div>
+    
+    <!-- Gradient Overlay -->
+    <div class="absolute inset-0 z-10 bg-gradient-to-b from-black/40 via-black/60 to-[#0a0a0f]"></div>
+
+    <div class="hero-content relative z-20 text-center max-w-4xl px-6 animate-float">
+        <div class="hero-badge inline-flex items-center gap-2 bg-gold/10 border border-gold/30 px-5 py-2 rounded-full text-gold text-xs tracking-[0.2em] uppercase mb-8 backdrop-blur-sm animate-pulse">
+            ✦ Luxury 5-Star Resort ✦
+        </div>
+        <h1 class="font-serif text-5xl md:text-7xl lg:text-8xl text-white font-bold leading-tight mb-6 animate-[fadeUp_1s_ease-out]">
+            Thiên Đường Nghỉ Dưỡng<br><em class="text-gold italic">Giữa Biển Xanh</em>
+        </h1>
+        <p class="text-white/70 text-lg md:text-xl font-light leading-relaxed mb-10 max-w-2xl mx-auto animate-[fadeUp_1.2s_ease-out]">
+            Trải nghiệm kỳ nghỉ đẳng cấp thế giới tại Azure Resort &amp; Spa —<br>nơi thiên nhiên hòa quyện cùng sự xa xỉ tuyệt đích.
+        </p>
+        <div class="hero-actions flex flex-wrap justify-center gap-4 animate-[fadeUp_1.4s_ease-out]">
+            <a href="${pageContext.request.contextPath}/rooms" class="btn-primary hover:scale-105 transition-transform">Khám Phá Phòng</a>
+            <a href="${pageContext.request.contextPath}/booking" class="btn-outline border-white/40 hover:border-gold hover:text-gold hover:bg-gold/5 transition-all">Đặt Phòng Ngay</a>
         </div>
     </div>
-    <div class="hero-scroll"><span>Cuộn xuống</span><span>↓</span></div>
+    
+    <div class="hero-scroll absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 text-white/40 text-[10px] tracking-widest uppercase animate-bounce">
+        <span>Cuộn xuống</span>
+        <span class="text-lg">↓</span>
+    </div>
 </section>
 
 <!-- STATS -->
-<div class="stats-bar">
+<div class="stats-bar reveal">
     <div class="stats-inner">
-        <div class="stat-item"><div class="stat-num">50+</div><div class="stat-label">Villa &amp; Phòng Sang Trọng</div></div>
-        <div class="stat-item"><div class="stat-num">5★</div><div class="stat-label">Xếp Hạng Resort</div></div>
-        <div class="stat-item"><div class="stat-num">15K+</div><div class="stat-label">Khách Hàng Hài Lòng</div></div>
-        <div class="stat-item"><div class="stat-num">10+</div><div class="stat-label">Năm Kinh Nghiệm</div></div>
+        <div class="stat-item reveal delay-100"><div class="stat-num">50+</div><div class="stat-label">Villa &amp; Phòng Sang Trọng</div></div>
+        <div class="stat-item reveal delay-200"><div class="stat-num">5★</div><div class="stat-label">Xếp Hạng Resort</div></div>
+        <div class="stat-item reveal delay-300"><div class="stat-num">15K+</div><div class="stat-label">Khách Hàng Hài Lòng</div></div>
+        <div class="stat-item reveal delay-300"><div class="stat-num">10+</div><div class="stat-label">Năm Kinh Nghiệm</div></div>
     </div>
 </div>
 
 <!-- FEATURES -->
 <section class="features">
-    <div class="section-inner">
+    <div class="section-inner reveal">
         <span class="section-label">Dịch Vụ Của Chúng Tôi</span>
         <h2 class="section-title">Mọi Thứ Bạn <em>Cần</em></h2>
         <p class="section-desc">Từ đặt phòng đến quản lý hợp đồng, tất cả trong một nơi.</p>
         <div class="features-grid">
-            <a href="booking" class="feature-card"><h3>Đặt Phòng</h3><p>Chọn villa hoặc phòng yêu thích và đặt ngay trong vài bước đơn giản.</p><span class="feature-arrow">Đặt ngay →</span></a>
-            <a href="booking?view=my" class="feature-card"><h3>Booking Của Tôi</h3><p>Xem lịch sử đặt phòng, trạng thái và chi tiết các booking của bạn.</p><span class="feature-arrow">Xem ngay →</span></a>
-            <a href="contracts" class="feature-card"><h3>Hợp Đồng</h3><p>Tra cứu và quản lý hợp đồng, theo dõi tình trạng thanh toán.</p><span class="feature-arrow">Xem ngay →</span></a>
-            <a href="#promotions" class="feature-card"><h3>Khuyến Mãi</h3><p>Khám phá ưu đãi đặc biệt và mã giảm giá dành riêng cho bạn.</p><span class="feature-arrow">Xem ưu đãi →</span></a>
+            <a href="${pageContext.request.contextPath}/booking" class="feature-card reveal delay-100 group">
+                <div class="flex flex-col items-center">
+                    <h3 class="group-hover:text-gold transition-colors">Đặt Phòng</h3>
+                    <p>Chọn villa hoặc phòng yêu thích và đặt ngay trong vài bước đơn giản.</p>
+                    <span class="feature-arrow group-hover:translate-x-2 transition-transform">Đặt ngay →</span>
+                </div>
+            </a>
+            <a href="${pageContext.request.contextPath}/booking?view=my" class="feature-card reveal delay-200 group">
+                <div class="flex flex-col items-center">
+                    <h3 class="group-hover:text-gold transition-colors">Booking Của Tôi</h3>
+                    <p>Xem lịch sử đặt phòng, trạng thái và chi tiết các booking của bạn.</p>
+                    <span class="feature-arrow group-hover:translate-x-2 transition-transform">Xem ngay →</span>
+                </div>
+            </a>
+            <a href="${pageContext.request.contextPath}/contracts" class="feature-card reveal delay-300 group">
+                <div class="flex flex-col items-center">
+                    <h3 class="group-hover:text-gold transition-colors">Hợp Đồng</h3>
+                    <p>Tra cứu và quản lý hợp đồng, theo dõi tình trạng thanh toán.</p>
+                    <span class="feature-arrow group-hover:translate-x-2 transition-transform">Xem ngay →</span>
+                </div>
+            </a>
+            <a href="#promotions" class="feature-card reveal delay-300 group">
+                <div class="flex flex-col items-center">
+                    <h3 class="group-hover:text-gold transition-colors">Khuyến Mãi</h3>
+                    <p>Khám phá ưu đãi đặc biệt và mã giảm giá dành riêng cho bạn.</p>
+                    <span class="feature-arrow group-hover:translate-x-2 transition-transform">Xem ưu đãi →</span>
+                </div>
+            </a>
         </div>
     </div>
 </section>
 
 <!-- PROMOTIONS -->
-<section class="promotions" id="promotions">
+<section class="promotions reveal" id="promotions">
     <div class="section-inner">
         <span class="section-label">Ưu Đãi Đặc Biệt</span>
         <h2 class="section-title"><em>Khuyến Mãi</em> Hấp Dẫn</h2>
         <p class="section-desc">Tiết kiệm hơn với những ưu đãi độc quyền dành cho khách hàng thân thiết.</p>
         <div class="promo-grid">
-            <div class="promo-card">
+            <div class="promo-card reveal delay-100 hover:border-gold/50 transition-all duration-500">
                 <div class="promo-discount">20%</div>
                 <div class="promo-title">Đặt Sớm 30 Ngày</div>
                 <div class="promo-desc">Đặt phòng trước 30 ngày để nhận ưu đãi giảm 20% cho tất cả các loại phòng và villa.</div>
                 <div class="promo-code"><span>EARLYBIRD20</span><button onclick="copyCode('EARLYBIRD20',this)">Sao chép</button></div>
                 <div class="promo-expiry">Hết hạn: 31/05/2026</div>
             </div>
-            <div class="promo-card">
+            <div class="promo-card reveal delay-200 hover:border-gold/50 transition-all duration-500">
                 <div class="promo-discount">15%</div>
                 <div class="promo-title">Gói Cuối Tuần</div>
                 <div class="promo-desc">Đặt phòng vào thứ 6, thứ 7 nhận ngay ưu đãi 15% kèm bữa ăn sáng miễn phí cho 2 người.</div>
                 <div class="promo-code"><span>WEEKEND15</span><button onclick="copyCode('WEEKEND15',this)">Sao chép</button></div>
                 <div class="promo-expiry">Hết hạn: 30/06/2026</div>
             </div>
-            <div class="promo-card">
+            <div class="promo-card reveal delay-300 hover:border-gold/50 transition-all duration-500">
                 <div class="promo-discount">30%</div>
                 <div class="promo-title">Khách Hàng VIP</div>
                 <div class="promo-desc">Danh hiệu Diamond/Gold được hưởng ưu đãi 30% cho lần đặt phòng tiếp theo.</div>
@@ -237,15 +302,15 @@
         </div>
         <div class="footer-col">
             <h4>Khám Phá</h4>
-            <a href="#rooms">Phòng &amp; Villa</a>
+            <a href="${pageContext.request.contextPath}/rooms">Phòng &amp; Villa</a>
             <a href="#promotions">Khuyến Mãi</a>
-            <a href="booking">Đặt Phòng</a>
+            <a href="${pageContext.request.contextPath}/booking">Đặt Phòng</a>
         </div>
         <div class="footer-col">
             <h4>Tài Khoản</h4>
-            <a href="booking?view=my">Booking Của Tôi</a>
-            <a href="contracts">Hợp Đồng</a>
-            <a href="profile">Hồ Sơ</a>
+            <a href="${pageContext.request.contextPath}/booking?view=my">Booking Của Tôi</a>
+            <a href="${pageContext.request.contextPath}/contracts">Hợp Đồng</a>
+            <a href="${pageContext.request.contextPath}/profile">Hồ Sơ</a>
         </div>
         <div class="footer-col">
             <h4>Liên Hệ</h4>
@@ -264,10 +329,29 @@
     window.addEventListener('scroll', () => {
         document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
     });
-    // Set min date for booking bar
-    const _today = new Date().toISOString().split('T')[0];
-    if (document.getElementById('checkinInput')) document.getElementById('checkinInput').min = _today;
-    if (document.getElementById('checkoutInput')) document.getElementById('checkoutInput').min = _today;
+
+    // Background Slider Script
+    const slides = document.querySelectorAll('.slide');
+    let currentSlide = 0;
+    function nextSlide() {
+        slides[currentSlide].classList.replace('opacity-100', 'opacity-0');
+        currentSlide = (currentSlide + 1) % slides.length;
+        slides[currentSlide].classList.replace('opacity-0', 'opacity-100');
+    }
+    setInterval(nextSlide, 5000);
+
+    // Scroll Reveal Observer
+    const observerOptions = { threshold: 0.15 };
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
     function copyCode(code, btn) {
         navigator.clipboard.writeText(code).then(() => {
             const orig = btn.textContent;

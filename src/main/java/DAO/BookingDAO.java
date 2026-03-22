@@ -168,4 +168,10 @@ public class BookingDAO {
             em.close();
         }
     }
+    public long count() {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            return (long) em.createQuery("SELECT COUNT(b) FROM TblBookings b").getSingleResult();
+        } finally { em.close(); }
+    }
 }

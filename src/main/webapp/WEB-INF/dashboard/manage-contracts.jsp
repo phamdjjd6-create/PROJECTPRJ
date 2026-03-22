@@ -43,13 +43,12 @@
         .content{padding:32px 36px 60px;flex:1}
         .section-label{font-size:10px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;font-weight:600;margin-bottom:4px}
         .section-title{font-family:'Playfair Display',serif;font-size:24px;color:#fff;margin-bottom:24px}
-
-        /* Flash message */
+    </style>
+    <style>
         .flash{padding:14px 20px;border-radius:12px;margin-bottom:20px;font-size:13.5px;font-weight:500}
         .flash-success{background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);color:#4ade80}
         .flash-warn{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.25);color:#fbbf24}
         .flash-error{background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);color:#f87171}
-
         .stats-row{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap}
         .stat-pill{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 22px;display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;transition:all 0.2s}
         .stat-pill:hover{border-color:rgba(201,168,76,0.3)}
@@ -58,7 +57,6 @@
         .stat-pill.yellow .num{color:#fbbf24}
         .stat-pill.green .num{color:#4ade80}
         .stat-pill.gold .num{color:var(--gold)}
-
         .toolbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
         .search-box{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px 14px;flex:1;min-width:200px;max-width:360px}
         .search-box input{background:none;border:none;outline:none;color:#fff;font-size:13.5px;width:100%}
@@ -67,8 +65,6 @@
         .tab{padding:7px 16px;border-radius:50px;font-size:12.5px;font-weight:600;border:1.5px solid var(--border);color:var(--muted);background:transparent;cursor:pointer;transition:all 0.2s;text-decoration:none}
         .tab:hover{border-color:rgba(201,168,76,0.4);color:var(--gold)}
         .tab.active{background:var(--gold);color:var(--dark);border-color:var(--gold)}
-
-        /* Contract cards */
         .contracts-list{display:flex;flex-direction:column;gap:16px}
         .contract-card{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;transition:all 0.3s}
         .contract-card:hover{border-color:rgba(201,168,76,0.2);transform:translateY(-1px)}
@@ -92,12 +88,9 @@
         .info-item .val.gold{color:var(--gold);font-family:'Playfair Display',serif;font-size:16px}
         .info-item .val.green{color:#4ade80}
         .info-item .val.yellow{color:#fbbf24}
-
-        /* Deposit indicator */
         .deposit-indicator{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;margin-bottom:16px;font-size:13px;font-weight:600}
         .deposit-yes{background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);color:#4ade80}
         .deposit-no{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);color:#fbbf24}
-
         .card-actions{display:flex;gap:10px;padding-top:16px;border-top:1px solid var(--border);flex-wrap:wrap}
         .btn-action{padding:8px 20px;border-radius:50px;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all 0.25s;font-family:'Inter',sans-serif}
         .btn-approve{background:linear-gradient(135deg,#4ade80,#22c55e);color:#000}
@@ -108,11 +101,8 @@
         .btn-reject:hover{background:#f87171;color:#fff}
         .btn-complete{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--dark)}
         .btn-complete:hover{transform:scale(1.04)}
-
         .empty{padding:60px;text-align:center;color:var(--muted)}
         .empty .icon{font-size:48px;margin-bottom:12px;opacity:0.3}
-
-        /* Modal */
         .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
         .modal-overlay.open{display:flex}
         .modal{background:#0d1526;border:1px solid rgba(201,168,76,0.2);border-radius:24px;padding:36px;width:100%;max-width:440px}
@@ -150,7 +140,7 @@
         <a href="${pageContext.request.contextPath}/dashboard/users" class="nav-item"><span class="icon">👥</span> Người Dùng</a>
         <a href="${pageContext.request.contextPath}/dashboard/bookings" class="nav-item"><span class="icon">📋</span> Booking</a>
         <a href="${pageContext.request.contextPath}/dashboard/contracts" class="nav-item active"><span class="icon">📄</span> Hợp Đồng</a>
-        <a href="${pageContext.request.contextPath}/dashboard/facilities" class="nav-item"><span class="icon">🏨</span> Phòng & Villa</a>
+        <a href="${pageContext.request.contextPath}/dashboard/facilities" class="nav-item"><span class="icon">🏨</span> Phòng &amp; Villa</a>
     </nav>
     <div class="sidebar-footer"><a href="${pageContext.request.contextPath}/logout" class="btn-logout"><span>🚪</span> Đăng Xuất</a></div>
 </aside>
@@ -164,14 +154,10 @@
         <div class="section-label">Quản Lý</div>
         <div class="section-title">Hợp Đồng Phòng</div>
 
-        <!-- Flash message -->
         <c:if test="${not empty flashMsg}">
-            <div class="flash ${flashMsg.startsWith('✅') ? 'flash-success' : flashMsg.startsWith('⚠️') ? 'flash-warn' : 'flash-error'}">
-                ${flashMsg}
-            </div>
+            <div class="flash ${flashMsg.startsWith('✅') ? 'flash-success' : flashMsg.startsWith('⚠️') ? 'flash-warn' : 'flash-error'}">${flashMsg}</div>
         </c:if>
 
-        <!-- Stats -->
         <div class="stats-row">
             <a href="?status=DRAFT" class="stat-pill yellow">
                 <div><div class="num">${cntDraft}</div><div class="lbl">Chờ Duyệt</div></div>
@@ -184,7 +170,6 @@
             </a>
         </div>
 
-        <!-- Toolbar -->
         <form method="get" action="${pageContext.request.contextPath}/dashboard/contracts">
             <div class="toolbar">
                 <div class="search-box">
@@ -201,7 +186,6 @@
             </div>
         </form>
 
-        <!-- Contract cards -->
         <c:choose>
             <c:when test="${not empty contracts}">
                 <div class="contracts-list">
@@ -212,7 +196,6 @@
                         <c:when test="${ct.status == 'CANCELLED'}"><c:set var="accentCls" value="accent-cancelled"/><c:set var="badgeCls" value="badge-cancelled"/><c:set var="statusLbl" value="Đã Hủy"/></c:when>
                         <c:otherwise><c:set var="accentCls" value="accent-draft"/><c:set var="badgeCls" value="badge-draft"/><c:set var="statusLbl" value="Chờ Duyệt"/></c:otherwise>
                     </c:choose>
-
                     <div class="contract-card">
                         <div class="card-accent ${accentCls}"></div>
                         <div class="card-body">
@@ -223,8 +206,6 @@
                                 </div>
                                 <span class="badge ${badgeCls}">${statusLbl}</span>
                             </div>
-
-                            <!-- Deposit indicator -->
                             <c:choose>
                                 <c:when test="${ct.deposit != null && ct.deposit > 0}">
                                     <div class="deposit-indicator deposit-yes">✅ Đã đặt cọc — có thể duyệt ngay</div>
@@ -233,13 +214,10 @@
                                     <div class="deposit-indicator deposit-no">⚠️ Chưa đặt cọc — cần chờ xác nhận thanh toán</div>
                                 </c:otherwise>
                             </c:choose>
-
                             <div class="info-row">
                                 <div class="info-item">
                                     <div class="lbl">Đặt Cọc</div>
-                                    <div class="val ${ct.deposit > 0 ? 'green' : 'yellow'}">
-                                        <fmt:formatNumber value="${ct.deposit}" type="number" groupingUsed="true"/> đ
-                                    </div>
+                                    <div class="val ${ct.deposit > 0 ? 'green' : 'yellow'}"><fmt:formatNumber value="${ct.deposit}" type="number" groupingUsed="true"/> đ</div>
                                 </div>
                                 <div class="info-item">
                                     <div class="lbl">Tổng Giá Trị</div>
@@ -258,33 +236,20 @@
                                         </c:choose>
                                     </div>
                                 </div>
-                                <div class="info-item">
-                                    <div class="lbl">Nhận Phòng</div>
-                                    <div class="val">${ct.startDate}</div>
-                                </div>
-                                <div class="info-item">
-                                    <div class="lbl">Trả Phòng</div>
-                                    <div class="val">${ct.endDate}</div>
-                                </div>
+                                <div class="info-item"><div class="lbl">Nhận Phòng</div><div class="val">${ct.startDate}</div></div>
+                                <div class="info-item"><div class="lbl">Trả Phòng</div><div class="val">${ct.endDate}</div></div>
                                 <c:if test="${not empty ct.employeeName}">
-                                <div class="info-item">
-                                    <div class="lbl">Nhân Viên</div>
-                                    <div class="val">${ct.employeeName}</div>
-                                </div>
+                                <div class="info-item"><div class="lbl">Nhân Viên</div><div class="val">${ct.employeeName}</div></div>
                                 </c:if>
                             </div>
-
-                            <!-- Actions -->
                             <c:if test="${ct.status == 'DRAFT'}">
-                            <%-- Tính % cọc theo loại facility từ facilityId prefix --%>
                             <c:choose>
-                                <c:when test="${fn:startsWith(ct.facilityId, 'VL') || fn:startsWith(ct.facilityId, 'vl')}"><c:set var="depositPct" value="50"/><c:set var="facilityLabel" value="Villa"/></c:when>
-                                <c:when test="${fn:startsWith(ct.facilityId, 'HS') || fn:startsWith(ct.facilityId, 'hs')}"><c:set var="depositPct" value="40"/><c:set var="facilityLabel" value="House"/></c:when>
-                                <c:otherwise><c:set var="depositPct" value="30"/><c:set var="facilityLabel" value="Phòng"/></c:otherwise>
+                                <c:when test="${fn:startsWith(ct.facilityId, 'VL') || fn:startsWith(ct.facilityId, 'vl')}"><c:set var="depositPct" value="50"/></c:when>
+                                <c:when test="${fn:startsWith(ct.facilityId, 'HS') || fn:startsWith(ct.facilityId, 'hs')}"><c:set var="depositPct" value="40"/></c:when>
+                                <c:otherwise><c:set var="depositPct" value="30"/></c:otherwise>
                             </c:choose>
                             <c:set var="depositPreview" value="${ct.totalPayment * depositPct / 100}"/>
                             <div class="card-actions">
-                                <%-- Nút xác nhận đặt cọc --%>
                                 <form method="post" action="${pageContext.request.contextPath}/dashboard/action" style="display:inline">
                                     <input type="hidden" name="action" value="confirm_deposit">
                                     <input type="hidden" name="contractId" value="${ct.contractId}">
@@ -324,19 +289,12 @@
         </c:choose>
     </div>
 </div>
-<script>
-    const d = new Date();
-    document.getElementById('topbarDate').textContent = d.toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-</script>
 
-<!-- PAYMENT MODAL -->
 <div class="modal-overlay" id="payModal">
     <div class="modal">
         <h3>💳 Xác Nhận Thanh Toán Thêm</h3>
         <p class="modal-sub">Ghi nhận khoản thanh toán từ khách hàng</p>
-        <div class="remaining-info">
-            Còn phải trả: <strong id="modalRemaining">—</strong>
-        </div>
+        <div class="remaining-info">Còn phải trả: <strong id="modalRemaining">—</strong></div>
         <form method="post" action="${pageContext.request.contextPath}/dashboard/action">
             <input type="hidden" name="action" value="add_payment">
             <input type="hidden" name="contractId" id="modalContractId">
@@ -362,32 +320,19 @@
     </div>
 </div>
 
-<c:if test="${not empty sessionScope.flashMsg}">
 <script>
-    // Flash already shown in .flash div above, clear after 4s
-    setTimeout(() => {
-        const f = document.querySelector('.flash');
-        if (f) { f.style.opacity='0'; f.style.transition='opacity 0.5s'; setTimeout(()=>f.remove(),500); }
-    }, 4000);
-</script>
-</c:if>
-
-<script>
+    const d = new Date();
+    document.getElementById('topbarDate').textContent = d.toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
     function openPayModal(contractId, remaining) {
         document.getElementById('modalContractId').value = contractId;
         document.getElementById('modalRemaining').textContent = new Intl.NumberFormat('vi-VN').format(remaining) + ' đ';
-        // Mặc định = số tiền còn lại, làm tròn xuống ngàn, hiển thị dạng "ngàn đồng"
         const defaultVal = Math.floor(remaining / 1000) * 1000;
         document.getElementById('modalAmount').value = defaultVal;
         document.getElementById('modalAmount').max = remaining;
         document.getElementById('payModal').classList.add('open');
     }
-    function closePayModal() {
-        document.getElementById('payModal').classList.remove('open');
-    }
-    document.getElementById('payModal').addEventListener('click', function(e) {
-        if (e.target === this) closePayModal();
-    });
+    function closePayModal() { document.getElementById('payModal').classList.remove('open'); }
+    document.getElementById('payModal').addEventListener('click', function(e) { if (e.target === this) closePayModal(); });
 </script>
 </body>
 </html>

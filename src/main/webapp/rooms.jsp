@@ -10,307 +10,289 @@
     <title>Tất Cả Phòng &amp; Villa — Azure Resort</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root { --gold: #c9a84c; --gold-light: #e8cc82; --dark: #0a0a0f; --navy: #0d1526; --text: #e8e8e8; --text-muted: rgba(255,255,255,0.5); }
-        html { scroll-behavior: smooth; }
-        body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--text); }
-
-        /* NAVBAR */
-        .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 0 60px; height: 72px; display: flex; align-items: center; justify-content: space-between; background: rgba(10,10,15,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(201,168,76,0.15); }
-        .nav-brand { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #fff; text-decoration: none; }
-        .nav-brand span { color: var(--gold); }
-        .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
-        .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: color 0.2s; }
-        .nav-links a:hover, .nav-links a.active { color: var(--gold); }
-        .nav-right { display: flex; align-items: center; gap: 16px; }
-        .nav-greeting { color: rgba(255,255,255,0.5); font-size: 13px; }
-        .nav-greeting strong { color: var(--gold); }
-        .btn-nav-logout { padding: 8px 20px; border: 1px solid rgba(201,168,76,0.4); border-radius: 50px; background: transparent; color: var(--gold); font-size: 13px; cursor: pointer; transition: all 0.25s; text-decoration: none; }
-        .btn-nav-logout:hover { background: var(--gold); color: var(--dark); }
-        .btn-nav-login { padding: 8px 24px; background: var(--gold); color: var(--dark); border-radius: 50px; font-size: 13px; font-weight: 600; text-decoration: none; }
-        .btn-nav-register { padding: 8px 24px; background: transparent; color: var(--gold); border: 1px solid rgba(201,168,76,0.4); border-radius: 50px; font-size: 13px; font-weight: 600; text-decoration: none; }
-
-        /* PAGE HEADER */
-        .page-header { margin-top: 72px; padding: 56px 60px 40px; background: linear-gradient(to bottom, var(--navy), var(--dark)); border-bottom: 1px solid rgba(201,168,76,0.1); }
-        .page-header-inner { max-width: 1200px; margin: 0 auto; }
-        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
-        .breadcrumb a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
-        .breadcrumb a:hover { color: var(--gold); }
-        .breadcrumb .sep { color: rgba(255,255,255,0.2); }
-        .section-label { display: inline-block; color: var(--gold); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; margin-bottom: 10px; }
-        .page-title { font-family: 'Playfair Display', serif; font-size: clamp(28px,4vw,44px); color: #fff; margin-bottom: 8px; }
-        .page-title em { color: var(--gold); font-style: italic; }
-        .page-desc { color: var(--text-muted); font-size: 15px; }
-
-        /* FILTER TABS */
-        /* SEARCH BAR */
-        .search-bar { background: var(--navy); border-bottom: 1px solid rgba(201,168,76,0.1); padding: 20px 60px; }
-        .search-bar-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
-        .search-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 130px; }
-        .search-field label { font-size: 10px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; }
-        .search-field input, .search-field select { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 9px 13px; color: #fff; font-size: 13px; font-family: 'Inter', sans-serif; outline: none; width: 100%; transition: border-color 0.2s; }
-        .search-field input:focus, .search-field select:focus { border-color: rgba(201,168,76,0.5); }
-        .search-field select option { background: var(--navy); }
-        .btn-search { padding: 10px 28px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--dark); border: none; border-radius: 10px; font-size: 13px; font-weight: 700; font-family: 'Inter', sans-serif; cursor: pointer; white-space: nowrap; transition: all 0.25s; }
-        .btn-search:hover { transform: translateY(-2px); }
-
-        /* FILTER TABS */
-        .filter-bar { max-width: 1200px; margin: 0 auto; padding: 28px 60px 0; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .filter-tab { padding: 9px 24px; border-radius: 50px; font-size: 13px; font-weight: 600; text-decoration: none; border: 1.5px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); transition: all 0.25s; }
-        .filter-tab:hover { border-color: rgba(201,168,76,0.4); color: var(--gold); }
-        .filter-tab.active { background: var(--gold); color: var(--dark); border-color: var(--gold); }
-        .filter-count { font-size: 11px; background: rgba(255,255,255,0.1); border-radius: 50px; padding: 2px 8px; margin-left: 6px; }
-        .filter-tab.active .filter-count { background: rgba(0,0,0,0.2); }
-
-        /* GRID */
-        .rooms-section { max-width: 1200px; margin: 0 auto; padding: 32px 60px 80px; }
-        .rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 28px; }
-
-        /* CARD */
-        .room-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; overflow: hidden; transition: all 0.35s; }
-        .room-card:hover { transform: translateY(-6px); box-shadow: 0 24px 48px rgba(0,0,0,0.4); border-color: rgba(201,168,76,0.2); }
-        .room-img-wrap { overflow: hidden; position: relative; height: 220px; }
-        .room-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
-        .room-card:hover .room-img { transform: scale(1.05); }
-        .room-badge { position: absolute; top: 14px; left: 14px; background: var(--gold); color: var(--dark); font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 50px; }
-        .status-tag { position: absolute; top: 14px; right: 14px; font-size: 10px; font-weight: 700; padding: 4px 12px; border-radius: 50px; }
-        .status-tag.available   { background: rgba(74,222,128,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
-        .status-tag.occupied    { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
-        .status-tag.maintenance { background: rgba(251,191,36,0.15);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
-        .room-body { padding: 22px; }
-        .room-type { color: var(--gold); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin-bottom: 6px; }
-        .room-name { font-family: 'Playfair Display', serif; font-size: 20px; color: #fff; margin-bottom: 8px; }
-        .room-desc { color: var(--text-muted); font-size: 13px; line-height: 1.6; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .room-amenities { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-        .amenity { background: rgba(255,255,255,0.05); border-radius: 50px; padding: 3px 12px; font-size: 12px; color: rgba(255,255,255,0.55); }
-        .room-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); }
-        .room-price .price { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--gold); font-weight: 700; }
-        .room-price .per { color: var(--text-muted); font-size: 12px; margin-left: 3px; }
-        .room-footer-btns { display: flex; gap: 8px; }
-        .btn-detail { padding: 8px 16px; background: transparent; border: 1.5px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); border-radius: 50px; font-size: 12px; font-weight: 500; text-decoration: none; transition: all 0.25s; }
-        .btn-detail:hover { border-color: var(--gold); color: var(--gold); }
-        .btn-book { padding: 8px 18px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--dark); border: none; border-radius: 50px; font-size: 12px; font-weight: 700; text-decoration: none; transition: all 0.25s; }
-        .btn-book:hover { transform: scale(1.05); }
-
-        /* EMPTY / ERROR */
-        .no-rooms { grid-column: 1/-1; text-align: center; padding: 80px 24px; color: var(--text-muted); }
-        .no-rooms p { font-size: 15px; margin-top: 10px; }
-
-        /* STATS */
-        .result-info { color: var(--text-muted); font-size: 13px; margin-bottom: 24px; }
-        .result-info strong { color: var(--gold); }
-
-        @media (max-width: 768px) {
-            .navbar { padding: 0 20px; }
-            .page-header { padding: 40px 20px 28px; }
-            .filter-bar { padding: 24px 20px 0; }
-            .rooms-section { padding: 24px 20px 60px; }
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#c9a84c',
+                        'gold-light': '#e8cc82',
+                        dark: '#0a0a0f',
+                        navy: '#0d1526',
+                    },
+                    fontFamily: {
+                        serif: ['Playfair Display', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'reveal': 'reveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        reveal: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
         }
+    </script>
+    <style>
+        :root {
+            --gold: #c9a84c; --gold-light: #e8cc82;
+            --dark: #0a0a0f; --navy: #0d1526;
+        }
+        body { background-color: var(--dark); color: white; font-family: 'Inter', sans-serif; margin: 0; }
+        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+    <style type="text/tailwindcss">
+        @layer base {
+            body { @apply bg-dark text-white font-sans antialiased selection:bg-gold/30; }
+        }
+        @layer components {
+            .nav-link { @apply text-white/60 hover:text-gold transition-colors text-sm font-medium relative py-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-gold after:transition-all hover:after:w-full; }
+            .nav-link.active { @apply text-gold after:w-full; }
+            .glass-panel { @apply bg-white/5 backdrop-blur-2xl border border-white/10; }
+            .btn-premium { @apply px-8 py-3 bg-gradient-to-r from-gold to-gold-light text-dark font-bold rounded-full transition-all hover:scale-105 active:scale-95 shadow-lg shadow-gold/20 hover:shadow-gold/40 text-sm tracking-widest uppercase; }
+            .btn-outline { @apply px-8 py-3 bg-transparent border border-gold/40 text-gold font-bold rounded-full transition-all hover:bg-gold hover:text-dark text-sm tracking-widest uppercase; }
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,0.4); }
     </style>
 </head>
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar">
-    <a href="${pageContext.request.contextPath}/" class="nav-brand">Azure <span>Resort</span></a>
-    <ul class="nav-links">
-        <li><a href="${pageContext.request.contextPath}/">Trang Chủ</a></li>
-        <li><a href="${pageContext.request.contextPath}/rooms" class="active">Phòng &amp; Villa</a></li>
-        <li><a href="${pageContext.request.contextPath}/booking">Đặt Phòng</a></li>
-        <li><a href="${pageContext.request.contextPath}/account.jsp">Tài Khoản</a></li>
+<!-- NAVBAR (Reusing Premium Design) -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-[1000] px-6 md:px-12 h-20 flex items-center justify-between transition-all duration-500 bg-dark/80 backdrop-blur-md border-b border-gold/10">
+    <a href="${pageContext.request.contextPath}/" class="text-2xl font-serif font-bold tracking-tight text-white group">
+        Azure <span class="text-gold group-hover:text-gold-light transition-colors">Resort</span>
+    </a>
+    
+    <ul class="hidden md:flex items-center gap-10">
+        <li><a href="${pageContext.request.contextPath}/" class="nav-link">Trang Chủ</a></li>
+        <li><a href="${pageContext.request.contextPath}/rooms" class="nav-link active">Phòng &amp; Villa</a></li>
+        <li><a href="${pageContext.request.contextPath}/booking" class="nav-link">Đặt Phòng</a></li>
+        <li><a href="${pageContext.request.contextPath}/account.jsp" class="nav-link">Tài Khoản</a></li>
+        <c:if test="${sessionScope.account.personType == 'EMPLOYEE'}">
+            <li><a href="${pageContext.request.contextPath}/dashboard/admin" class="nav-link text-gold font-bold border border-gold/20 px-4 py-1.5 rounded-full hover:bg-gold hover:text-dark transition-all">Bảng điều khiển</a></li>
+        </c:if>
     </ul>
-    <div class="nav-right">
+
+    <div class="flex items-center gap-6">
         <c:choose>
             <c:when test="${not empty account}">
-                <span class="nav-greeting">Xin chào, <strong>${account}</strong></span>
-                <a href="${pageContext.request.contextPath}/logout" class="btn-nav-logout">Đăng xuất</a>
+                <div class="hidden sm:flex flex-col items-end">
+                    <span class="text-[10px] text-white/40 uppercase tracking-[0.2em]">Khách hàng</span>
+                    <span class="text-sm font-medium text-gold">${account}</span>
+                </div>
+                <a href="${pageContext.request.contextPath}/logout" class="px-5 py-2 border border-gold/30 rounded-full text-xs font-bold text-gold uppercase tracking-widest hover:bg-gold hover:text-dark transition-all">Đăng xuất</a>
             </c:when>
             <c:otherwise>
-                <a href="${pageContext.request.contextPath}/login.jsp" class="btn-nav-login">Đăng nhập</a>
-                <a href="${pageContext.request.contextPath}/register" class="btn-nav-register">Đăng ký</a>
+                <div class="flex items-center gap-4">
+                    <a href="${pageContext.request.contextPath}/login.jsp" class="text-xs font-bold text-gold uppercase tracking-widest hover:text-white transition-colors">Đăng nhập</a>
+                    <a href="${pageContext.request.contextPath}/register.jsp" class="px-6 py-2 bg-gold text-dark text-xs font-bold rounded-full uppercase tracking-widest hover:bg-gold-light transition-all">Đăng ký</a>
+                </div>
             </c:otherwise>
         </c:choose>
     </div>
 </nav>
 
 <!-- PAGE HEADER -->
-<div class="page-header">
-    <div class="page-header-inner">
-        <div class="breadcrumb">
-            <a href="${pageContext.request.contextPath}/">Trang Chủ</a>
-            <span class="sep">›</span>
-            <span style="color:var(--gold)">Phòng &amp; Villa</span>
-        </div>
-        <span class="section-label">Không Gian Nghỉ Dưỡng</span>
-        <h1 class="page-title">Tất Cả Phòng &amp; <em>Villa</em></h1>
-        <p class="page-desc">Khám phá toàn bộ không gian nghỉ dưỡng tại Azure Resort &amp; Spa</p>
+<header class="pt-32 pb-20 bg-gradient-to-b from-navy to-dark border-b border-gold/5 px-6 md:px-12">
+    <div class="max-w-7xl mx-auto animate-reveal">
+        <nav class="flex items-center gap-2 text-xs text-white/30 uppercase tracking-[0.2em] mb-6">
+            <a href="${pageContext.request.contextPath}/" class="hover:text-gold transition-colors">Trang Chủ</a>
+            <span>/</span>
+            <span class="text-gold">Phòng &amp; Villa</span>
+        </nav>
+        <span class="block text-gold text-[10px] uppercase tracking-[0.4em] font-bold mb-3">Azure Signature Collection</span>
+        <h1 class="text-5xl md:text-7xl font-serif font-bold text-white mb-6 leading-tight">
+            Tất Cả Phòng <br class="hidden md:block"> &amp; <span class="italic text-gold italic">Villa</span>
+        </h1>
+        <p class="text-white/40 max-w-2xl text-lg font-light leading-relaxed">
+            Khám phá tinh hoa kiến trúc kết hợp cùng thiên nhiên hùng vĩ. Mỗi không gian tại Azure Resort được thiết kế để mang lại sự tĩnh lặng tuyệt đối cho tâm hồn bạn.
+        </p>
     </div>
-</div>
+</header>
 
-<!-- SEARCH BAR -->
-<div class="search-bar">
-    <form class="search-bar-inner" action="${pageContext.request.contextPath}/rooms" method="GET">
-        <div class="search-field">
-            <label>Loại Phòng</label>
-            <select name="type">
-                <option value="" ${empty filterType ? 'selected' : ''}>Tất cả</option>
-                <option value="VILLA" ${filterType == 'VILLA' ? 'selected' : ''}>Villa</option>
-                <option value="HOUSE" ${filterType == 'HOUSE' ? 'selected' : ''}>House</option>
-                <option value="ROOM"  ${filterType == 'ROOM'  ? 'selected' : ''}>Phòng</option>
-            </select>
-        </div>
-        <div class="search-field">
-            <label>Nhận Phòng</label>
-            <input type="date" name="checkin" value="${checkin}">
-        </div>
-        <div class="search-field">
-            <label>Trả Phòng</label>
-            <input type="date" name="checkout" value="${checkout}">
-        </div>
-        <div class="search-field">
-            <label>Số Người</label>
-            <select name="adults">
-                <option value="1" ${adults <= 1 ? 'selected' : ''}>1 người</option>
-                <option value="2" ${adults == 2 ? 'selected' : ''}>2 người</option>
-                <option value="3" ${adults == 3 ? 'selected' : ''}>3 người</option>
-                <option value="4" ${adults == 4 ? 'selected' : ''}>4 người</option>
-                <option value="5" ${adults == 5 ? 'selected' : ''}>5 người</option>
-                <option value="6" ${adults >= 6 ? 'selected' : ''}>6+</option>
-            </select>
-        </div>
-        <button type="submit" class="btn-search">🔍 Tìm Phòng</button>
-    </form>
-</div>
+<!-- SEARCH & FILTER (Glassmorphic Bar) -->
+<section class="sticky top-20 z-50 px-6 md:px-12 -mt-10">
+    <div class="max-w-7xl mx-auto glass-panel rounded-3xl p-6 shadow-2xl">
+        <form class="flex flex-wrap items-end gap-6" action="${pageContext.request.contextPath}/rooms" method="GET">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-3">Loại Hình Nghỉ Dưỡng</label>
+                <select name="type" class="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-gold/50 transition-all">
+                    <option value="" ${empty filterType ? 'selected' : ''}>Tất cả tinh hoa</option>
+                    <option value="VILLA" ${filterType == 'VILLA' ? 'selected' : ''}>Luxury Villa</option>
+                    <option value="HOUSE" ${filterType == 'HOUSE' ? 'selected' : ''}>Signature House</option>
+                    <option value="ROOM"  ${filterType == 'ROOM'  ? 'selected' : ''}>Infinity Room</option>
+                </select>
+            </div>
+            
+            <div class="flex-1 min-w-[150px]">
+                <label class="block text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-3">Ngày Nhận Phòng</label>
+                <input type="date" name="checkin" value="${checkin}" class="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-gold/50 transition-all [color-scheme:dark]">
+            </div>
 
-<!-- FILTER TABS -->
-<div class="filter-bar">
-    <a href="${pageContext.request.contextPath}/rooms" class="filter-tab ${empty filterType ? 'active' : ''}">
-        Tất Cả <span class="filter-count">${cntAll}</span>
+            <div class="flex-1 min-w-[150px]">
+                <label class="block text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-3">Ngày Trả Phòng</label>
+                <input type="date" name="checkout" value="${checkout}" class="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-gold/50 transition-all [color-scheme:dark]">
+            </div>
+
+            <div class="w-full sm:w-auto">
+                <button type="submit" class="w-full sm:w-auto px-10 py-3.5 bg-gold text-dark font-bold rounded-xl uppercase tracking-widest text-xs hover:bg-gold-light transition-all shadow-lg shadow-gold/20 flex items-center justify-center gap-2">
+                    <span>🔍</span> Tìm Phòng
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- FILTER TABS (Pills) -->
+<div class="max-w-7xl mx-auto px-6 md:px-12 mt-12 flex items-center gap-3 overflow-x-auto pb-4 custom-scrollbar">
+    <a href="${pageContext.request.contextPath}/rooms" class="flex-shrink-0 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${empty filterType ? 'bg-gold text-dark' : 'bg-white/5 border border-white/10 text-white/60 hover:border-gold/50'}">
+        Tất Cả <span class="ml-2 opacity-60 font-normal">${cntAll}</span>
     </a>
-    <a href="${pageContext.request.contextPath}/rooms?type=VILLA" class="filter-tab ${filterType == 'VILLA' ? 'active' : ''}">
-        Villa <span class="filter-count">${cntVilla}</span>
+    <a href="${pageContext.request.contextPath}/rooms?type=VILLA" class="flex-shrink-0 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${filterType == 'VILLA' ? 'bg-gold text-dark' : 'bg-white/5 border border-white/10 text-white/60 hover:border-gold/50'}">
+        Villa <span class="ml-2 opacity-60 font-normal">${cntVilla}</span>
     </a>
-    <a href="${pageContext.request.contextPath}/rooms?type=HOUSE" class="filter-tab ${filterType == 'HOUSE' ? 'active' : ''}">
-        House <span class="filter-count">${cntHouse}</span>
+    <a href="${pageContext.request.contextPath}/rooms?type=HOUSE" class="flex-shrink-0 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${filterType == 'HOUSE' ? 'bg-gold text-dark' : 'bg-white/5 border border-white/10 text-white/60 hover:border-gold/50'}">
+        House <span class="ml-2 opacity-60 font-normal">${cntHouse}</span>
     </a>
-    <a href="${pageContext.request.contextPath}/rooms?type=ROOM" class="filter-tab ${filterType == 'ROOM' ? 'active' : ''}">
-        Phòng <span class="filter-count">${cntRoom}</span>
+    <a href="${pageContext.request.contextPath}/rooms?type=ROOM" class="flex-shrink-0 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${filterType == 'ROOM' ? 'bg-gold text-dark' : 'bg-white/5 border border-white/10 text-white/60 hover:border-gold/50'}">
+        Phòng <span class="ml-2 opacity-60 font-normal">${cntRoom}</span>
     </a>
 </div>
 
 <!-- SEARCH SUMMARY -->
 <c:if test="${isSearchMode}">
-<div style="max-width:1200px;margin:0 auto;padding:20px 60px 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-    <span style="color:var(--text-muted);font-size:13px;">Kết quả tìm kiếm:</span>
-    <c:if test="${not empty checkin}">
-        <span style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.25);border-radius:50px;padding:4px 14px;font-size:12px;color:var(--gold)">
-            Nhận: ${checkin}
-        </span>
-    </c:if>
-    <c:if test="${not empty checkout}">
-        <span style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.25);border-radius:50px;padding:4px 14px;font-size:12px;color:var(--gold)">
-            Trả: ${checkout}
-        </span>
-    </c:if>
-    <c:if test="${adults > 1}">
-        <span style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.25);border-radius:50px;padding:4px 14px;font-size:12px;color:var(--gold)">
-            ${adults} người
-        </span>
-    </c:if>
-    <a href="${pageContext.request.contextPath}/rooms" style="color:rgba(255,255,255,0.4);font-size:12px;text-decoration:none;margin-left:4px;">✕ Xóa bộ lọc</a>
+<div class="max-w-7xl mx-auto px-6 md:px-12 mb-8 flex items-center flex-wrap gap-4 animate-reveal">
+    <span class="text-sm text-white/40 italic">Đang hiển thị kết quả cho:</span>
+    <c:forEach var="item" items="${[checkin, checkout]}">
+        <c:if test="${not empty item}">
+            <span class="px-4 py-1.5 bg-gold/10 border border-gold/20 rounded-full text-[10px] font-bold text-gold uppercase tracking-tighter">${item}</span>
+        </c:if>
+    </c:forEach>
+    <a href="${pageContext.request.contextPath}/rooms" class="text-xs text-red-400 hover:text-red-300 transition-colors border-b border-red-400/30">Hủy bộ lọc</a>
 </div>
 </c:if>
 
 <!-- ROOMS GRID -->
-<div class="rooms-section">
+<main class="max-w-7xl mx-auto px-6 md:px-12 py-12">
     <c:choose>
         <c:when test="${not empty facilityError}">
-            <div class="no-rooms">
-                <p style="color:#f87171;">Lỗi tải dữ liệu:</p>
-                <p style="color:#fbbf24;font-size:12px;margin-top:8px;">${facilityError}</p>
+            <div class="glass-panel rounded-3xl p-12 text-center">
+                <div class="text-4xl mb-6">⚠️</div>
+                <h3 class="text-2xl font-serif font-bold text-white mb-4">Lỗi Hệ Thống</h3>
+                <p class="text-white/40 max-w-md mx-auto leading-relaxed">${facilityError}</p>
             </div>
         </c:when>
         <c:otherwise>
-            <p class="result-info">
-                Tìm thấy <strong>${filteredFacilities.size()}</strong> phòng khả dụng
-                <c:if test="${adults > 1}"> · phù hợp <strong>${adults}</strong> người</c:if>
-            </p>
-            <div class="rooms-grid">
+            <div class="flex items-center justify-between mb-10">
+                <h2 class="text-sm text-white/40 uppercase tracking-[0.3em]">Kết quả: <span class="text-gold font-bold">${filteredFacilities.size()}</span> phòng khả dụng</h2>
+                <div class="h-px flex-1 bg-white/5 mx-8"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                 <c:choose>
                     <c:when test="${empty filteredFacilities}">
-                        <div class="no-rooms">
-                            <p>Không tìm thấy phòng phù hợp.</p>
-                            <p style="font-size:13px;margin-top:8px;"><a href="rooms.jsp" style="color:var(--gold)">Xem tất cả phòng →</a></p>
+                        <div class="col-span-full py-32 text-center animate-reveal">
+                            <div class="text-6xl mb-8 opacity-20">📭</div>
+                            <h3 class="text-3xl font-serif font-bold text-white mb-4">Không tìm thấy phòng phù hợp</h3>
+                            <p class="text-white/40 mb-10">Thử thay đổi bộ lọc hoặc xem danh sách đầy đủ của chúng tôi.</p>
+                            <a href="${pageContext.request.contextPath}/rooms" class="btn-premium inline-block">Xem tất cả phòng</a>
                         </div>
                     </c:when>
                     <c:otherwise>
                         <c:forEach var="f" items="${filteredFacilities}" varStatus="loop">
-                            <c:set var="imgSrc" value="${not empty f.imageUrl ? f.imageUrl : 'assets/img/hero-bg.png'}"/>
-                            <c:choose>
-                                <c:when test="${f.facilityType == 'VILLA'}"><c:set var="fTypeLabel" value="Villa"/></c:when>
-                                <c:when test="${f.facilityType == 'HOUSE'}"><c:set var="fTypeLabel" value="House"/></c:when>
-                                <c:when test="${f.facilityType == 'ROOM'}"><c:set var="fTypeLabel" value="Phòng"/></c:when>
-                                <c:otherwise><c:set var="fTypeLabel" value="${f.facilityType}"/></c:otherwise>
-                            </c:choose>
-
-                            <div class="room-card">
-                                <div class="room-img-wrap">
-                                    <img src="${imgSrc}" alt="${f.serviceName}" class="room-img">
-                                    <c:if test="${loop.first && empty filterType}">
-                                        <span class="room-badge">Phổ Biến Nhất</span>
-                                    </c:if>
-                                    <span class="status-tag available">Còn Trống</span>
-                                </div>
-                                <div class="room-body">
-                                    <div class="room-type">${fTypeLabel} · ${f.serviceCode}</div>
-                                    <h3 class="room-name">${f.serviceName}</h3>
-                                    <p class="room-desc"><c:out value="${not empty f.description ? f.description : 'Không gian nghỉ dưỡng sang trọng tại Azure Resort & Spa.'}"/></p>
-                                    <div class="room-amenities">
-                                        <span class="amenity">${f.maxPeople} người</span>
-                                        <span class="amenity">${f.usableArea} m²</span>
-                                        <span class="amenity">
-                                            <c:choose>
-                                                <c:when test="${f.rentalType == 'MONTHLY'}">Theo Tháng</c:when>
-                                                <c:when test="${f.rentalType == 'HOURLY'}">Theo Giờ</c:when>
-                                                <c:otherwise>Theo Đêm</c:otherwise>
-                                            </c:choose>
+                            <c:set var="defaultImg" value="${f.facilityType == 'VILLA' ? 'assets/img/villa-ocean.png' : 'assets/img/hero-bg.png'}"/>
+                            <c:set var="imgSrc" value="${not empty f.imageUrl ? f.imageUrl : defaultImg}"/>
+                            <c:set var="isAvailable" value="${f.status == 'AVAILABLE'}"/>
+                            
+                            <article class="group animate-reveal" style="animation-delay: ${loop.index * 100}ms;">
+                                <div class="relative aspect-[4/3] rounded-[32px] overflow-hidden mb-6 shadow-xl border border-white/5">
+                                    <img src="${imgSrc.startsWith('http') ? imgSrc : pageContext.request.contextPath.concat('/').concat(imgSrc)}" alt="${f.serviceName}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-dark/80 via-transparent to-transparent opacity-60"></div>
+                                    
+                                    <!-- Badges -->
+                                    <div class="absolute top-6 left-6 space-y-2">
+                                        <c:if test="${loop.first && empty filterType}">
+                                            <span class="block px-4 py-1.5 bg-gold text-dark text-[10px] font-bold uppercase tracking-widest rounded-full shadow-lg">Bán chạy nhất</span>
+                                        </c:if>
+                                        <span class="block px-4 py-1.5 ${isAvailable ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'} border backdrop-blur-md text-[10px] font-bold uppercase tracking-widest rounded-full">
+                                            ${isAvailable ? 'Sẵn sàng' : 'Hết phòng'}
                                         </span>
                                     </div>
-                                    <div class="room-footer">
-                                        <div class="room-price">
-                                            <fmt:formatNumber var="priceStr" value="${f.cost}" type="number" groupingUsed="true"/>
-                                            <span class="price">${priceStr}</span>
-                                            <span class="per">đ/đêm</span>
-                                        </div>
-                                        <div class="room-footer-btns">
-                                            <a href="facility-detail?code=${f.serviceCode}" class="btn-detail">Chi Tiết</a>
-                                            <c:if test="${f.status == 'AVAILABLE'}">
-                                                <a href="booking?facility=${f.serviceCode}" class="btn-book">Đặt Ngay</a>
-                                            </c:if>
-                                        </div>
+
+                                    <!-- Price Overlay -->
+                                    <div class="absolute bottom-6 right-6 text-right">
+                                        <fmt:formatNumber var="priceStr" value="${f.cost}" type="number" groupingUsed="true"/>
+                                        <div class="text-white text-3xl font-serif font-bold group-hover:text-gold transition-colors">${priceStr} <span class="text-xs font-sans uppercase tracking-widest ml-1 opacity-60">đ/đêm</span></div>
                                     </div>
                                 </div>
-                            </div>
+
+                                <div class="px-2">
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <span class="text-[10px] text-gold uppercase tracking-[0.3em] font-bold">${f.facilityType}</span>
+                                        <span class="w-1 h-1 bg-white/20 rounded-full"></span>
+                                        <span class="text-[10px] text-white/40 uppercase tracking-[0.2em] font-medium">${f.serviceCode}</span>
+                                    </div>
+                                    <h3 class="text-2xl font-serif font-bold text-white mb-4 group-hover:text-gold transition-colors">${f.serviceName}</h3>
+                                    
+                                    <div class="flex items-center gap-6 text-xs text-white/40 mb-8 pb-8 border-b border-white/5">
+                                        <div class="flex items-center gap-2"><span>👤</span> ${f.maxPeople} Người</div>
+                                        <div class="flex items-center gap-2"><span>📏</span> ${f.usableArea} m²</div>
+                                        <div class="flex items-center gap-2"><span>🛌</span> ${f.rentalType}</div>
+                                    </div>
+
+                                    <div class="flex items-center gap-4">
+                                        <a href="facility-detail?code=${f.serviceCode}" class="flex-1 text-center py-3.5 border border-white/10 rounded-2xl text-xs font-bold text-white uppercase tracking-widest hover:border-gold hover:text-gold transition-all">Chi tiết</a>
+                                        <c:if test="${isAvailable}">
+                                            <a href="booking?facility=${f.serviceCode}" class="flex-[1.5] text-center py-3.5 bg-gradient-to-r from-gold to-gold-light rounded-2xl text-xs font-bold text-dark uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-gold/20">Đặt ngay</a>
+                                        </c:if>
+                                    </div>
+                                </div>
+                            </article>
                         </c:forEach>
                     </c:otherwise>
                 </c:choose>
             </div>
         </c:otherwise>
     </c:choose>
-</div>
+</main>
 
-<footer style="background:#060608;border-top:1px solid rgba(201,168,76,0.1);padding:32px 60px;">
-    <div style="max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;color:rgba(255,255,255,0.25);font-size:12.5px;">
-        <span>© 2026 <span style="color:var(--gold)">Azure Resort &amp; Spa</span>. All rights reserved.</span>
-        <span>Made with ❤️ in Vietnam</span>
+<!-- FOOTER -->
+<footer class="bg-[#060608] border-t border-white/5 py-12 px-6 md:px-12 text-center md:text-left">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+        <div class="text-white/20 text-xs tracking-wider">
+            © 2026 <span class="text-gold font-bold">Azure Resort &amp; Spa</span>. Bản quyền được bảo lưu.
+        </div>
+        <div class="flex items-center gap-1">
+            <span class="text-white/20 text-xs tracking-wider font-light">Kiến tạo trải nghiệm đẳng cấp bởi</span>
+            <span class="text-gold font-serif italic ml-1">Azure Team</span>
+        </div>
     </div>
 </footer>
 
 <script>
+    // Smooth Navbar Transition
+    const nav = document.getElementById('navbar');
     window.addEventListener('scroll', () => {
-        document.querySelector('.navbar').style.background =
-            window.scrollY > 20 ? 'rgba(10,10,15,0.98)' : 'rgba(10,10,15,0.95)';
+        if (window.scrollY > 50) {
+            nav.classList.add('h-16', 'bg-dark/95', 'shadow-2xl');
+            nav.classList.remove('h-20', 'bg-dark/80');
+        } else {
+            nav.classList.remove('h-16', 'bg-dark/95', 'shadow-2xl');
+            nav.classList.add('h-20', 'bg-dark/80');
+        }
     });
 </script>
 </body>

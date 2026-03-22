@@ -6,7 +6,7 @@ import java.sql.Statement;
 
 public class DBFixer {
     public static void main(String[] args) {
-        String url = "jdbc:sqlserver://localhost:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true";
+        String url = "jdbc:sqlserver://MSI:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true";
         String user = "sa";
         String pass = "123";
 

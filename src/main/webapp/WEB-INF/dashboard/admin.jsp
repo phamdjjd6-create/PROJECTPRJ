@@ -120,7 +120,6 @@
         @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2,1fr); } .actions-grid { grid-template-columns: repeat(2,1fr); } }
         @media (max-width: 900px) { .sidebar { display: none; } .main { margin-left: 0; } }
     </style>
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -179,10 +178,12 @@
             <div class="stat-card">
                 <div class="stat-top">
                     <span class="stat-indicator ind-gold"></span>
-                    <span class="stat-trend trend-up">+145.6%</span>
+                    <span class="stat-trend trend-up">Doanh thu</span>
                 </div>
-                <div class="stat-num">700M đ</div>
-                <div class="stat-label">Azure Resort & Spa</div>
+                <div class="stat-num">
+                    <fmt:formatNumber value="${totalRevenue != null ? totalRevenue : 0}" pattern="#,###"/>
+                </div>
+                <div class="stat-label">Tổng Doanh Thu (đ)</div>
             </div>
             <div class="stat-card">
                 <div class="stat-top">
@@ -215,12 +216,9 @@
                 <div>
                     <div class="section-label">Doanh Thu</div>
                     <div class="revenue-num">
-                        700M đ
-                        <span style="font-size: 14px; font-weight: bold; color: #4ade80; background: rgba(74,222,128,0.1); padding: 4px 8px; border-radius: 6px; margin-left: 10px; vertical-align: middle;">
-                            &#9650; 145.6%
-                        </span>
+                        <fmt:formatNumber value="${totalRevenue != null ? totalRevenue : 0}" pattern="#,###"/> đ
                     </div>
-                    <div class="revenue-label">Tháng hiện tại · Azure Resort &amp; Spa</div>
+                    <div class="revenue-label">Tổng doanh thu · Azure Resort &amp; Spa</div>
                 </div>
                 <a href="javascript:void(0)" onclick="document.getElementById('reportModal').classList.add('active')" class="link-more">Xem báo cáo đầy đủ →</a>
             </div>
@@ -308,7 +306,7 @@
 <div class="modal-overlay" id="reportModal">
     <div class="modal-content">
         <button class="modal-close" onclick="document.getElementById('reportModal').classList.remove('active')">&times;</button>
-        <div class="section-title" style="margin-bottom: 24px; color: var(--gold); border-bottom: 1px solid var(--border); padding-bottom: 12px;">Báo Cáo Lợi Nhuận Tăng Giảm (Tháng 1-12)</div>
+        <div class="section-title" style="margin-bottom:24px;color:var(--gold);border-bottom:1px solid var(--border);padding-bottom:12px;">Báo Cáo Lợi Nhuận (Tháng 1-12)</div>
         <canvas id="profitChart" width="100%" height="45"></canvas>
     </div>
 </div>
@@ -317,34 +315,29 @@
     document.getElementById('topbarDate').textContent =
         new Date().toLocaleDateString('vi-VN', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
 
-    // Initialize Chart
     const ctx = document.getElementById('profitChart').getContext('2d');
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+            labels: ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'],
             datasets: [{
-                label: 'Lợi Nhuận Gộp (Triệu VNĐ)',
-                data: [350, 390, 420, 380, 500, 520, 590, 680, 610, 680, 690, 700],
+                label: 'Lợi Nhuận (Triệu VNĐ)',
+                data: [350,390,420,380,500,520,590,680,610,680,690,700],
                 borderColor: '#c9a84c',
                 backgroundColor: 'rgba(201,168,76,0.1)',
                 borderWidth: 3,
                 pointBackgroundColor: '#fff',
                 pointBorderColor: '#c9a84c',
-                pointHoverBackgroundColor: '#c9a84c',
-                pointHoverBorderColor: '#fff',
                 fill: true,
                 tension: 0.4
             }]
         },
         options: {
             responsive: true,
-            plugins: {
-                legend: { labels: { color: '#e8e8e8', font: { family: 'Inter', size: 13 } } }
-            },
+            plugins: { legend: { labels: { color: '#e8e8e8', font: { family: 'Inter', size: 13 } } } },
             scales: {
-                y: { grid: { color: 'rgba(255,255,255,0.05)' }, border: { dash: [5, 5] }, ticks: { color: 'rgba(255,255,255,0.6)', font: { family: 'Inter' } } },
-                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.6)', font: { family: 'Inter' } } }
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.6)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.6)' } }
             }
         }
     });

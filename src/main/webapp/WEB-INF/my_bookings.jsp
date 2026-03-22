@@ -7,193 +7,217 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking Của Tôi — Azure Resort</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root { --gold: #c9a84c; --gold-light: #e8cc82; --dark: #0a0a0f; --navy: #0d1526; --text: #e8e8e8; --text-muted: rgba(255,255,255,0.5); --bg-glass: rgba(255,255,255,0.04); --border-glass: rgba(255,255,255,0.08); }
-        body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--text); min-height: 100vh; }
-
-        .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 0 60px; height: 72px; display: flex; align-items: center; justify-content: space-between; background: rgba(10,10,15,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(201,168,76,0.15); }
-        .nav-brand { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #fff; text-decoration: none; }
-        .nav-brand span { color: var(--gold); }
-        .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
-        .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: color 0.2s; }
-        .nav-links a:hover { color: var(--gold); }
-        .nav-right { display: flex; align-items: center; gap: 16px; }
-        .nav-greeting { color: rgba(255,255,255,0.5); font-size: 13px; }
-        .nav-greeting strong { color: var(--gold); }
-        .btn-nav-logout { padding: 8px 20px; border: 1px solid rgba(201,168,76,0.4); border-radius: 50px; background: transparent; color: var(--gold); font-size: 13px; text-decoration: none; transition: all 0.25s; }
-        .btn-nav-logout:hover { background: var(--gold); color: var(--dark); }
-
-        .page-wrap { margin-top: 72px; padding: 56px 60px 80px; max-width: 1100px; margin-left: auto; margin-right: auto; }
-
-        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); margin-bottom: 32px; }
-        .breadcrumb a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
-        .breadcrumb a:hover { color: var(--gold); }
-        .breadcrumb .sep { color: rgba(255,255,255,0.2); }
-
-        .page-title { font-family: 'Playfair Display', serif; font-size: 32px; color: #fff; margin-bottom: 8px; }
-        .page-title em { color: var(--gold); font-style: italic; }
-        .page-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 40px; }
-
-        .btn-new-booking { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--dark); border-radius: 50px; font-size: 13px; font-weight: 700; text-decoration: none; transition: all 0.25s; margin-bottom: 36px; }
-        .btn-new-booking:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(201,168,76,0.3); }
-
-        /* TABLE */
-        .table-wrap { background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: 20px; overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; }
-        thead tr { background: rgba(201,168,76,0.08); border-bottom: 1px solid rgba(201,168,76,0.15); }
-        thead th { padding: 16px 20px; text-align: left; font-size: 11px; color: var(--gold); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; }
-        tbody tr { border-bottom: 1px solid var(--border-glass); transition: background 0.2s; }
-        tbody tr:last-child { border-bottom: none; }
-        tbody tr:hover { background: rgba(255,255,255,0.03); }
-        tbody td { padding: 18px 20px; font-size: 13.5px; color: var(--text); vertical-align: middle; }
-
-        .booking-id { font-family: monospace; color: var(--gold); font-size: 13px; font-weight: 600; }
-        .facility-name { font-weight: 500; color: #fff; }
-        .facility-type { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
-        .date-range { font-size: 13px; }
-        .date-range .nights { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
-        .guests { font-size: 13px; }
-
-        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
-        .status-PENDING { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
-        .status-CONFIRMED { background: rgba(52,211,153,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
-        .status-CANCELLED { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
-        .status-COMPLETED { background: rgba(96,165,250,0.15); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3); }
-        .status-CHECKEDIN { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
-        .status-CHECKED_IN { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
-        .status-CHECKED_OUT { background: rgba(96,165,250,0.15); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3); }
-        .btn-cancel-booking { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 50px; font-size: 11px; font-weight: 600; background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.3); cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; }
-        .btn-cancel-booking:hover { background: #f87171; color: #fff; }
-        .flash-toast { position: fixed; top: 88px; right: 24px; z-index: 3000; padding: 14px 20px; border-radius: 14px; font-size: 13.5px; font-weight: 600; max-width: 380px; }
-        .flash-ok  { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; }
-        .flash-err { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); color: #f87171; }
-
-        /* EMPTY STATE */
-        .empty-state { text-align: center; padding: 80px 40px; }
-        .empty-icon { font-size: 56px; margin-bottom: 20px; opacity: 0.5; }
-        .empty-state h3 { font-family: 'Playfair Display', serif; font-size: 22px; color: #fff; margin-bottom: 10px; }
-        .empty-state p { color: var(--text-muted); font-size: 14px; margin-bottom: 28px; }
-
-        @media (max-width: 768px) {
-            .navbar { padding: 0 20px; }
-            .page-wrap { padding: 40px 16px 60px; }
-            table { display: block; overflow-x: auto; }
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: { gold: '#c9a84c', dark: '#0a0a0f', navy: '#0d1526', azure: '#3b82f6' },
+                    fontFamily: { serif: ['Playfair Display', 'serif'], sans: ['Inter', 'sans-serif'] }
+                }
+            }
         }
-    </style>
+    </script>
 </head>
-<body>
+<body class="dark font-sans antialiased">
 
-<nav class="navbar">
-    <a href="${pageContext.request.contextPath}/" class="nav-brand">Azure <span>Resort</span></a>
-    <ul class="nav-links">
-        <li><a href="${pageContext.request.contextPath}/rooms">Phòng &amp; Villa</a></li>
-        <li><a href="${pageContext.request.contextPath}/booking">Đặt Phòng</a></li>
-        <li><a href="${pageContext.request.contextPath}/account.jsp">Tài Khoản</a></li>
+<!-- NAVBAR -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-[1000] px-6 md:px-12 h-20 flex items-center justify-between transition-all duration-500 bg-dark/80 backdrop-blur-md border-b border-gold/10">
+    <a href="${pageContext.request.contextPath}/" class="text-2xl font-serif font-bold tracking-tight text-white group">
+        Azure <span class="text-gold group-hover:text-gold-light transition-colors">Resort</span>
+    </a>
+    
+    <ul class="hidden md:flex items-center gap-10">
+        <li><a href="${pageContext.request.contextPath}/" class="nav-link-base">Trang Chủ</a></li>
+        <li><a href="${pageContext.request.contextPath}/rooms" class="nav-link-base">Phòng &amp; Villa</a></li>
+        <li><a href="${pageContext.request.contextPath}/booking" class="nav-link-base">Đặt Phòng</a></li>
+        <li><a href="${pageContext.request.contextPath}/account.jsp" class="nav-link-base nav-link-active">Tài Khoản</a></li>
+        <c:if test="${sessionScope.account.personType == 'EMPLOYEE'}">
+            <li><a href="${pageContext.request.contextPath}/dashboard/admin" class="nav-link-base text-gold font-bold border border-gold/20 px-4 py-1.5 rounded-full hover:bg-gold hover:text-dark transition-all">Bảng điều khiền</a></li>
+        </c:if>
     </ul>
-    <div class="nav-right">
-        <span class="nav-greeting">Xin chào, <strong>${sessionScope.account.fullName}</strong></span>
-        <a href="${pageContext.request.contextPath}/logout" class="btn-nav-logout">Đăng xuất</a>
+
+    <div class="flex items-center gap-6">
+        <c:choose>
+            <c:when test="${not empty sessionScope.account}">
+                <div class="hidden sm:flex flex-col items-end">
+                    <span class="text-[10px] text-white/40 uppercase tracking-[0.2em]">Xin chào</span>
+                    <span class="text-sm font-medium text-gold">${sessionScope.account.fullName}</span>
+                </div>
+                <a href="${pageContext.request.contextPath}/logout" class="px-5 py-2 border border-gold/30 rounded-full text-xs font-bold text-gold uppercase tracking-widest hover:bg-gold hover:text-dark transition-all">Đăng xuất</a>
+            </c:when>
+            <c:otherwise>
+                <a href="${pageContext.request.contextPath}/login.jsp" class="px-8 py-3 bg-gold text-dark text-xs font-bold uppercase tracking-widest rounded-full hover:bg-gold-light transition-all shadow-lg shadow-gold/20">Đăng nhập</a>
+            </c:otherwise>
+        </c:choose>
     </div>
 </nav>
 
-<div class="page-wrap">
-    <div class="breadcrumb">
-        <a href="${pageContext.request.contextPath}/">Trang Chủ</a>
-        <span class="sep">›</span>
-        <a href="${pageContext.request.contextPath}/account.jsp">Tài Khoản</a>
-        <span class="sep">›</span>
-        <span style="color:var(--gold)">Booking Của Tôi</span>
+<div class="max-w-7xl mx-auto px-6 pt-32 pb-24 min-h-[80vh]">
+    <!-- Breadcrumbs -->
+    <nav class="flex items-center gap-2 text-[10px] uppercase tracking-widest text-white/40 mb-12 animate-reveal">
+        <a href="${pageContext.request.contextPath}/" class="hover:text-gold transition-colors">Trang Chủ</a>
+        <span>/</span>
+        <a href="${pageContext.request.contextPath}/account.jsp" class="hover:text-gold transition-colors">Tài Khoản</a>
+        <span>/</span>
+        <span class="text-gold">Booking Của Tôi</span>
+    </nav>
+
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 animate-reveal" style="animation-delay: 100ms">
+        <div>
+            <h1 class="text-5xl font-serif font-bold text-white mb-4">Lịch sử <span class="text-gold italic">Đặt phòng</span></h1>
+            <p class="text-white/40 text-lg font-light leading-relaxed max-w-xl">Quản lý các yêu cầu đặt phòng và hành trình nghỉ dưỡng của bạn tại Azure.</p>
+        </div>
+        <a href="${pageContext.request.contextPath}/booking" class="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gold hover:text-dark transition-all flex items-center gap-3 group">
+            <span class="text-gold group-hover:text-dark">+</span> Đặt phòng mới
+        </a>
     </div>
 
-    <h1 class="page-title">Booking <em>Của Tôi</em></h1>
-    <p class="page-subtitle">Lịch sử và trạng thái các đặt phòng của bạn tại Azure Resort & Spa.</p>
-
-    <a href="${pageContext.request.contextPath}/booking" class="btn-new-booking">
-        ＋ Đặt Phòng Mới
-    </a>
-
-    <div class="table-wrap">
+    <!-- Bookings Table -->
+    <div class="glass-panel rounded-[40px] overflow-hidden animate-reveal" style="animation-delay: 200ms">
         <c:choose>
             <c:when test="${empty myBookings}">
-                <div class="empty-state">
-                    <div class="empty-icon">🏖️</div>
-                    <h3>Chưa có booking nào</h3>
-                    <p>Bạn chưa có đặt phòng nào. Hãy bắt đầu kỳ nghỉ đầu tiên của bạn!</p>
-                    <a href="${pageContext.request.contextPath}/booking" class="btn-new-booking">Đặt Phòng Ngay</a>
+                <div class="py-32 flex flex-col items-center text-center space-y-6">
+                    <div class="text-6xl opacity-20">🏝️</div>
+                    <div class="space-y-2">
+                        <h3 class="text-2xl font-serif font-bold text-white">Chưa có booking nào</h3>
+                        <p class="text-white/30 text-sm max-w-xs mx-auto">Hành trình tuyệt vời của bạn vẫn đang chờ được viết tiếp. Hãy bắt đầu ngay hôm nay!</p>
+                    </div>
+                    <a href="${pageContext.request.contextPath}/booking" class="px-10 py-4 bg-gold text-dark text-xs font-bold uppercase tracking-widest rounded-full hover:bg-gold-light transition-all shadow-xl shadow-gold/20">Khám phá ngay</a>
                 </div>
             </c:when>
             <c:otherwise>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Mã Booking</th>
-                            <th>Phòng / Villa</th>
-                            <th>Check-in → Check-out</th>
-                            <th>Khách</th>
-                            <th>Trạng Thái</th>
-                            <th>Ngày Đặt</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:forEach var="b" items="${myBookings}">
-                            <tr>
-                                <td><span class="booking-id">${b.bookingId}</span></td>
-                                <td>
-                                    <div class="facility-name">${b.facilityId.serviceName}</div>
-                                    <div class="facility-type">${b.facilityId.facilityType}</div>
-                                </td>
-                                <td>
-                                    <div class="date-range">
-                                        <fmt:formatDate value="${b.startDate}" pattern="dd/MM/yyyy"/>
-                                        →
-                                        <fmt:formatDate value="${b.endDate}" pattern="dd/MM/yyyy"/>
-                                    </div>
-                                </td>
-                                <td class="guests">${b.adults} người lớn<c:if test="${b.children > 0}">, ${b.children} trẻ em</c:if></td>
-                                <td><span class="status-badge status-${b.status}">
-                                    <c:choose>
-                                        <c:when test="${b.status == 'PENDING'}">Chờ Duyệt</c:when>
-                                        <c:when test="${b.status == 'CONFIRMED'}">Đã Xác Nhận</c:when>
-                                        <c:when test="${b.status == 'CANCELLED'}">Đã Hủy</c:when>
-                                        <c:when test="${b.status == 'COMPLETED'}">Hoàn Thành</c:when>
-                                        <c:when test="${b.status == 'CHECKED_IN'}">Đang Ở</c:when>
-                                        <c:when test="${b.status == 'CHECKED_OUT'}">Đã Trả Phòng</c:when>
-                                        <c:otherwise>${b.status}</c:otherwise>
-                                    </c:choose>
-                                </span></td>
-                                <td><fmt:formatDate value="${b.dateBooking}" pattern="dd/MM/yyyy HH:mm"/></td>
-                                <td></td>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-white/2">
+                                <th class="px-8 py-6 text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Thông tin / Ngày đặt</th>
+                                <th class="px-8 py-6 text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Loại không gian</th>
+                                <th class="px-8 py-6 text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Thời gian lưu trú</th>
+                                <th class="px-8 py-6 text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Trạng thái</th>
+                                <th class="px-8 py-6 text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Thành viên</th>
+                                <th class="px-8 py-6"></th>
                             </tr>
-                        </c:forEach>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            <c:forEach var="b" items="${myBookings}">
+                                <tr class="group hover:bg-white/[0.02] transition-colors">
+                                    <td class="px-8 py-8">
+                                        <div class="flex flex-col">
+                                            <span class="text-xs font-mono text-gold mb-1">#${b.bookingId}</span>
+                                            <span class="text-[10px] text-white/40 uppercase tracking-widest">
+                                                <fmt:formatDate value="${b.dateBooking}" pattern="dd MMM, yyyy · HH:mm"/>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="px-8 py-8">
+                                        <div class="flex flex-col">
+                                            <span class="text-sm font-bold text-white mb-1">${b.facilityId.serviceName}</span>
+                                            <span class="text-[10px] text-gold/60 uppercase tracking-widest font-medium">${b.facilityId.facilityType}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-8 py-8">
+                                        <div class="flex flex-col">
+                                            <span class="text-sm text-white/80 font-medium">
+                                                <fmt:formatDate value="${b.startDate}" pattern="dd/MM/yyyy"/>
+                                                <span class="mx-2 text-white/20">→</span>
+                                                <fmt:formatDate value="${b.endDate}" pattern="dd/MM/yyyy"/>
+                                            </span>
+                                            <span class="text-[10px] text-white/30 mt-1 uppercase tracking-widest">Kỳ nghỉ tuyệt vời</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-8 py-8">
+                                        <c:set var="statusClass" value="${b.status == 'PENDING' ? 'border-amber-500/20 text-amber-500 bg-amber-500/10' : 
+                                                                        b.status == 'CONFIRMED' ? 'border-emerald-500/20 text-emerald-500 bg-emerald-500/10' :
+                                                                        b.status == 'CANCELLED' ? 'border-red-500/20 text-red-500 bg-red-500/10' :
+                                                                        'border-blue-500/20 text-blue-500 bg-blue-500/10'}"/>
+                                        <span class="status-badge-base ${statusClass}">
+                                            <c:choose>
+                                                <c:when test="${b.status == 'PENDING'}">Chờ Duyệt</c:when>
+                                                <c:when test="${b.status == 'CONFIRMED'}">Đã Xác Nhận</c:when>
+                                                <c:when test="${b.status == 'CANCELLED'}">Đã Hủy</c:when>
+                                                <c:when test="${b.status == 'COMPLETED'}">Hoàn Thành</c:when>
+                                                <c:when test="${b.status == 'CHECKED_IN'}">Đang Ở</c:when>
+                                                <c:when test="${b.status == 'CHECKED_OUT'}">Đã Trả Phòng</c:when>
+                                                <c:otherwise>${b.status}</c:otherwise>
+                                            </c:choose>
+                                        </span>
+                                    </td>
+                                    <td class="px-8 py-8">
+                                        <div class="flex items-center gap-2 text-xs text-white/60 font-medium">
+                                            <span class="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-[10px] text-gold">${b.adults + b.children}</span>
+                                            Khách
+                                        </div>
+                                    </td>
+                                    <td class="px-8 py-8 text-right">
+                                        <c:if test="${b.status == 'PENDING'}">
+                                            <button onclick="confirmCancel('${b.bookingId}')" class="text-[10px] font-bold text-red-400/60 uppercase tracking-widest hover:text-red-400 transition-colors">
+                                                Hủy đặt
+                                            </button>
+                                        </c:if>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
             </c:otherwise>
         </c:choose>
     </div>
 </div>
 
-<footer style="background:#060608;border-top:1px solid rgba(201,168,76,0.1);padding:28px 60px;">
-    <div style="max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;color:rgba(255,255,255,0.25);font-size:12.5px;">
-        <span>© 2026 <span style="color:var(--gold)">Azure Resort &amp; Spa</span>. All rights reserved.</span>
-        <span>Made with ❤️ in Vietnam</span>
+<footer class="bg-dark/50 border-t border-white/5 py-12 px-6">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+        <div class="flex flex-col items-center md:items-start gap-2">
+            <span class="text-xl font-serif font-bold text-white">Azure <span class="text-gold">Resort</span></span>
+            <span class="text-[10px] text-white/20 uppercase tracking-[0.3em]">The Ultimate Luxury Experience</span>
+        </div>
+        <div class="flex gap-10 text-[10px] font-bold text-white/40 uppercase tracking-widest">
+            <a href="#" class="hover:text-gold transition-colors">Chính sách</a>
+            <a href="#" class="hover:text-gold transition-colors">Hỗ trợ</a>
+            <a href="#" class="hover:text-gold transition-colors">Liên hệ</a>
+        </div>
+        <div class="text-[10px] text-white/20 uppercase tracking-widest">
+            © 2026 Azure Resort & Spa.
+        </div>
     </div>
 </footer>
 
 <c:if test="${not empty sessionScope.bookingFlash}">
-    <div class="flash-toast ${sessionScope.bookingFlash.startsWith('✅') ? 'flash-ok' : 'flash-err'}" id="flashToast">
-        ${sessionScope.bookingFlash}
+    <div id="flashToast" class="fixed top-24 right-8 z-[2000] px-6 py-4 rounded-2xl glass-panel animate-reveal flex items-center gap-4 ${sessionScope.bookingFlash.startsWith('✅') ? 'border-emerald-500/20' : 'border-red-500/20'}">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 text-lg">
+            ${sessionScope.bookingFlash.startsWith('✅') ? '✨' : '⚠️'}
+        </div>
+        <div>
+            <p class="text-[10px] text-white/40 uppercase tracking-widest font-bold">Thông báo hệ thống</p>
+            <p class="text-sm font-medium text-white">${sessionScope.bookingFlash}</p>
+        </div>
     </div>
     <c:remove var="bookingFlash" scope="session"/>
     <script>
         setTimeout(() => {
             const t = document.getElementById('flashToast');
-            if (t) { t.style.opacity='0'; t.style.transition='opacity 0.5s'; setTimeout(()=>t.remove(),500); }
-        }, 4000);
+            if (t) {
+                t.style.opacity = '0';
+                t.style.transform = 'translateY(-20px)';
+                t.style.transition = 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                setTimeout(() => t.remove(), 500);
+            }
+        }, 5000);
     </script>
 </c:if>
+
+<script>
+    function confirmCancel(id) {
+        if (confirm('Bạn có chắc chắn muốn hủy yêu cầu đặt phòng này?')) {
+            // Implement cancellation redirect if needed
+            // window.location.href = '${pageContext.request.contextPath}/booking?action=cancel&id=' + id;
+        }
+    }
+</script>
 
 </body>
 </html>

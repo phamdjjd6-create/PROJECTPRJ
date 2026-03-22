@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <c:if test="${empty facility}">
@@ -12,204 +12,273 @@
     <title>${facility.serviceName} — Azure Resort &amp; Spa</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#c9a84c',
+                        'gold-light': '#e8cc82',
+                        dark: '#0a0a0f',
+                        navy: '#0d1526',
+                    },
+                    fontFamily: {
+                        serif: ['Playfair Display', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'reveal': 'reveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                    },
+                    keyframes: {
+                        reveal: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root { --gold: #c9a84c; --gold-light: #e8cc82; --dark: #0a0a0f; --navy: #0d1526; --text: #e8e8e8; --text-muted: rgba(255,255,255,0.5); }
-        html { scroll-behavior: smooth; }
-        body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--text); overflow-x: hidden; }
-        .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 0 60px; height: 72px; display: flex; align-items: center; justify-content: space-between; background: rgba(10,10,15,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(201,168,76,0.15); }
-        .nav-brand { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #fff; text-decoration: none; }
-        .nav-brand span { color: var(--gold); }
-        .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
-        .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: color 0.2s; }
-        .nav-links a:hover { color: #fff; }
-        .nav-right { display: flex; align-items: center; gap: 16px; }
-        .nav-greeting { color: rgba(255,255,255,0.5); font-size: 13px; }
-        .nav-greeting strong { color: var(--gold); }
-        .btn-nav-logout { padding: 8px 20px; border: 1px solid rgba(201,168,76,0.4); border-radius: 50px; background: transparent; color: var(--gold); font-size: 13px; cursor: pointer; transition: all 0.25s; text-decoration: none; }
-        .btn-nav-logout:hover { background: var(--gold); color: var(--dark); }
-        .btn-nav-login { padding: 8px 24px; background: var(--gold); color: var(--dark); border: 1px solid var(--gold); border-radius: 50px; font-size: 13px; font-weight: 600; text-decoration: none; }
-        .btn-nav-register { padding: 8px 24px; background: transparent; color: var(--gold); border: 1px solid rgba(201,168,76,0.4); border-radius: 50px; font-size: 13px; font-weight: 600; text-decoration: none; }
-        .breadcrumb-wrap { margin-top: 72px; padding: 20px 60px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .breadcrumb { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-muted); }
-        .breadcrumb a { color: var(--text-muted); text-decoration: none; }
-        .breadcrumb a:hover { color: var(--gold); }
-        .breadcrumb .sep { color: rgba(255,255,255,0.2); }
-        .breadcrumb .current { color: var(--gold); }
-        .detail-hero { position: relative; height: 500px; overflow: hidden; }
-        .detail-hero img { width: 100%; height: 100%; object-fit: cover; }
-        .detail-hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.25) 50%, rgba(10,10,15,0.95) 100%); }
-        .detail-hero-info { position: absolute; bottom: 40px; left: 60px; z-index: 2; }
-        .facility-badge { display: inline-block; background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.4); color: var(--gold-light); font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 600; padding: 6px 18px; border-radius: 50px; margin-bottom: 14px; }
-        .detail-hero-info h1 { font-family: 'Playfair Display', serif; font-size: clamp(30px, 4vw, 52px); font-weight: 700; color: #fff; line-height: 1.15; }
-        .status-pill { display: inline-flex; align-items: center; gap: 7px; padding: 6px 16px; border-radius: 50px; font-size: 12px; font-weight: 600; margin-top: 14px; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .status-available { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; }
-        .status-available .status-dot { background: #4ade80; }
-        .status-occupied { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); color: #f87171; }
-        .status-occupied .status-dot { background: #f87171; }
-        .status-maintenance { background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.3); color: #fbbf24; }
-        .status-maintenance .status-dot { background: #fbbf24; }
-        .detail-main { max-width: 1200px; margin: 0 auto; padding: 56px 60px 80px; display: grid; grid-template-columns: 1fr 380px; gap: 48px; align-items: start; }
-        .section-label { display: inline-block; color: var(--gold); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; margin-bottom: 12px; }
-        .section-title { font-family: 'Playfair Display', serif; font-size: clamp(24px, 3vw, 36px); color: #fff; line-height: 1.2; margin-bottom: 20px; }
-        .section-title em { color: var(--gold); font-style: italic; }
-        .detail-desc { color: rgba(255,255,255,0.65); font-size: 15px; line-height: 1.85; margin-bottom: 40px; }
-        .specs-title { font-size: 13px; font-weight: 700; color: var(--gold); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px; }
-        .specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 40px; }
-        .spec-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 20px 22px; }
-        .spec-label { font-size: 10.5px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; margin-bottom: 6px; }
-        .spec-value { font-size: 18px; font-weight: 700; color: #fff; }
-        .spec-value span { font-size: 13px; font-weight: 400; color: var(--text-muted); }
-        .services-section { margin-bottom: 40px; }
-        .services-heading { font-size: 13px; font-weight: 700; color: var(--gold); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
-        .services-tags { display: flex; flex-wrap: wrap; gap: 10px; }
-        .service-tag { background: rgba(201,168,76,0.07); border: 1px solid rgba(201,168,76,0.18); border-radius: 50px; padding: 7px 18px; font-size: 13px; color: rgba(255,255,255,0.75); }
-        .booking-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 36px 32px; position: sticky; top: 96px; }
-        .booking-card-price { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
-        .price-main { font-family: 'Playfair Display', serif; font-size: 38px; font-weight: 700; color: var(--gold); }
-        .price-currency { font-size: 18px; color: var(--gold); margin-right: 2px; }
-        .price-type-badge { display: inline-block; background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.25); border-radius: 50px; padding: 4px 14px; font-size: 11px; color: var(--gold); font-weight: 600; margin-bottom: 28px; }
-        .booking-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 24px 0; }
-        .booking-form-label { font-size: 10.5px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; margin-bottom: 6px; display: block; }
-        .booking-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 11px 14px; color: #fff; font-size: 14px; font-family: 'Inter', sans-serif; outline: none; margin-bottom: 16px; }
-        .booking-input:focus { border-color: rgba(201,168,76,0.5); }
-        .btn-book-now { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--dark); border: none; border-radius: 12px; font-size: 15px; font-weight: 700; font-family: 'Inter', sans-serif; cursor: pointer; box-shadow: 0 8px 24px rgba(201,168,76,0.25); text-decoration: none; display: block; text-align: center; }
-        .btn-book-now.disabled { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.3); cursor: not-allowed; box-shadow: none; pointer-events: none; }
-        .booking-note { margin-top: 14px; text-align: center; color: var(--text-muted); font-size: 12px; line-height: 1.6; }
-        .code-chip { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 16px; margin-top: 10px; }
-        .code-chip span { color: var(--text-muted); font-size: 12px; }
-        .code-chip strong { color: #fff; font-size: 13px; letter-spacing: 1px; }
-        .btn-back { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 13px; text-decoration: none; margin-bottom: 32px; }
-        .btn-back:hover { color: var(--gold); }
-        footer { background: #060608; border-top: 1px solid rgba(201,168,76,0.1); padding: 40px 60px; }
-        .footer-bottom { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; color: rgba(255,255,255,0.25); font-size: 12.5px; }
-        .footer-bottom .gold { color: var(--gold); }
-        @media (max-width: 960px) { .detail-main { grid-template-columns: 1fr; padding: 40px 24px; } .booking-card { position: static; } .navbar { padding: 0 24px; } .specs-grid { grid-template-columns: 1fr; } footer { padding: 32px 24px; } }
+        :root {
+            --gold: #c9a84c; --gold-light: #e8cc82;
+            --dark: #0a0a0f; --navy: #0d1526;
+        }
+        body { background-color: var(--dark); color: white; font-family: 'Inter', sans-serif; margin: 0; }
+        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .spec-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 24px; }
+    </style>
+    <style type="text/tailwindcss">
+        @layer base {
+            body { @apply bg-dark text-white font-sans antialiased selection:bg-gold/30; }
+        }
+        @layer components {
+            .nav-link { @apply text-white/60 hover:text-gold transition-colors text-sm font-medium relative py-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-gold after:transition-all hover:after:w-full; }
+            .nav-link.active { @apply text-gold after:w-full; }
+            .glass-panel { @apply bg-white/5 backdrop-blur-2xl border border-white/10; }
+            .spec-card { @apply bg-white/5 border border-white/10 rounded-2xl p-6 transition-all hover:bg-white/10 hover:border-gold/30; }
+            .amenity-tag { @apply px-4 py-2 bg-gold/10 border border-gold/20 rounded-full text-xs text-gold-light font-medium; }
+        }
+        [color-scheme="dark"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <a href="${pageContext.request.contextPath}/" class="nav-brand">Azure <span>Resort</span></a>
-    <ul class="nav-links">
-        <li><a href="${pageContext.request.contextPath}/rooms">Phong &amp; Villa</a></li>
-        <li><a href="${pageContext.request.contextPath}/#promotions">Khuyen Mai</a></li>
-        <li><a href="${pageContext.request.contextPath}/booking">Dat Phong</a></li>
-        <li><a href="${pageContext.request.contextPath}/contracts">Hop Dong</a></li>
+<!-- NAVBAR (Premium Design) -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-[1000] px-6 md:px-12 h-20 flex items-center justify-between transition-all duration-500 bg-dark/80 backdrop-blur-md border-b border-gold/10">
+    <a href="${pageContext.request.contextPath}/" class="text-2xl font-serif font-bold tracking-tight text-white group">
+        Azure <span class="text-gold group-hover:text-gold-light transition-colors">Resort</span>
+    </a>
+    
+    <ul class="hidden md:flex items-center gap-10">
+        <li><a href="${pageContext.request.contextPath}/" class="nav-link">Trang Chủ</a></li>
+        <li><a href="${pageContext.request.contextPath}/rooms" class="nav-link active">Phòng &amp; Villa</a></li>
+        <li><a href="${pageContext.request.contextPath}/booking" class="nav-link">Đặt Phòng</a></li>
+        <li><a href="${pageContext.request.contextPath}/account.jsp" class="nav-link">Tài Khoản</a></li>
+        <c:if test="${sessionScope.account.personType == 'EMPLOYEE'}">
+            <li><a href="${pageContext.request.contextPath}/dashboard/admin" class="nav-link text-gold font-bold border border-gold/20 px-4 py-1.5 rounded-full hover:bg-gold hover:text-dark transition-all">Bảng điều khiển</a></li>
+        </c:if>
     </ul>
-    <div class="nav-right">
+
+    <div class="flex items-center gap-6">
         <c:choose>
             <c:when test="${not empty sessionScope.account}">
-                <span class="nav-greeting">Xin chao, <strong>${sessionScope.account.fullName}</strong></span>
-                <a href="${pageContext.request.contextPath}/logout" class="btn-nav-logout">Dang xuat</a>
+                <div class="hidden sm:flex flex-col items-end">
+                    <span class="text-[10px] text-white/40 uppercase tracking-[0.2em]">Khách hàng</span>
+                    <span class="text-sm font-medium text-gold">${sessionScope.account.fullName}</span>
+                </div>
+                <a href="${pageContext.request.contextPath}/logout" class="px-5 py-2 border border-gold/30 rounded-full text-xs font-bold text-gold uppercase tracking-widest hover:bg-gold hover:text-dark transition-all">Đăng xuất</a>
             </c:when>
             <c:otherwise>
-                <a href="${pageContext.request.contextPath}/login.jsp" class="btn-nav-login">Dang nhap</a>
-                <a href="${pageContext.request.contextPath}/register" class="btn-nav-register">Dang ky</a>
+                <div class="flex items-center gap-4">
+                    <a href="${pageContext.request.contextPath}/login.jsp" class="text-xs font-bold text-gold uppercase tracking-widest hover:text-white transition-colors">Đăng nhập</a>
+                    <a href="${pageContext.request.contextPath}/register.jsp" class="px-6 py-2 bg-gold text-dark text-xs font-bold rounded-full uppercase tracking-widest hover:bg-gold-light transition-all">Đăng ký</a>
+                </div>
             </c:otherwise>
         </c:choose>
     </div>
 </nav>
 
-<div class="breadcrumb-wrap">
-    <div class="breadcrumb">
-        <a href="${pageContext.request.contextPath}/">Trang Chu</a>
-        <span class="sep">&#8250;</span>
-        <a href="${pageContext.request.contextPath}/rooms">Phong &amp; Villa</a>
-        <span class="sep">&#8250;</span>
-        <span class="current">${facility.serviceName}</span>
-    </div>
-</div>
+<!-- IMMERSIVE HERO -->
+<div class="relative h-[70vh] min-h-[500px] overflow-hidden group">
+    <img src="${imgSrc.startsWith('http') ? imgSrc : pageContext.request.contextPath.concat('/').concat(imgSrc)}" alt="${facility.serviceName}" class="w-full h-full object-cover transition-transform duration-[2000ms] scale-105 group-hover:scale-110">
+    <div class="absolute inset-0 bg-gradient-to-b from-dark/20 via-dark/40 to-dark"></div>
+    
+    <div class="absolute inset-0 flex flex-col justify-end px-6 md:px-12 pb-24">
+        <div class="max-w-7xl mx-auto w-full animate-reveal">
+            <!-- Breadcrumbs -->
+            <nav class="flex items-center gap-2 text-[10px] text-white/50 uppercase tracking-[0.2em] mb-8">
+                <a href="${pageContext.request.contextPath}/" class="hover:text-gold transition-colors">Trang Chủ</a>
+                <span>/</span>
+                <a href="${pageContext.request.contextPath}/rooms" class="hover:text-gold transition-colors">Phòng &amp; Villa</a>
+                <span>/</span>
+                <span class="text-gold">${facility.serviceName}</span>
+            </nav>
 
-<div class="detail-hero">
-    <img src="${imgSrc}" alt="${facility.serviceName}">
-    <div class="detail-hero-overlay"></div>
-    <div class="detail-hero-info">
-        <div class="facility-badge">${facilityTypeLabel} - Azure Resort &amp; Spa</div>
-        <h1>${facility.serviceName}</h1>
-        <div class="status-pill ${statusClass}">
-            <span class="status-dot"></span>
-            ${statusLabel}
-        </div>
-    </div>
-</div>
+            <span class="inline-block px-5 py-1.5 bg-gold/20 border border-gold/30 rounded-full text-[10px] font-bold text-gold uppercase tracking-[0.2em] mb-6">
+                ${facilityTypeLabel} - Azure Collection
+            </span>
 
-<div class="detail-main">
-    <div class="detail-left">
-        <a href="${pageContext.request.contextPath}/rooms" class="btn-back">
-            &#8592; Quay lai danh sach phong
-        </a>
-        <span class="section-label">Thong Tin Chi Tiet</span>
-        <h2 class="section-title">${facility.serviceName} <em>${facilityTypeLabel}</em></h2>
-        <p class="detail-desc">
-            <c:choose>
-                <c:when test="${not empty facility.description}">${facility.description}</c:when>
-                <c:otherwise>Khong gian nghi duong sang trong tai Azure Resort &amp; Spa.</c:otherwise>
-            </c:choose>
-        </p>
-        <div class="specs-title">Thong So Ky Thuat</div>
-        <div class="specs-grid">
-            <div class="spec-card"><div class="spec-label">Dien Tich</div><div class="spec-value">${facility.usableArea} <span>m2</span></div></div>
-            <div class="spec-card"><div class="spec-label">Suc Chua Toi Da</div><div class="spec-value">${facility.maxPeople} <span>nguoi</span></div></div>
-            <div class="spec-card"><div class="spec-label">Loai Hinh</div><div class="spec-value">${facilityTypeLabel}</div></div>
-            <div class="spec-card"><div class="spec-label">Hinh Thuc Thue</div><div class="spec-value">${rentalTypeLabel}</div></div>
-            <div class="spec-card"><div class="spec-label">Trang Thai</div><div class="spec-value">${statusLabel}</div></div>
-            <div class="spec-card"><div class="spec-label">Ma Phong</div><div class="spec-value" style="font-size:15px;">${facility.serviceCode}</div></div>
-        </div>
-        <div class="services-section">
-            <div class="services-heading">Tien Nghi Bao Gom</div>
-            <div class="services-tags">
-                <span class="service-tag">Wifi toc do cao</span>
-                <span class="service-tag">Dieu hoa trung tam</span>
-                <span class="service-tag">Don phong hang ngay</span>
-                <span class="service-tag">Tivi man hinh phang</span>
-                <span class="service-tag">Ket an toan</span>
-                <span class="service-tag">Minibar</span>
+            <h1 class="text-5xl md:text-7xl font-serif font-bold text-white mb-6 leading-tight max-w-4xl">
+                ${facility.serviceName}
+            </h1>
+
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3 px-4 py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 text-xs font-medium">
+                    <span class="w-2 h-2 rounded-full ${facility.status == 'AVAILABLE' ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'}"></span>
+                    ${statusLabel}
+                </div>
+                <div class="h-px w-12 bg-gold/30"></div>
+                <span class="text-white/40 text-xs uppercase tracking-widest">Mã định danh: ${facility.serviceCode}</span>
             </div>
         </div>
     </div>
-
-    <div class="detail-right">
-        <div class="booking-card">
-            <div class="booking-card-price">
-                <span class="price-currency">d</span>
-                <span class="price-main">${formattedCost}</span>
-            </div>
-            <div style="margin-bottom:10px;color:var(--text-muted);font-size:13px;">/ ${rentalTypeLabel}</div>
-            <div class="price-type-badge">${facilityTypeLabel} - ${rentalTypeLabel}</div>
-            <c:choose>
-                <c:when test="${isAvailable}">
-                    <form action="${pageContext.request.contextPath}/booking" method="GET">
-                        <input type="hidden" name="facility" value="${facility.serviceCode}">
-                        <label class="booking-form-label">Ngay Nhan Phong</label>
-                        <input type="date" name="checkin" class="booking-input" id="checkinInput">
-                        <label class="booking-form-label">Ngay Tra Phong</label>
-                        <input type="date" name="checkout" class="booking-input" id="checkoutInput">
-                        <label class="booking-form-label">So Khach</label>
-                        <select name="adults" class="booking-input">
-                            <c:forEach begin="1" end="${facility.maxPeople}" var="i">
-                                <option value="${i}">${i} nguoi</option>
-                            </c:forEach>
-                        </select>
-                        <button type="submit" class="btn-book-now">Dat Phong Ngay</button>
-                    </form>
-                </c:when>
-                <c:otherwise>
-                    <button class="btn-book-now disabled">${statusLabel} - Khong The Dat</button>
-                </c:otherwise>
-            </c:choose>
-            <div class="booking-divider"></div>
-            <div class="code-chip"><span>Ma:</span><strong>${facility.serviceCode}</strong></div>
-            <p class="booking-note">Mien phi huy phong truoc 48 gio.<br>Ho tro 24/7 - Hotline: <strong>1800 7777</strong></p>
-        </div>
-    </div>
 </div>
 
-<footer>
-    <div class="footer-bottom">
-        <span>&#169; 2026 <span class="gold">Azure Resort &amp; Spa</span>. All rights reserved.</span>
-        <span>Made with love in Vietnam</span>
+<!-- MAIN CONTENT -->
+<main class="max-w-7xl mx-auto px-6 md:px-12 -mt-16 relative z-10 pb-32">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        
+        <!-- Left Column (Details) -->
+        <div class="lg:col-span-2 space-y-16">
+            
+            <!-- Quick Back Button -->
+            <a href="${pageContext.request.contextPath}/rooms" class="inline-flex items-center gap-3 text-xs font-bold text-white/40 uppercase tracking-widest hover:text-gold transition-all group">
+                <span class="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-gold group-hover:bg-gold group-hover:text-dark transition-all">←</span>
+                Trở lại danh sách phòng
+            </a>
+
+            <!-- Description -->
+            <section class="animate-reveal" style="animation-delay: 100ms">
+                <span class="block text-gold text-[10px] uppercase tracking-[0.4em] font-bold mb-4">Tổng quan không gian</span>
+                <h2 class="text-4xl font-serif font-bold text-white mb-8">Trải nghiệm nghỉ dưỡng <br> <span class="italic text-gold italic">đẳng cấp tinh hoa</span></h2>
+                <div class="text-white/60 text-lg font-light leading-relaxed prose prose-invert">
+                    <c:choose>
+                        <c:when test="${not empty facility.description}">${facility.description}</c:when>
+                        <c:otherwise>Được bao quanh bởi cảnh quan thiên nhiên tuyệt mỹ, không gian nghỉ dưỡng tại Azure là sự giao thoa hoàn hảo giữa kiến trúc hiện đại và vẻ đẹp nguyên bản của biển cả. Mỗi chi tiết đều được chăm chút tỉ mỉ để tôn vinh sự riêng tư và sang trọng tuyệt đối của quý khách.</c:otherwise>
+                    </c:choose>
+                </div>
+            </section>
+
+            <!-- Specifications Grid -->
+            <section class="animate-reveal" style="animation-delay: 200ms">
+                <h3 class="text-xs font-bold text-white/30 uppercase tracking-[0.3em] mb-10 pb-4 border-b border-white/5">Thông số kỹ thuật</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+                    <div class="spec-card">
+                        <span class="block text-[10px] text-white/30 uppercase tracking-widest mb-3">Diện tích</span>
+                        <div class="text-2xl font-serif font-bold text-white">${facility.usableArea} <span class="text-sm font-sans font-normal opacity-40 italic">m²</span></div>
+                    </div>
+                    <div class="spec-card">
+                        <span class="block text-[10px] text-white/30 uppercase tracking-widest mb-3">Sức chứa</span>
+                        <div class="text-2xl font-serif font-bold text-white">${facility.maxPeople} <span class="text-sm font-sans font-normal opacity-40 italic">Người</span></div>
+                    </div>
+                    <div class="spec-card">
+                        <span class="block text-[10px] text-white/30 uppercase tracking-widest mb-3">Tầm nhìn</span>
+                        <div class="text-2xl font-serif font-bold text-white">Panorama <span class="text-sm font-sans font-normal opacity-40 italic">View</span></div>
+                    </div>
+                    <div class="spec-card">
+                        <span class="block text-[10px] text-white/30 uppercase tracking-widest mb-3">Loại hình</span>
+                        <div class="text-xl font-serif font-bold text-white">${facilityTypeLabel}</div>
+                    </div>
+                    <div class="spec-card">
+                        <span class="block text-[10px] text-white/30 uppercase tracking-widest mb-3">Hình thức thuê</span>
+                        <div class="text-xl font-serif font-bold text-white">${rentalTypeLabel}</div>
+                    </div>
+                    <div class="spec-card">
+                        <span class="block text-[10px] text-white/30 uppercase tracking-widest mb-3">Định danh</span>
+                        <div class="text-xl font-serif font-bold text-white">${facility.serviceCode}</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Amenities -->
+            <section class="animate-reveal" style="animation-delay: 300ms">
+                <h3 class="text-xs font-bold text-white/30 uppercase tracking-[0.3em] mb-8 pb-4 border-b border-white/5">Tiện nghi đặc quyền</h3>
+                <div class="flex flex-wrap gap-4">
+                    <span class="amenity-tag">✦ Wifi tốc độ cao</span>
+                    <span class="amenity-tag">✦ Điều hòa trung tâm</span>
+                    <span class="amenity-tag">✦ Dọn phòng 24/7</span>
+                    <span class="amenity-tag">✦ TV 4K OLED</span>
+                    <span class="amenity-tag">✦ Két sắt an toàn</span>
+                    <span class="amenity-tag">✦ Minibar cao cấp</span>
+                    <span class="amenity-tag">✦ Hệ thống âm thanh Bang & Olufsen</span>
+                </div>
+            </section>
+        </div>
+
+        <!-- Right Column (Booking Widget) -->
+        <div class="lg:block">
+            <div class="sticky top-32 glass-panel rounded-[40px] p-10 shadow-2xl animate-reveal border-white/10 ring-1 ring-gold/10" style="animation-delay: 400ms">
+                <div class="mb-10 text-center lg:text-left">
+                    <span class="block text-[10px] text-gold uppercase tracking-[0.3em] font-bold mb-3">Ưu đãi hôm nay</span>
+                    <div class="flex items-baseline gap-2 justify-center lg:justify-start">
+                        <span class="text-xs text-gold uppercase tracking-widest font-bold">đ</span>
+                        <h2 class="text-5xl font-serif font-bold text-white">${formattedCost}</h2>
+                        <span class="text-xs text-white/30 font-medium">/ ${rentalTypeLabel}</span>
+                    </div>
+                </div>
+
+                <c:choose>
+                    <c:when test="${isAvailable}">
+                        <form action="${pageContext.request.contextPath}/booking" method="GET" class="space-y-6">
+                            <input type="hidden" name="facility" value="${facility.serviceCode}">
+                            
+                            <div class="space-y-2">
+                                <label class="block text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold ml-1">Lịch nhận phòng</label>
+                                <input type="date" name="checkin" id="checkinInput" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-gold/50 transition-all [color-scheme:dark]">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold ml-1">Lịch trả phòng</label>
+                                <input type="date" name="checkout" id="checkoutInput" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-gold/50 transition-all [color-scheme:dark]">
+                            </div>
+
+                            <div class="space-y-2 pb-6">
+                                <label class="block text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold ml-1">Số lượng khách</label>
+                                <select name="adults" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-gold/50 transition-all appearance-none cursor-pointer">
+                                    <c:forEach begin="1" end="${facility.maxPeople}" var="i">
+                                        <option value="${i}" class="bg-navy">${i} người lớn</option>
+                                    </c:forEach>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="w-full py-5 bg-gradient-to-r from-gold to-gold-light text-dark font-bold rounded-2xl uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-gold/20 flex items-center justify-center gap-3 group">
+                                <span>✦</span> Đặt Phòng Ngay
+                            </button>
+                        </form>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="py-12 text-center space-y-4">
+                            <div class="text-4xl opacity-20">🔇</div>
+                            <h3 class="text-xl font-serif font-bold text-white/60">Tạm hết phòng</h3>
+                            <button class="w-full py-5 bg-white/5 border border-white/10 text-white/30 font-bold rounded-2xl uppercase tracking-[0.2em] cursor-not-allowed">
+                                Không thể đặt
+                            </button>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
+
+                <div class="mt-10 pt-10 border-t border-white/5 text-center">
+                    <p class="text-[10px] text-white/30 leading-relaxed tracking-wider uppercase">
+                        Miễn phí hủy phòng trước 48 giờ <br>
+                        Hỗ trợ 24/7: <span class="text-gold font-bold">1800 7777</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="bg-[#060608] border-t border-white/5 py-12 px-6 md:px-12 text-center md:text-left">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+        <div class="text-white/20 text-xs tracking-wider">
+            © 2026 <span class="text-gold font-bold">Azure Resort &amp; Spa</span>. Bản quyền được bảo lưu.
+        </div>
+        <div class="flex items-center gap-1">
+            <span class="text-white/20 text-xs tracking-wider font-light">Tuyệt phẩm nghỉ dưỡng bởi</span>
+            <span class="text-gold font-serif italic ml-1">Azure Team</span>
+        </div>
     </div>
 </footer>
 

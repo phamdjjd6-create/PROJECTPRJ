@@ -153,17 +153,17 @@
             <div class="stat-card">
                 <div class="stat-top">
                     <span class="stat-indicator ind-blue"></span>
-                    <span class="stat-trend trend-up">Hôm nay</span>
+                    <span class="stat-trend trend-up">Chờ xử lý</span>
                 </div>
-                <div class="stat-num">${totalBookings != null ? totalBookings : '—'}</div>
-                <div class="stat-label">Booking Hôm Nay</div>
+                <div class="stat-num">${cntPending != null ? cntPending : '—'}</div>
+                <div class="stat-label">Booking Đang Chờ</div>
             </div>
             <div class="stat-card">
                 <div class="stat-top">
                     <span class="stat-indicator ind-green"></span>
                     <span class="stat-trend trend-up">Đang ở</span>
                 </div>
-                <div class="stat-num">${checkedIn != null ? checkedIn : '—'}</div>
+                <div class="stat-num">${cntCheckedIn != null ? cntCheckedIn : '—'}</div>
                 <div class="stat-label">Khách Đang Lưu Trú</div>
             </div>
             <div class="stat-card">
@@ -171,7 +171,7 @@
                     <span class="stat-indicator ind-gold"></span>
                     <span class="stat-trend trend-up">Trống</span>
                 </div>
-                <div class="stat-num">${availableRooms != null ? availableRooms : '—'}</div>
+                <div class="stat-num">${cntAvailable != null ? cntAvailable : '—'}</div>
                 <div class="stat-label">Phòng Còn Trống</div>
             </div>
             <div class="stat-card">
@@ -179,7 +179,7 @@
                     <span class="stat-indicator ind-purple"></span>
                     <span class="stat-trend trend-up">Hiệu lực</span>
                 </div>
-                <div class="stat-num">${activeContracts != null ? activeContracts : '—'}</div>
+                <div class="stat-num">${cntActiveContracts != null ? cntActiveContracts : '—'}</div>
                 <div class="stat-label">Hợp Đồng Đang Hiệu Lực</div>
             </div>
         </div>
@@ -249,12 +249,13 @@
                     </table>
                 </c:when>
                 <c:otherwise>
-                    <div style="padding:48px;text-align:center;color:var(--muted);font-size:13px;">Chưa có booking nào hôm nay</div>
+                    <div style="padding:48px;text-align:center;color:var(--muted);font-size:13px;">Chưa có booking nào gần đây</div>
                 </c:otherwise>
             </c:choose>
         </div>
     </div>
 </div>
+
 <script>
     document.getElementById('topbarDate').textContent =
         new Date().toLocaleDateString('vi-VN', {weekday:'long', year:'numeric', month:'long', day:'numeric'});

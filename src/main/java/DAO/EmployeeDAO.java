@@ -102,4 +102,10 @@ public boolean updateRole(String id, String role) {
         return false;
     } finally { em.close(); }
 }
+    public long count() {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            return (long) em.createQuery("SELECT COUNT(e) FROM TblEmployees e WHERE e.deleted = false").getSingleResult();
+        } finally { em.close(); }
+    }
 }

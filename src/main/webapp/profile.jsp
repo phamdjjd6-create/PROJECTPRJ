@@ -12,265 +12,181 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Azure Resort & Spa — Hồ Sơ Của Tôi</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --gold: #c9a84c;
-            --gold-light: #e8cc82;
-            --dark: #0a0a0f;
-            --navy: #0d1526;
-            --text: #e8e8e8;
-            --text-muted: rgba(255,255,255,0.5);
-            --bg-glass: rgba(255, 255, 255, 0.05);
-            --border-glass: rgba(255, 255, 255, 0.1);
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: { gold: '#c9a84c', dark: '#0a0a0f', navy: '#0d1526', azure: '#3b82f6' },
+                    fontFamily: { serif: ['Playfair Display', 'serif'], sans: ['Inter', 'sans-serif'] }
+                }
+            }
         }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--dark);
-            color: var(--text);
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* NAVBAR */
-        .navbar {
-            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-            padding: 0 60px; height: 72px;
-            display: flex; align-items: center; justify-content: space-between;
-            background: rgba(10,10,15,0.9);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(201,168,76,0.15);
-        }
-        .nav-brand { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #fff; text-decoration: none; }
-        .nav-brand span { color: var(--gold); }
-        .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
-        .nav-links a {
-            color: rgba(255,255,255,0.75); text-decoration: none; font-size: 13.5px; 
-            font-weight: 500; letter-spacing: 0.5px; transition: color 0.2s; position: relative;
-        }
-        .nav-links a::after {
-            content: ''; position: absolute; bottom: -4px; left: 0; right: 100%;
-            height: 1px; background: var(--gold); transition: right 0.25s;
-        }
-        .nav-links a:hover { color: #fff; }
-        .nav-links a:hover::after { right: 0; }
-        .nav-right { display: flex; align-items: center; gap: 16px; }
-        .nav-greeting { color: rgba(255,255,255,0.5); font-size: 13px; }
-        .nav-greeting strong { color: var(--gold); }
-        .btn-nav-logout {
-            padding: 8px 20px; border-radius: 50px; font-size: 13px; font-family: 'Inter', sans-serif; 
-            cursor: pointer; transition: all 0.25s; text-decoration: none;
-            border: 1px solid rgba(201,168,76,0.4); background: transparent; color: var(--gold);
-        }
-        .btn-nav-logout:hover { background: var(--gold); color: var(--dark); }
-
-        /* PROFILE SECTION */
-        .profile-page-wrap {
-            flex: 1; padding: 120px 20px 60px;
-            display: flex; justify-content: center; align-items: center;
-            background: linear-gradient(to bottom, var(--dark), var(--navy));
-        }
-
-        .profile-container {
-            max-width: 800px; width: 100%;
-            background: var(--bg-glass); border: 1px solid var(--border-glass);
-            border-radius: 20px; padding: 50px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
-            animation: fadeUp 0.8s ease-out forwards;
-        }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .profile-header { text-align: center; margin-bottom: 40px; }
-        .profile-label {
-            display: inline-block; color: var(--gold); font-size: 12px;
-            letter-spacing: 3px; text-transform: uppercase; font-weight: 600; margin-bottom: 12px;
-        }
-        .profile-header h1 { font-family: 'Playfair Display', serif; font-size: 36px; color: #fff; margin-bottom: 15px; }
-        .profile-header h1 em { color: var(--gold); font-style: italic; }
-        .profile-header p { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
-
-        .profile-form { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        .form-group { display: flex; flex-direction: column; gap: 8px; }
-        .form-group.full-width { grid-column: 1 / -1; }
-        
-        .form-group label {
-            font-size: 11px; color: var(--text-muted); letter-spacing: 1.5px;
-            text-transform: uppercase; font-weight: 600;
-        }
-
-        .form-control {
-            background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-glass);
-            border-radius: 12px; padding: 14px 18px; color: #fff;
-            font-size: 14px; font-family: 'Inter', sans-serif; outline: none;
-            transition: all 0.3s ease; width: 100%;
-        }
-        .form-control:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.2); background: rgba(0, 0, 0, 0.4); }
-        .form-control:disabled { background: rgba(255,255,255,0.02); color: rgba(255,255,255,0.4); cursor: not-allowed; }
-        select.form-control option { background: var(--navy); color: #fff; }
-        input[type="date"] { color-scheme: dark; }
-
-        .submit-btn {
-            grid-column: 1 / -1; padding: 18px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
-            color: var(--dark); border: none; border-radius: 12px;
-            font-size: 14px; font-weight: 700; letter-spacing: 1px;
-            text-transform: uppercase; cursor: pointer; transition: all 0.3s;
-            margin-top: 10px; box-shadow: 0 8px 20px rgba(201,168,76,0.25);
-        }
-        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(201,168,76,0.35); }
-
-        .alert {
-            grid-column: 1 / -1; padding: 16px; border-radius: 12px; font-size: 14px;
-            text-align: center; font-weight: 500;
-        }
-        .alert-success { background: rgba(46, 204, 113, 0.1); border: 1px solid rgba(46, 204, 113, 0.3); color: #2ecc71; }
-        .alert-error { background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); color: #e74c3c; }
-
-        /* FOOTER */
-        footer { background: #060608; border-top: 1px solid rgba(201,168,76,0.1); padding: 60px; }
-        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; }
-        .footer-brand .logo { font-family: 'Playfair Display', serif; font-size: 26px; color: #fff; margin-bottom: 14px; }
-        .footer-brand .logo span { color: var(--gold); }
-        .footer-brand p { color: var(--text-muted); font-size: 13.5px; line-height: 1.7; }
-        .footer-col h4 { color: #fff; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 18px; }
-        .footer-col a { display: block; color: var(--text-muted); text-decoration: none; font-size: 13.5px; margin-bottom: 10px; transition: color 0.2s; }
-        .footer-col a:hover { color: var(--gold); }
-        .footer-bottom { max-width: 1200px; margin: 40px auto 0; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; color: rgba(255,255,255,0.25); font-size: 12.5px; }
-        .footer-bottom span { color: var(--gold); }
-
-        @media (max-width: 768px) {
-            .navbar { padding: 0 24px; }
-            .profile-container { padding: 30px 20px; }
-            .profile-form { grid-template-columns: 1fr; }
-            .footer-inner { grid-template-columns: 1fr; }
-        }
-    </style>
+    </script>
 </head>
-<body>
+<body class="dark font-sans antialiased">
 
-<nav class="navbar" id="navbar">
-    <a href="${pageContext.request.contextPath}/" class="nav-brand">Azure <span>Resort</span></a>
-    <ul class="nav-links">
-        <li><a href="${pageContext.request.contextPath}/rooms.jsp">Phòng &amp; Villa</a></li>
-        <li><a href="${pageContext.request.contextPath}/#promotions">Khuyến Mãi</a></li>
-        <li><a href="${pageContext.request.contextPath}/booking">Đặt Phòng</a></li>
-        <li><a href="${pageContext.request.contextPath}/contracts">Hợp Đồng</a></li>
+<!-- NAVBAR -->
+<nav id="navbar" class="nav-fixed px-12 h-24 bg-dark/40 backdrop-blur-2xl border-b border-white/5">
+    <a href="${pageContext.request.contextPath}/" class="text-2xl font-serif font-bold tracking-tight text-white group flex items-center gap-3">
+        <span class="w-10 h-10 rounded-xl bg-gold flex items-center justify-center text-dark italic text-xl">A</span>
+        Azure <span class="text-gold group-hover:text-white transition-colors">Resort</span>
+    </a>
+    
+    <ul class="hidden lg:flex items-center gap-12">
+        <li><a href="${pageContext.request.contextPath}/" class="text-white/40 hover:text-gold transition-all text-[11px] font-bold uppercase tracking-[0.2em] relative py-2">Trang Chủ</a></li>
+        <li><a href="${pageContext.request.contextPath}/rooms" class="text-white/40 hover:text-gold transition-all text-[11px] font-bold uppercase tracking-[0.2em] relative py-2">Phòng &amp; Villa</a></li>
+        <li><a href="${pageContext.request.contextPath}/booking" class="text-white/40 hover:text-gold transition-all text-[11px] font-bold uppercase tracking-[0.2em] relative py-2">Đặt Phòng</a></li>
+        <c:choose>
+            <c:when test="${sessionScope.account.personType == 'EMPLOYEE'}">
+                <li><a href="${pageContext.request.contextPath}/dashboard/admin" class="px-6 py-2.5 bg-white/5 border border-gold/30 rounded-full text-[10px] font-bold text-gold uppercase tracking-[0.2em] hover:bg-gold hover:text-dark transition-all">Bảng Điều Khiển</a></li>
+            </c:when>
+            <c:otherwise>
+                 <li><a href="${pageContext.request.contextPath}/account.jsp" class="text-gold transition-all text-[11px] font-bold uppercase tracking-[0.2em] relative py-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-px after:bg-gold">Tài Khoản</a></li>
+            </c:otherwise>
+        </c:choose>
     </ul>
-    <div class="nav-right">
-        <span class="nav-greeting">Xin chào, <strong>${currentUser.fullName}</strong></span>
-        <a href="${pageContext.request.contextPath}/logout" class="btn-nav-logout">Đăng xuất</a>
+
+    <div class="flex items-center gap-8">
+        <div class="hidden sm:flex flex-col items-end">
+            <span class="text-[9px] text-white/20 uppercase tracking-[0.3em] font-bold">Authenticated as</span>
+            <span class="text-sm font-bold text-gold tracking-tight">${currentUser.fullName}</span>
+        </div>
+        <a href="${pageContext.request.contextPath}/logout" class="w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center text-white/40 hover:text-red-400 hover:border-red-400/30 hover:bg-red-500/5 transition-all" title="Đăng xuất">⎋</a>
     </div>
 </nav>
 
-<div class="profile-page-wrap">
-    <div class="profile-container">
-        <div class="profile-header">
-            <span class="profile-label">Trang Cá Nhân</span>
-            <h1>Thông Tin <em>Hồ Sơ</em></h1>
-            <p>Cập nhật thông tin cá nhân của bạn để chúng tôi có thể phục vụ tốt hơn.</p>
+<main class="max-w-4xl mx-auto px-6 pt-40 pb-32">
+    <!-- Breadcrumbs -->
+    <nav class="flex items-center gap-3 text-[10px] text-white/20 uppercase tracking-[0.3em] mb-16 animate-reveal font-bold">
+        <a href="${pageContext.request.contextPath}/" class="hover:text-gold transition-colors">Azure Resort</a>
+        <span class="opacity-20">/</span>
+        <a href="${pageContext.request.contextPath}/account.jsp" class="hover:text-gold transition-colors">Tài khoản</a>
+        <span class="opacity-20">/</span>
+        <span class="text-gold">Hồ sơ cá nhân</span>
+    </nav>
+
+    <div class="glass-panel rounded-[40px] p-10 md:p-20 animate-reveal" style="animation-delay: 100ms">
+        <div class="text-center mb-16 space-y-4">
+            <span class="inline-block px-4 py-1.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-[9px] uppercase tracking-[0.4em] font-bold">Hồ sơ định danh</span>
+            <h1 class="text-5xl md:text-6xl font-serif font-bold text-white tracking-tight">Chi tiết <span class="italic text-gold italic">Cá nhân</span></h1>
+            <p class="text-white/30 text-xs max-w-sm mx-auto leading-relaxed font-medium uppercase tracking-widest pt-2">Quản lý thông tin bảo mật của bạn tại Azure</p>
         </div>
 
-        <form action="${pageContext.request.contextPath}/profile" method="POST" class="profile-form">
+        <form action="${pageContext.request.contextPath}/profile" method="POST" class="space-y-12">
             <c:if test="${not empty requestScope.successMessage}">
-                <div class="alert alert-success">${requestScope.successMessage}</div>
+                <div class="p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-3xl text-emerald-400 text-xs font-bold text-center animate-reveal shadow-lg shadow-emerald-500/5 tracking-wider">
+                    ✦ ${requestScope.successMessage}
+                </div>
             </c:if>
             <c:if test="${not empty requestScope.errorMessage}">
-                <div class="alert alert-error">${requestScope.errorMessage}</div>
+                <div class="p-6 bg-red-500/10 border border-red-500/20 rounded-3xl text-red-400 text-xs font-bold text-center animate-reveal shadow-lg shadow-red-500/5 tracking-wider">
+                    ⚠️ ${requestScope.errorMessage}
+                </div>
             </c:if>
 
-            <div class="form-group full-width">
-                <label>Tên Đăng Nhập (Username)</label>
-                <input type="text" class="form-control" value="${currentUser.account}" disabled>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div class="space-y-4">
+                    <label class="block text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-3 ml-1">Tài khoản đăng nhập</label>
+                    <div class="relative group">
+                        <input type="text" class="form-input-base opacity-40 cursor-not-allowed bg-white/[0.01] border-dashed" value="${currentUser.account}" disabled>
+                        <span class="absolute right-6 top-1/2 -translate-y-1/2 text-[8px] text-white/10 uppercase font-bold tracking-widest">Read Only</span>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <label class="block text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-3 ml-1">Mã số định danh (UID)</label>
+                    <div class="relative group">
+                        <input type="text" class="form-input-base opacity-40 cursor-not-allowed bg-white/[0.01] border-dashed font-mono" value="AZ-${currentUser.id}" disabled>
+                        <span class="absolute right-6 top-1/2 -translate-y-1/2 text-[8px] text-white/10 uppercase font-bold tracking-widest">System Key</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="form-group full-width">
-                <label>Mã Khách Hàng (Customer ID)</label>
-                <input type="text" class="form-control" value="${currentUser.id}" disabled>
+            <div class="space-y-4">
+                <label for="fullName" class="block text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-3 ml-1">Họ và Tên đầy đủ</label>
+                <div class="relative text-white">
+                    <input type="text" name="fullName" id="fullName" class="form-input-base focus:border-gold/50 focus:bg-white/[0.05] outline-none" value="${currentUser.fullName}" required placeholder="Vui lòng nhập họ tên...">
+                    <span class="absolute left-6 top-1/2 -translate-y-1/2 text-gold/20 pointer-events-none">👤</span>
+                </div>
             </div>
 
-            <div class="form-group full-width">
-                <label for="fullName">Họ và Tên</label>
-                <input type="text" name="fullName" id="fullName" class="form-control" value="${currentUser.fullName}" required>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div class="space-y-4">
+                    <label for="dateOfBirth" class="block text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-3 ml-1">Ngày sinh</label>
+                    <fmt:formatDate var="dobFormatted" value="${currentUser.dateOfBirth}" pattern="yyyy-MM-dd"/>
+                    <input type="date" name="dateOfBirth" id="dateOfBirth" class="form-input-base [color-scheme:dark]" value="${dobFormatted}">
+                </div>
+                <div class="space-y-4">
+                    <label for="gender" class="block text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-3 ml-1">Giới tính</label>
+                    <div class="relative">
+                        <select name="gender" id="gender" class="form-input-base appearance-none cursor-pointer pr-12 focus:border-gold/50 focus:bg-white/[0.05] outline-none">
+                            <option value="" ${empty currentUser.gender ? 'selected' : ''}>Chưa xác định</option>
+                            <option value="Male" ${currentUser.gender == 'Male' ? 'selected' : ''} class="bg-navy">Nam</option>
+                            <option value="Female" ${currentUser.gender == 'Female' ? 'selected' : ''} class="bg-navy">Nữ</option>
+                        </select>
+                        <div class="absolute right-6 top-1/2 -translate-y-1/2 text-gold/40 pointer-events-none text-xs">▼</div>
+                    </div>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="dateOfBirth">Ngày Sinh</label>
-                <fmt:formatDate var="dobFormatted" value="${currentUser.dateOfBirth}" pattern="yyyy-MM-dd"/>
-                <input type="date" name="dateOfBirth" id="dateOfBirth" class="form-control" value="${dobFormatted}">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div class="space-y-4">
+                    <label for="phoneNumber" class="block text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-3 ml-1">Số điện thoại liên lạc</label>
+                    <input type="tel" name="phoneNumber" id="phoneNumber" class="form-input-base focus:border-gold/50 focus:bg-white/[0.05] outline-none" value="${currentUser.phoneNumber}" placeholder="09xx xxx xxx">
+                </div>
+                <div class="space-y-4">
+                    <label for="idCard" class="block text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-3 ml-1">CCCD / Passport</label>
+                    <input type="text" name="idCard" id="idCard" class="form-input-base focus:border-gold/50 focus:bg-white/[0.05] outline-none" value="${currentUser.idCard}" placeholder="Nhập số giấy tờ...">
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="gender">Giới Tính</label>
-                <select name="gender" id="gender" class="form-control">
-                    <option value="" ${empty currentUser.gender ? 'selected' : ''}>Khác</option>
-                    <option value="Male" ${currentUser.gender == 'Male' ? 'selected' : ''}>Nam</option>
-                    <option value="Female" ${currentUser.gender == 'Female' ? 'selected' : ''}>Nữ</option>
-                </select>
+            <div class="space-y-4">
+                <label for="email" class="block text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-3 ml-1">Địa chỉ thư điện tử (Email)</label>
+                <input type="email" name="email" id="email" class="form-input-base focus:border-gold/50 focus:bg-white/[0.05] outline-none" value="${currentUser.email}" required placeholder="example@azure.com">
             </div>
 
-            <div class="form-group">
-                <label for="phoneNumber">Số Điện Thoại</label>
-                <input type="tel" name="phoneNumber" id="phoneNumber" class="form-control" value="${currentUser.phoneNumber}">
+            <div class="pt-12 space-y-6">
+                <button type="submit" class="w-full bg-gradient-to-r from-gold to-gold-light text-dark font-bold text-[11px] uppercase tracking-[0.3em] rounded-2xl py-5 transition-all hover:shadow-[0_0_30px_rgba(201,168,76,0.3)] hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-4">
+                    <span class="w-6 h-6 rounded-full bg-dark/10 flex items-center justify-center text-[8px]">✦</span>
+                    Cập nhật hồ sơ Azure
+                </button>
+                <div class="flex items-center justify-center gap-8">
+                    <a href="${pageContext.request.contextPath}/account.jsp" class="text-[9px] text-white/20 uppercase tracking-[0.3em] font-bold hover:text-gold transition-colors">Trở về tài khoản</a>
+                    <span class="w-1 h-1 rounded-full bg-white/5"></span>
+                    <a href="${pageContext.request.contextPath}/password_change" class="text-[9px] text-white/20 uppercase tracking-[0.3em] font-bold hover:text-gold transition-colors">Đổi mật khẩu</a>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label for="idCard">CMND / CCCD / Passport</label>
-                <input type="text" name="idCard" id="idCard" class="form-control" value="${currentUser.idCard}">
-            </div>
-
-            <div class="form-group full-width">
-                <label for="email">Địa Chỉ Email</label>
-                <input type="email" name="email" id="email" class="form-control" value="${currentUser.email}">
-            </div>
-
-            <button type="submit" class="submit-btn">Lưu Thay Đổi</button>
         </form>
     </div>
-</div>
+</main>
 
-<footer>
-    <div class="footer-inner">
-        <div class="footer-brand">
-            <div class="logo">Azure <span>Resort</span> &amp; Spa</div>
-            <p>Thiên đường nghỉ dưỡng 5 sao với vẻ đẹp thiên nhiên kỳ thú và dịch vụ đẳng cấp thế giới.</p>
+<footer class="py-20 px-12 border-t border-white/5 bg-[#060608]">
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10 opacity-30 group hover:opacity-100 transition-opacity duration-700">
+        <p class="text-[10px] uppercase tracking-[0.3em] font-bold font-sans">© 2026 Azure Resort & Spa — Personal Security</p>
+        <div class="flex items-center gap-6">
+            <span class="text-[10px] uppercase tracking-[0.3em] font-bold italic font-serif text-gold">Managed by Azure Identity Service</span>
         </div>
-        <div class="footer-col">
-            <h4>Khám Phá</h4>
-            <a href="${pageContext.request.contextPath}/rooms.jsp">Phòng &amp; Villa</a>
-            <a href="${pageContext.request.contextPath}/#promotions">Khuyến Mãi</a>
-            <a href="${pageContext.request.contextPath}/booking">Đặt Phòng</a>
-        </div>
-        <div class="footer-col">
-            <h4>Tài Khoản</h4>
-            <a href="${pageContext.request.contextPath}/booking?view=my">Booking Của Tôi</a>
-            <a href="${pageContext.request.contextPath}/contracts">Hợp Đồng</a>
-            <a href="${pageContext.request.contextPath}/profile">Hồ Sơ</a>
-        </div>
-        <div class="footer-col">
-            <h4>Liên Hệ</h4>
-            <a href="#">📍 Đà Nẵng, Việt Nam</a>
-            <a href="#">📞 1800 7777</a>
-            <a href="#">✉️ info@azure-resort.vn</a>
-        </div>
-    </div>
-    <div class="footer-bottom">
-        <span>© 2026 <span>Azure Resort &amp; Spa</span>. All rights reserved.</span>
-        <span>Made with ❤️ in Vietnam</span>
     </div>
 </footer>
 
 <script>
     const today = new Date();
     const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
-    document.getElementById('dateOfBirth').setAttribute('max', maxDate.toISOString().split('T')[0]);
+    const dobInput = document.getElementById('dateOfBirth');
+    if(dobInput) dobInput.setAttribute('max', maxDate.toISOString().split('T')[0]);
+    
+    // Smooth Navbar on scroll
+    window.addEventListener('scroll', () => {
+        const nav = document.getElementById('navbar');
+        if (window.scrollY > 50) {
+            nav.classList.add('h-20', 'bg-dark/80');
+            nav.classList.remove('h-24', 'bg-dark/40');
+        } else {
+            nav.classList.remove('h-20', 'bg-dark/80');
+            nav.classList.add('h-24', 'bg-dark/40');
+        }
+    });
 </script>
 
 </body>

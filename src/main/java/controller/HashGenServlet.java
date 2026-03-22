@@ -9,7 +9,7 @@ import java.sql.*;
 @WebServlet("/hashgen")
 public class HashGenServlet extends HttpServlet {
 
-    private static final String JDBC_URL  = "jdbc:sqlserver://localhost:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true";
+    private static final String JDBC_URL  = "jdbc:sqlserver://MSI:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true";
     private static final String JDBC_USER = "sa";
     private static final String JDBC_PASS = "123";
 

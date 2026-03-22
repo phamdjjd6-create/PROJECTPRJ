@@ -1,546 +1,400 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Azure Resort & Spa — Đặt Phòng</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/drum-datepicker.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#c9a84c',
+                        'gold-light': '#e8cc82',
+                        dark: '#0a0a0f',
+                        navy: '#0d1526',
+                    },
+                    fontFamily: {
+                        serif: ['Playfair Display', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'reveal': 'reveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                    },
+                    keyframes: {
+                        reveal: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
         :root {
-            --gold: #c9a84c;
-            --gold-light: #e8cc82;
-            --dark: #0a0a0f;
-            --navy: #0d1526;
-            --text: #e8e8e8;
-            --text-muted: rgba(255,255,255,0.5);
-            --bg-glass: rgba(255, 255, 255, 0.05);
-            --border-glass: rgba(255, 255, 255, 0.1);
+            --gold: #c9a84c; --gold-light: #e8cc82;
+            --dark: #0a0a0f; --navy: #0d1526;
         }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--dark);
-            color: var(--text);
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+        body { background-color: var(--dark); color: white; font-family: 'Inter', sans-serif; margin: 0; }
+        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .form-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 16px; color: white; outline: none; transition: border-color 0.2s; }
+        .form-input:focus { border-color: var(--gold); }
+    </style>
+    <style type="text/tailwindcss">
+        @layer base {
+            body { @apply bg-dark text-white font-sans antialiased selection:bg-gold/30; }
         }
-
-        /* ════════════════════════════════
-           NAVBAR (Copy from index.jsp)
-        ════════════════════════════════ */
-        .navbar {
-            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-            padding: 0 60px; height: 72px;
-            display: flex; align-items: center; justify-content: space-between;
-            background: rgba(10,10,15,0.9);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(201,168,76,0.15);
-        }
-        .nav-brand {
-            font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700;
-            color: #fff; text-decoration: none;
-        }
-        .nav-brand span { color: var(--gold); }
-        .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
-        .nav-links a {
-            color: rgba(255,255,255,0.75); text-decoration: none;
-            font-size: 13.5px; font-weight: 500; letter-spacing: 0.5px; transition: color 0.2s; position: relative;
-        }
-        .nav-links a::after {
-            content: ''; position: absolute; bottom: -4px; left: 0; right: 100%;
-            height: 1px; background: var(--gold); transition: right 0.25s;
-        }
-        .nav-links a:hover { color: #fff; }
-        .nav-links a:hover::after { right: 0; }
-        .nav-right { display: flex; align-items: center; gap: 16px; }
-        .nav-greeting { color: rgba(255,255,255,0.5); font-size: 13px; }
-        .nav-greeting strong { color: var(--gold); }
-        .btn-nav-logout, .btn-nav-login {
-            padding: 8px 20px; border-radius: 50px; font-size: 13px;
-            font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.25s; text-decoration: none;
-        }
-        .btn-nav-logout { border: 1px solid rgba(201,168,76,0.4); background: transparent; color: var(--gold); }
-        .btn-nav-logout:hover { background: var(--gold); color: var(--dark); }
-        .btn-nav-login { background: var(--gold); color: var(--dark); font-weight: 600; border: 1px solid var(--gold); }
-        .btn-nav-login:hover { background: var(--gold-light); box-shadow: 0 4px 12px rgba(201,168,76,0.3); }
-
-        /* ════════════════════════════════
-           BOOKING SECTION
-        ════════════════════════════════ */
-        .booking-page-wrap {
-            flex: 1;
-            padding: 120px 20px 60px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(to bottom, var(--dark), var(--navy));
-        }
-
-        .booking-container {
-            max-width: 800px;
-            width: 100%;
-            background: var(--bg-glass);
-            border: 1px solid var(--border-glass);
-            border-radius: 20px;
-            padding: 50px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
-            animation: fadeUp 0.8s ease-out forwards;
-        }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .booking-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .booking-label {
-            display: inline-block; color: var(--gold); font-size: 12px;
-            letter-spacing: 3px; text-transform: uppercase; font-weight: 600; margin-bottom: 12px;
-        }
-
-        .booking-header h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 36px;
-            color: #fff;
-            margin-bottom: 15px;
-        }
-
-        .booking-header h1 em {
-            color: var(--gold);
-            font-style: italic;
-        }
-
-        .booking-header p {
-            color: var(--text-muted);
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .booking-form {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .form-group label {
-            font-size: 11px;
-            color: var(--text-muted);
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-
-        .form-control {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--border-glass);
-            border-radius: 12px;
-            padding: 14px 18px;
-            color: #fff;
-            font-size: 14px;
-            font-family: 'Inter', sans-serif;
-            outline: none;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-
-        .form-control:focus {
-            border-color: var(--gold);
-            box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.2);
-            background: rgba(0, 0, 0, 0.4);
-        }
-
-        input[type="date"] {
-            color-scheme: dark;
-        }        .form-control::placeholder {
-            color: rgba(255, 255, 255, 0.3);
-        }
-
-        select.form-control option {
-            background: var(--navy);
-            color: #fff;
-        }
-
-        textarea.form-control {
-            resize: vertical;
-            min-height: 120px;
-        }
-
-        .price-preview {
-            grid-column: 1 / -1;
-            background: rgba(201,168,76,0.06);
-            border: 1px solid rgba(201,168,76,0.2);
-            border-radius: 14px;
-            padding: 20px 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .price-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-            color: rgba(255,255,255,0.7);
-        }
-        .price-row.price-total {
-            border-top: 1px solid rgba(201,168,76,0.2);
-            padding-top: 10px;
-            margin-top: 2px;
-            font-size: 16px;
-            font-weight: 700;
-            color: #fff;
-        }
-        .price-row.price-total span:last-child {
-            color: var(--gold);
-            font-family: 'Playfair Display', serif;
-            font-size: 20px;
-        }
-        .price-label { color: rgba(255,255,255,0.5); font-size: 13px; }
-
-        .submit-btn {
-            grid-column: 1 / -1;
-            padding: 18px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
-            color: var(--dark);
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 10px;
-            box-shadow: 0 8px 20px rgba(201,168,76,0.25);
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 28px rgba(201,168,76,0.35);
-        }
-
-        .error-message {
-            color: #ff6b6b;
-            font-size: 12px;
-            margin-top: 4px;
-            display: none;
-        }
-
-        /* ════════════════════════════════
-           FOOTER (Copy from index.jsp)
-        ════════════════════════════════ */
-        footer { background: #060608; border-top: 1px solid rgba(201,168,76,0.1); padding: 60px; }
-        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; }
-        .footer-brand .logo { font-family: 'Playfair Display', serif; font-size: 26px; color: #fff; margin-bottom: 14px; }
-        .footer-brand .logo span { color: var(--gold); }
-        .footer-brand p { color: var(--text-muted); font-size: 13.5px; line-height: 1.7; }
-        .footer-col h4 { color: #fff; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 18px; }
-        .footer-col a { display: block; color: var(--text-muted); text-decoration: none; font-size: 13.5px; margin-bottom: 10px; transition: color 0.2s; }
-        .footer-col a:hover { color: var(--gold); }
-        .footer-bottom { max-width: 1200px; margin: 40px auto 0; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; color: rgba(255,255,255,0.25); font-size: 12.5px; }
-        .footer-bottom span { color: var(--gold); }
-
-        @media (max-width: 768px) {
-            .navbar { padding: 0 24px; }
-            .booking-container { padding: 30px 20px; }
-            .booking-form { grid-template-columns: 1fr; }
-            .footer-inner { grid-template-columns: 1fr; }
+        @layer components {
+            .nav-link { @apply text-white/60 hover:text-gold transition-colors text-sm font-medium relative py-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-gold after:transition-all hover:after:w-full; }
+            .nav-link.active { @apply text-gold after:w-full; }
+            .glass-panel { @apply bg-white/5 backdrop-blur-2xl border border-white/10; }
+            .form-input { @apply w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-gold/50 transition-all [color-scheme:dark]; }
+            .form-label { @apply block text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-2 ml-1; }
+            .summary-item { @apply flex justify-between items-center py-3 border-b border-white/5 last:border-0; }
         }
     </style>
 </head>
 <body>
 
 <!-- NAVBAR -->
-<nav class="navbar" id="navbar">
-    <a href="index.jsp" class="nav-brand">Azure <span>Resort</span></a>
-    <ul class="nav-links">
-        <li><a href="index.jsp#rooms">Phòng &amp; Villa</a></li>
-        <li><a href="index.jsp#promotions">Khuyến Mãi</a></li>
-        <li><a href="booking.jsp">Đặt Phòng</a></li>
-        <li><a href="contracts">Hợp Đồng</a></li>
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-[1000] px-6 md:px-12 h-20 flex items-center justify-between transition-all duration-500 bg-dark/80 backdrop-blur-md border-b border-gold/10">
+    <a href="${pageContext.request.contextPath}/" class="text-2xl font-serif font-bold tracking-tight text-white group">
+        Azure <span class="text-gold group-hover:text-gold-light transition-colors">Resort</span>
+    </a>
+    
+    <ul class="hidden md:flex items-center gap-10">
+        <li><a href="${pageContext.request.contextPath}/" class="nav-link">Trang Chủ</a></li>
+        <li><a href="${pageContext.request.contextPath}/rooms" class="nav-link">Phòng &amp; Villa</a></li>
+        <li><a href="${pageContext.request.contextPath}/booking" class="nav-link active">Đặt Phòng</a></li>
+        <li><a href="${pageContext.request.contextPath}/account.jsp" class="nav-link">Tài Khoản</a></li>
+        <c:if test="${sessionScope.account.personType == 'EMPLOYEE'}">
+            <li><a href="${pageContext.request.contextPath}/dashboard/admin" class="nav-link text-gold font-bold border border-gold/20 px-4 py-1.5 rounded-full hover:bg-gold hover:text-dark transition-all">Bảng điều khiển</a></li>
+        </c:if>
     </ul>
-    <div class="nav-right">
+
+    <div class="flex items-center gap-6">
         <c:choose>
             <c:when test="${not empty sessionScope.account}">
-                <span class="nav-greeting">Xin chào, <strong>${sessionScope.account.fullName}</strong></span>
-                <a href="logout" class="btn-nav-logout">Đăng xuất</a>
+                <div class="hidden sm:flex flex-col items-end">
+                    <span class="text-[10px] text-white/40 uppercase tracking-[0.2em]">Xin chào</span>
+                    <span class="text-sm font-medium text-gold">${sessionScope.account.fullName}</span>
+                </div>
+                <a href="${pageContext.request.contextPath}/logout" class="px-5 py-2 border border-gold/30 rounded-full text-xs font-bold text-gold uppercase tracking-widest hover:bg-gold hover:text-dark transition-all">Đăng xuất</a>
             </c:when>
             <c:otherwise>
-                <a href="login.jsp" class="btn-nav-login">Đăng nhập</a>
+                <a href="${pageContext.request.contextPath}/login.jsp" class="px-8 py-3 bg-gold text-dark text-xs font-bold uppercase tracking-widest rounded-full hover:bg-gold-light transition-all shadow-lg shadow-gold/20">Đăng nhập</a>
             </c:otherwise>
         </c:choose>
     </div>
 </nav>
 
-<!-- BOOKING SECTION -->
-<div class="booking-page-wrap">
-    <div class="booking-container">
-        <div class="booking-header">
-            <span class="booking-label">Bắt Đầu Kỳ Nghỉ</span>
-            <h1>Đặt <em>Trải Nghiệm</em> Của Bạn</h1>
-            <p>Vui lòng điền thông tin chi tiết dưới đây để đặt không gian nghỉ dưỡng lý tưởng tại Azure Resort & Spa.</p>
+<main class="max-w-7xl mx-auto px-6 pt-32 pb-24">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        
+        <!-- Left Column: Form -->
+        <div class="lg:col-span-7 space-y-12 animate-reveal">
+            <div>
+                <span class="block text-gold text-[10px] uppercase tracking-[0.4em] font-bold mb-4">Reservation Inquiry</span>
+                <h1 class="text-5xl md:text-6xl font-serif font-bold text-white mb-6">Lên kế hoạch <br><span class="italic text-gold">Kỳ nghỉ mơ ước</span></h1>
+                <p class="text-white/40 text-lg leading-relaxed max-w-xl font-light">Mỗi chi tiết nhỏ đều được chúng tôi chăm chút để mang lại sự thoải mái tuyệt đối cho quý khách.</p>
+            </div>
+
+            <form action="${pageContext.request.contextPath}/booking" method="POST" class="space-y-8" id="bookingForm">
+                <div class="space-y-2">
+                    <label for="facilityId" class="form-label">Loại Không Gian Nghỉ Dưỡng</label>
+                    <select name="facilityId" id="facilityId" class="form-input appearance-none cursor-pointer" required>
+                        <option value="" disabled ${empty param.facility ? 'selected' : ''}>-- Vui lòng chọn loại phòng --</option>
+                        <c:forEach var="f" items="${facilities}">
+                            <option value="${f.serviceCode}" ${param.facility == f.serviceCode ? 'selected' : ''} data-price="${f.cost}" class="bg-navy py-2">
+                                ${f.serviceName}
+                            </option>
+                        </c:forEach>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-2">
+                        <label for="startDate" class="form-label">Ngày Nhận Phòng</label>
+                        <input type="date" name="startDate" id="startDate" class="form-input" required value="${param.checkin}">
+                        <p class="text-[10px] text-red-400 mt-2 hidden" id="startDateError">Ngày không hợp lệ</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label for="endDate" class="form-label">Ngày Trả Phòng</label>
+                        <input type="date" name="endDate" id="endDate" class="form-input" required value="${param.checkout}">
+                        <p class="text-[10px] text-red-400 mt-2 hidden" id="endDateError">Ngày trả phòng phải sau ngày nhận</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-2">
+                        <label for="adults" class="form-label">Người Lớn (Từ 12T)</label>
+                        <input type="number" name="adults" id="adults" class="form-input" required min="1" max="15" value="${not empty param.adults ? param.adults : '1'}">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="children" class="form-label">Trẻ Em (Dưới 12T)</label>
+                        <input type="number" name="children" id="children" class="form-input" required min="0" max="15" value="0">
+                        <p class="text-[10px] text-red-400 mt-2 hidden" id="guestError"></p>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label for="voucherId" class="form-label">Mã Giảm Giá (Nếu có)</label>
+                    <div class="relative">
+                        <input type="text" name="voucherId" id="voucherId" class="form-input pr-24" placeholder="Ví dụ: WELCOME2026">
+                        <button type="button" class="absolute right-2 top-2 bottom-2 px-4 bg-white/10 rounded-xl text-[10px] font-bold text-gold uppercase tracking-widest hover:bg-gold hover:text-dark transition-all">Áp dụng</button>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label for="specialReq" class="form-label">Yêu Cầu Đặc Biệt</label>
+                    <textarea name="specialReq" id="specialReq" class="form-input min-h-[120px]" placeholder="VD: Trang trí phòng trăng mật, đón sân bay, dị ứng thực phẩm..."></textarea>
+                </div>
+
+                <div class="pt-6">
+                    <button type="submit" class="w-full py-6 bg-gradient-to-r from-gold to-gold-light text-dark font-bold rounded-2xl uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-gold/30 flex items-center justify-center gap-3">
+                        Gửi yêu cầu đặt phòng ✦
+                    </button>
+                    <p class="text-center mt-4 text-[10px] text-white/30 uppercase tracking-widest leading-relaxed">
+                        Bằng việc xác nhận, quý khách đồng ý với <a href="#" class="underline hover:text-gold transition-colors">Điều khoản & Quy định</a> của chúng tôi.
+                    </p>
+                </div>
+            </form>
         </div>
 
-        <form action="booking" method="POST" class="booking-form" id="bookingForm">
-            <!-- Hidden Fields (Can be passed from previous page via URL/JS, or filled by user) -->
-            
-            <div class="form-group full-width">
-                <label for="facilityId">Loại Phòng / Villa</label>
-                <select name="facilityId" id="facilityId" class="form-control" required>
-                    <option value="" disabled ${empty param.facility ? 'selected' : ''}>-- Chọn Phòng / Villa --</option>
-                    <option value="VL001" ${param.facility == 'VL001' ? 'selected' : ''}>Presidential Ocean Villa (5★ Diamond) - 15,000,000 đ/đêm</option>
-                    <option value="VL002" ${param.facility == 'VL002' ? 'selected' : ''}>Family Garden Villa (4★ Premium) - 6,500,000 đ/đêm</option>
-                    <option value="HS001" ${param.facility == 'HS001' ? 'selected' : ''}>Tropical Beach House (5★ Luxury) - 9,500,000 đ/đêm</option>
-                    <option value="HS002" ${param.facility == 'HS002' ? 'selected' : ''}>Garden Bungalow House (4★ Comfort) - 4,800,000 đ/đêm</option>
-                    <option value="RM001" ${param.facility == 'RM001' ? 'selected' : ''}>Ocean View Suite - 2,500,000 đ/đêm</option>
-                    <option value="RM002" ${param.facility == 'RM002' ? 'selected' : ''}>Deluxe Garden Room - 1,200,000 đ/đêm</option>
-                    <option value="RM003" ${param.facility == 'RM003' ? 'selected' : ''}>Premium Pool Access Room - 1,800,000 đ/đêm</option>
-                </select>
-            </div>
+        <!-- Right Column: Summary Card -->
+        <div class="lg:col-span-1"></div> <!-- Spacer -->
+        <div class="lg:col-span-4 sticky top-32 animate-reveal" style="animation-delay: 200ms">
+            <div class="glass-panel rounded-[40px] p-10 overflow-hidden relative group">
+                <!-- Decorative Elements -->
+                <div class="absolute -top-24 -right-24 w-48 h-48 bg-gold/10 rounded-full blur-[80px] group-hover:bg-gold/20 transition-all duration-700"></div>
+                
+                <h3 class="text-2xl font-serif font-bold text-white mb-8">Tóm tắt <span class="text-gold italic">Đặt phòng</span></h3>
+                
+                <div class="space-y-4" id="pricePreview" style="display:none">
+                    <div class="summary-item">
+                        <span class="text-white/40 text-xs uppercase tracking-widest">Loại phòng</span>
+                        <span class="text-xs font-semibold text-right max-w-[150px] truncate" id="summaryFacilityName">Chưa chọn</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="text-white/40 text-xs uppercase tracking-widest">Thời gian</span>
+                        <span class="text-xs font-semibold" id="summaryNights">0 đêm</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="text-white/40 text-xs uppercase tracking-widest">Đơn giá</span>
+                        <span class="text-xs font-semibold" id="summaryRate">0 đ</span>
+                    </div>
+                    
+                    <!-- Total -->
+                    <div class="pt-8 mt-4 border-t border-white/10 flex justify-between items-end">
+                        <div>
+                            <span class="block text-[10px] text-white/30 uppercase tracking-[0.3em] font-bold mb-1">Tổng phí tạm tính</span>
+                            <span class="text-3xl font-serif font-bold text-gold" id="summaryTotal">0 đ</span>
+                        </div>
+                        <div class="text-[10px] text-white/20 italic">VND</div>
+                    </div>
 
-            <div class="form-group">
-                <label for="startDate">Ngày Nhận Phòng (Check-in)</label>
-                <input type="date" name="startDate" id="startDate" class="form-control" required value="${param.checkin}">
-                <div class="error-message" id="startDateError">Ngày nhận phòng không hợp lệ.</div>
-            </div>
+                    <div class="mt-10 p-4 bg-white/2 border border-white/5 rounded-2xl">
+                        <ul class="space-y-2">
+                            <li class="flex items-center gap-2 text-[10px] text-white/40">
+                                <span class="text-gold">✓</span> Wifi miễn phí tốc độ cao
+                            </li>
+                            <li class="flex items-center gap-2 text-[10px] text-white/40">
+                                <span class="text-gold">✓</span> Ăn sáng buffet tại nhà hàng Pearl
+                            </li>
+                            <li class="flex items-center gap-2 text-[10px] text-white/40">
+                                <span class="text-gold">✓</span> Sử dụng hồ bơi & gym miễn phí
+                            </li>
+                        </ul>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label for="endDate">Ngày Trả Phòng (Check-out)</label>
-                <input type="date" name="endDate" id="endDate" class="form-control" required value="${param.checkout}">
-                <div class="error-message" id="endDateError">Ngày trả phòng phải sau ngày nhận phòng.</div>
-            </div>
-
-            <div class="form-group">
-                <label for="adults">Người Lớn</label>
-                <input type="number" name="adults" id="adults" class="form-control" required min="1" max="15" placeholder="VD: 2" value="${not empty param.adults ? param.adults : '1'}">
-            </div>
-
-            <div class="form-group">
-                <label for="children">Trẻ Em (0 - 12T)</label>
-                <input type="number" name="children" id="children" class="form-control" required min="0" max="15" placeholder="VD: 1" value="0">
-                <div class="error-message" id="guestError" style="display:none"></div>
-                <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px">
-                    Villa: tối đa 15 người &nbsp;·&nbsp; House: tối đa 5 người &nbsp;·&nbsp; Phòng: tối đa 3 người
+                <!-- Empty State -->
+                <div id="summaryEmpty" class="py-20 text-center space-y-4">
+                    <div class="text-4xl opacity-20 text-gold">🏖️</div>
+                    <p class="text-xs text-white/30 leading-relaxed uppercase tracking-widest">Vui lòng hoàn thiện form để xem báo cáo chi phí chi tiết.</p>
                 </div>
             </div>
-
-            <div class="form-group full-width">
-                <label for="voucherId">Mã Khuyến Mãi (Nếu có)</label>
-                <input type="text" name="voucherId" id="voucherId" class="form-control" placeholder="Nhập mã voucher...">
-            </div>
-
-            <div class="form-group full-width">
-                <label for="specialReq">Yêu Cầu Đặc Biệt</label>
-                <textarea name="specialReq" id="specialReq" class="form-control" placeholder="Ví dụ: Đón sân bay, ăn chay, chuẩn bị giường cho em bé..."></textarea>
-            </div>
-
-            <!-- Price Preview -->
-            <div class="price-preview full-width" id="pricePreview" style="display:none">
-                <div class="price-row">
-                    <span class="price-label">Đơn giá</span>
-                    <span id="pricePerNight">—</span>
-                </div>
-                <div class="price-row">
-                    <span class="price-label">Số đêm</span>
-                    <span id="priceNights">—</span>
-                </div>
-                <div class="price-row price-total">
-                    <span class="price-label">Tổng tiền</span>
-                    <span id="priceTotal">—</span>
-                </div>
-            </div>
-
-            <button type="submit" class="submit-btn" id="submitBtn">Xác Nhận Đặt Phòng</button>
-        </form>
+        </div>
     </div>
-</div>
+</main>
 
-<!-- FOOTER -->
-<footer>
-    <div class="footer-inner">
-        <div class="footer-brand">
-            <div class="logo">Azure <span>Resort</span> &amp; Spa</div>
-            <p>Thiên đường nghỉ dưỡng 5 sao với vẻ đẹp thiên nhiên kỳ thú và dịch vụ đẳng cấp thế giới.</p>
+<footer class="bg-[#060608] border-t border-white/5 py-12 px-6 md:px-12">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+        <div class="col-span-1 md:col-span-1">
+            <h4 class="text-xl font-serif font-bold text-white mb-6">Azure <span class="text-gold">Resort</span></h4>
+            <p class="text-white/40 text-sm leading-relaxed">Trải nghiệm sự sang trọng và tinh tế giữa lòng thiên nhiên kỳ thú.</p>
         </div>
-        <div class="footer-col">
-            <h4>Khám Phá</h4>
-            <a href="index.jsp#rooms">Phòng &amp; Villa</a>
-            <a href="index.jsp#promotions">Khuyến Mãi</a>
-            <a href="booking.jsp">Đặt Phòng</a>
+        <div>
+            <h5 class="text-xs font-bold text-white/60 uppercase tracking-widest mb-6">Thông tin</h5>
+            <div class="flex flex-col gap-4 text-xs text-white/30">
+                <a href="#" class="hover:text-gold transition-colors">Về chúng tôi</a>
+                <a href="#" class="hover:text-gold transition-colors">Điều khoản & Chính sách</a>
+                <a href="#" class="hover:text-gold transition-colors">Câu hỏi thường gặp</a>
+            </div>
         </div>
-        <div class="footer-col">
-            <h4>Tài Khoản</h4>
-            <a href="booking?view=my">Booking Của Tôi</a>
-            <a href="contracts">Hợp Đồng</a>
-            <a href="profile">Hồ Sơ</a>
+        <div>
+            <h5 class="text-xs font-bold text-white/60 uppercase tracking-widest mb-6">Hỗ trợ</h5>
+            <div class="flex flex-col gap-4 text-xs text-white/30">
+                <a href="#" class="hover:text-gold transition-colors">Trung tâm trợ giúp</a>
+                <a href="#" class="hover:text-gold transition-colors">Liên hệ 24/7</a>
+                <a href="#" class="hover:text-gold transition-colors">Hướng dẫn đặt phòng</a>
+            </div>
         </div>
-        <div class="footer-col">
-            <h4>Liên Hệ</h4>
-            <a href="#">📍 Đà Nẵng, Việt Nam</a>
-            <a href="#">📞 1800 7777</a>
-            <a href="#">✉️ info@azure-resort.vn</a>
+        <div>
+            <h5 class="text-xs font-bold text-white/60 uppercase tracking-widest mb-6">Liên hệ</h5>
+            <div class="flex flex-col gap-4 text-xs text-white/30">
+                <span>📍 Đà Nẵng, Việt Nam</span>
+                <span>📞 1800 7777</span>
+                <span>✉️ info@azure-resort.vn</span>
+            </div>
         </div>
     </div>
-    <div class="footer-bottom">
-        <span>© 2026 <span>Azure Resort &amp; Spa</span>. All rights reserved.</span>
-        <span>Made with ❤️ in Vietnam</span>
+    <div class="max-w-7xl mx-auto pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] text-white/20 uppercase tracking-widest">
+        <span>© 2026 Azure Resort & Spa. All rights reserved.</span>
+        <span>Crafted by Azure Experience Team</span>
     </div>
 </footer>
 
 <script>
-    // Set min date to today
-    const todayStr = new Date().toISOString().split('T')[0];
-    document.getElementById('startDate').min = todayStr;
-    document.getElementById('endDate').min = todayStr;
+    // Logic initialization
+    (function() {
+        const todayStrVal = new Date().toISOString().split('T')[0];
+        document.getElementById('startDate').min = todayStrVal;
+        document.getElementById('endDate').min = todayStrVal;
 
-    // Validation Logic
-    const startDateInput = document.getElementById('startDate');
-    const endDateInput = document.getElementById('endDate');    const endDateError = document.getElementById('endDateError');
-    const bookingForm = document.getElementById('bookingForm');
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const endDateError = document.getElementById('endDateError');
+        const bookingForm = document.getElementById('bookingForm');
+        const facilitySelect = document.getElementById('facilityId');
 
-    // Make sure End Date is always greater than or equal to Start Date + 1 day
-    startDateInput.addEventListener('change', function() {
-        if(this.value) {
-            const startDate = new Date(this.value);
-            startDate.setDate(startDate.getDate() + 1);
-            
-            // Format to YYYY-MM-DD
-            const minEndDate = startDate.toISOString().split('T')[0];
-            endDateInput.min = minEndDate;
-            
-            if(endDateInput.value && endDateInput.value < minEndDate) {
-                endDateInput.value = minEndDate;
+        function updatePrice() {
+            const selectedOption = facilitySelect.options[facilitySelect.selectedIndex];
+            const startVal = startDateInput.value;
+            const endVal = endDateInput.value;
+            const preview = document.getElementById('pricePreview');
+            const empty = document.getElementById('summaryEmpty');
+
+            if (!selectedOption || !selectedOption.value || !startVal || !endVal) {
+                preview.style.display = 'none';
+                empty.style.display = 'block';
+                return;
             }
+
+            const price = parseFloat(selectedOption.getAttribute('data-price'));
+            const nights = Math.round((new Date(endVal) - new Date(startVal)) / 86400000);
+
+            if (!price || nights <= 0) {
+                preview.style.display = 'none';
+                empty.style.display = 'block';
+                return;
+            }
+
+            const fmt = n => new Intl.NumberFormat('vi-VN').format(n) + ' đ';
+            document.getElementById('summaryFacilityName').textContent = selectedOption.text.trim();
+            document.getElementById('summaryRate').textContent = fmt(price);
+            document.getElementById('summaryNights').textContent = nights + ' đêm';
+            document.getElementById('summaryTotal').textContent = fmt(price * nights);
+            
+            preview.style.display = 'block';
+            empty.style.display = 'none';
         }
-    });
 
-    bookingForm.addEventListener('submit', function(e) {
-        let valid = true;
-        
-        const start = new Date(startDateInput.value);
-        const end = new Date(endDateInput.value);
-        
-        if (end <= start) {
-            endDateError.style.display = 'block';
-            valid = false;
-        } else {
-            endDateError.style.display = 'none';
+        function validateGuests() {
+            const facilityId = facilitySelect.value;
+            if(!facilityId) return true;
+            const limit = facilityId.startsWith('VL') ? 15 : facilityId.startsWith('HS') ? 5 : 3;
+            const adults = parseInt(document.getElementById('adults').value) || 0;
+            const children = parseInt(document.getElementById('children').value) || 0;
+            const total = adults + children;
+            const guestError = document.getElementById('guestError');
+
+            if (limit && total > limit) {
+                guestError.textContent = `Giới hạn số người cho loại này là ${limit}.`;
+                guestError.style.display = 'block';
+                return false;
+            }
+            guestError.style.display = 'none';
+            return true;
         }
 
-        if (!validateGuests()) valid = false;
+        startDateInput.addEventListener('change', function() {
+            if(this.value) {
+                const startDate = new Date(this.value);
+                startDate.setDate(startDate.getDate() + 1);
+                const minEndDateStr = startDate.toISOString().split('T')[0];
+                endDateInput.min = minEndDateStr;
+                if(endDateInput.value && endDateInput.value < minEndDateStr) {
+                    endDateInput.value = minEndDateStr;
+                }
+            }
+            updatePrice();
+        });
 
-        if (!valid) {
-            e.preventDefault();
-        }
-    });
+        endDateInput.addEventListener('change', updatePrice);
+        facilitySelect.addEventListener('change', () => {
+            updatePrice();
+            validateGuests();
+        });
+        document.getElementById('adults').addEventListener('input', validateGuests);
+        document.getElementById('children').addEventListener('input', validateGuests);
 
-    // ── Guest limit by facility type ──
-    const facilityLimits = {
-        'VL001': 15, 'VL002': 15,
-        'HS001': 5,  'HS002': 5,
-        'RM001': 3,  'RM002': 3, 'RM003': 3
-    };
+        bookingForm.addEventListener('submit', function(e) {
+            let valid = true;
+            const start = new Date(startDateInput.value);
+            const end = new Date(endDateInput.value);
+            
+            if (end <= start) {
+                endDateError.classList.remove('hidden');
+                valid = false;
+            } else {
+                endDateError.classList.add('hidden');
+            }
 
-    function updateGuestLimit() {
-        const facilityId = document.getElementById('facilityId').value;
-        const limit = facilityId.startsWith('VL') ? 15 : facilityId.startsWith('HS') ? 5 : facilityId.startsWith('RM') ? 3 : 15;
-        document.getElementById('adults').max = limit;
-        document.getElementById('children').max = limit;
-        validateGuests();
-    }
+            if (!validateGuests()) valid = false;
+            if (!valid) e.preventDefault();
+        });
 
-    function validateGuests() {
-        const facilityId = document.getElementById('facilityId').value;
-        const limit = facilityId.startsWith('VL') ? 15 : facilityId.startsWith('HS') ? 5 : facilityId.startsWith('RM') ? 3 : null;
-        const adults = parseInt(document.getElementById('adults').value) || 0;
-        const children = parseInt(document.getElementById('children').value) || 0;
-        const total = adults + children;
-        const guestError = document.getElementById('guestError');
-        if (limit && total > limit) {
-            guestError.textContent = `Giới hạn số người thuê.`;
-            guestError.style.display = 'block';
-            return false;
-        }
-        guestError.style.display = 'none';
-        return true;
-    }
-
-    document.getElementById('facilityId').addEventListener('change', updateGuestLimit);
-    document.getElementById('adults').addEventListener('input', validateGuests);
-    document.getElementById('children').addEventListener('input', validateGuests);
-    const facilityPrices = {
-        'VL001': 15000000, 'VL002': 6500000,
-        'HS001': 9500000,  'HS002': 4800000,
-        'RM001': 2500000,  'RM002': 1200000, 'RM003': 1800000
-    };
-
-    function updatePrice() {
-        const facilityId = document.getElementById('facilityId').value;
-        const startVal   = document.getElementById('startDate').value;
-        const endVal     = document.getElementById('endDate').value;
-        const preview    = document.getElementById('pricePreview');
-
-        if (!facilityId || !startVal || !endVal) { preview.style.display = 'none'; return; }
-
-        const price  = facilityPrices[facilityId];
-        const nights = Math.round((new Date(endVal) - new Date(startVal)) / 86400000);
-        if (!price || nights <= 0) { preview.style.display = 'none'; return; }
-
-        const fmt = n => new Intl.NumberFormat('vi-VN').format(n) + ' đ';
-        document.getElementById('pricePerNight').textContent = fmt(price) + '/đêm';
-        document.getElementById('priceNights').textContent   = nights + ' đêm';
-        document.getElementById('priceTotal').textContent    = fmt(price * nights);
-        preview.style.display = 'flex';
-    }
-
-    document.getElementById('facilityId').addEventListener('change', updatePrice);
-    document.getElementById('startDate').addEventListener('change', updatePrice);
-    document.getElementById('endDate').addEventListener('change', updatePrice);
-
+        // Initial run
+        updatePrice();
+    })();
 </script>
+
 <script src="assets/js/drum-datepicker.js"></script>
 <script>
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
+    // Drum Date Picker Integration
+    (function() {
+        const today = new Date();
+        const startPick = document.getElementById('startDate');
+        const endPick = document.getElementById('endDate');
 
-    const startPicker = new DrumDatePicker(document.getElementById('startDate'), {
-        minDate: today,
-        onChange: (val) => {
-            const next = new Date(val);
-            next.setDate(next.getDate() + 1);
-            endPicker.selected = { d: next.getDate(), m: next.getMonth()+1, y: next.getFullYear() };
-            endPicker._renderDrums();
-            endPicker._confirm();
-            updatePrice();
+        if (typeof DrumDatePicker !== 'undefined') {
+            const startPicker = new DrumDatePicker(startPick, {
+                minDate: today,
+                onChange: (val) => {
+                    const next = new Date(val);
+                    next.setDate(next.getDate() + 1);
+                    if(typeof endPicker !== 'undefined') {
+                        endPicker.selected = { d: next.getDate(), m: next.getMonth()+1, y: next.getFullYear() };
+                        endPicker._renderDrums();
+                        endPicker._confirm();
+                    }
+                }
+            });
+
+            const endPicker = new DrumDatePicker(endPick, {
+                minDate: today
+            });
         }
-    });
-
-    const endPicker = new DrumDatePicker(document.getElementById('endDate'), {
-        minDate: today,
-        onChange: () => updatePrice()
-    });
+    })();
 </script>
 
 </body>

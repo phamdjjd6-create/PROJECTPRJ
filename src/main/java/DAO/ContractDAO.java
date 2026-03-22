@@ -290,4 +290,13 @@ public class ContractDAO {
             return false;
         } finally { em.close(); }
     }
+    public java.math.BigDecimal getTotalRevenue() {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            java.math.BigDecimal total = (java.math.BigDecimal) em.createQuery(
+                "SELECT SUM(c.paidAmount) FROM TblContracts c WHERE c.status IN ('ACTIVE', 'COMPLETED')")
+                .getSingleResult();
+            return total != null ? total : java.math.BigDecimal.ZERO;
+        } finally { em.close(); }
+    }
 }

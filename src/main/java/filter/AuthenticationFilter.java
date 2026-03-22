@@ -55,13 +55,33 @@ public class AuthenticationFilter implements Filter {
                                          requestURI.equals(httpRequest.getContextPath() + "/rooms");
         boolean isLoggedIn = session != null && session.getAttribute("account") != null;
 
-        if (isLoggedIn || isPublicOrLoginRequest || isStaticResource) {
-            // Cho phép đi tiếp
-            chain.doFilter(request, response);
-        } else {
-            // Chưa đăng nhập mà truy cập trang bảo vệ như booking, contracts... thì đẩy về login
+        if (!isLoggedIn && !isPublicOrLoginRequest && !isStaticResource) {
             httpResponse.sendRedirect(loginURI);
+            return;
         }
+
+        // Kiểm tra quyền truy cập dashboard
+        if (isLoggedIn) {
+            Object account = session.getAttribute("account");
+            boolean isEmployee = account instanceof model.TblEmployees;
+            boolean isAdmin = isEmployee && "ADMIN".equals(((model.TblEmployees) account).getRole());
+
+            // Chỉ employee mới vào được /dashboard/*
+            if (requestURI.startsWith(httpRequest.getContextPath() + "/dashboard/")) {
+                if (!isEmployee) {
+                    httpResponse.sendRedirect(httpRequest.getContextPath() + "/");
+                    return;
+                }
+                // Chỉ admin mới vào được /dashboard/admin và /dashboard/users
+                if (!isAdmin && (requestURI.equals(httpRequest.getContextPath() + "/dashboard/admin")
+                        || requestURI.startsWith(httpRequest.getContextPath() + "/dashboard/users"))) {
+                    httpResponse.sendRedirect(httpRequest.getContextPath() + "/dashboard/staff");
+                    return;
+                }
+            }
+        }
+
+        chain.doFilter(request, response);
     }
 
     @Override

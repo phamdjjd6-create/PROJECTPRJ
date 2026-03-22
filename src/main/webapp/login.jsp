@@ -8,333 +8,151 @@
     <title>Đăng Nhập — Azure Resort & Spa</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#c9a84c',
+                        'gold-light': '#e8cc82',
+                        dark: '#0a0a0f',
+                    },
+                    animation: {
+                        'slow-zoom': 'slowZoom 20s ease-in-out infinite alternate',
+                        'blur-in': 'blurIn 0.8s ease-out forwards',
+                        'fade-up': 'fadeUp 1s ease-out forwards',
+                    },
+                    keyframes: {
+                        slowZoom: {
+                            '0%': { transform: 'scale(1) translate(0, 0)' },
+                            '100%': { transform: 'scale(1.1) translate(-2%, -2%)' },
+                        },
+                        blurIn: {
+                            '0%': { opacity: '0', filter: 'blur(20px)', transform: 'scale(0.95)' },
+                            '100%': { opacity: '1', filter: 'blur(0)', transform: 'scale(1)' },
+                        },
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        :root {
-            --gold: #c9a84c;
-            --gold-light: #e8cc82;
-            --dark: #0a0a0f;
-            --card-bg: rgba(255,255,255,0.06);
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            background: var(--dark);
-            overflow: hidden;
-        }
-
-        /* ── Left panel: resort image ── */
-        .panel-image {
-            flex: 1;
-            position: relative;
-            background: url('assets/img/login-bg.png') center/cover no-repeat;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 48px;
-        }
-        .panel-image::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.65) 100%);
-        }
-        .panel-image .brand {
-            position: relative;
-            z-index: 1;
-        }
-        .brand-logo {
-            font-family: 'Playfair Display', serif;
-            font-size: 38px;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: 1px;
-            line-height: 1.1;
-        }
-        .brand-logo span { color: var(--gold); }
-        .brand-tagline {
-            color: rgba(255,255,255,0.65);
-            font-size: 15px;
-            margin-top: 10px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            font-weight: 300;
-        }
-        .brand-stars {
-            color: var(--gold);
-            font-size: 18px;
-            margin-top: 8px;
-            letter-spacing: 4px;
-        }
-
-        /* ── Right panel: login form ── */
-        .panel-form {
-            width: 460px;
-            flex-shrink: 0;
-            background: rgba(10,10,15,0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 48px 44px;
-            position: relative;
-            overflow: hidden;
-        }
-        .panel-form::before {
-            content: '';
-            position: absolute;
-            width: 350px; height: 350px;
-            background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%);
-            top: -80px; right: -80px;
-            border-radius: 50%;
-        }
-
-        .form-wrapper { width: 100%; position: relative; z-index: 1; }
-
-        .form-header { margin-bottom: 36px; }
-        .form-header h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 30px;
-            color: #fff;
-            font-weight: 600;
-        }
-        .form-header p {
-            color: rgba(255,255,255,0.4);
-            font-size: 14px;
-            margin-top: 6px;
-        }
-        .gold-line {
-            width: 48px; height: 2px;
-            background: linear-gradient(90deg, var(--gold), var(--gold-light));
-            margin: 14px 0;
-            border-radius: 2px;
-        }
-
-        /* Alert */
-        .alert {
-            border-radius: 10px;
-            padding: 12px 16px;
-            font-size: 13.5px;
-            margin-bottom: 22px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            line-height: 1.5;
-        }
-        .alert-error {
-            background: rgba(239,68,68,0.1);
-            border: 1px solid rgba(239,68,68,0.3);
-            color: #fca5a5;
-        }
-        .alert-success {
-            background: rgba(201,168,76,0.1);
-            border: 1px solid rgba(201,168,76,0.35);
-            color: var(--gold-light);
-        }
-
-        /* Form inputs */
-        .form-group { margin-bottom: 20px; }
-        label {
-            display: block;
-            color: rgba(255,255,255,0.5);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-        .input-wrap { position: relative; }
-        .input-icon {
-            position: absolute;
-            left: 14px; top: 50%;
-            transform: translateY(-50%);
-            font-size: 16px;
-            color: rgba(255,255,255,0.6);
-            pointer-events: none;
-            transition: color 0.2s;
-        }
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 13px 14px 13px 42px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: #fff;
-            font-size: 14px;
-            font-family: 'Inter', sans-serif;
-            outline: none;
-            transition: all 0.25s;
-        }
-        input::placeholder { color: rgba(255,255,255,0.2); }
-        input:focus {
-            border-color: rgba(201,168,76,0.5);
-            background: rgba(255,255,255,0.08);
-            box-shadow: 0 0 0 3px rgba(201,168,76,0.08);
-        }
-        .input-wrap:has(input:focus) .input-icon { color: var(--gold); }
-        .toggle-pwd {
-            position: absolute;
-            right: 12px; top: 50%;
-            transform: translateY(-50%);
-            background: none; border: none;
-            color: rgba(255,255,255,0.3);
-            cursor: pointer; font-size: 16px;
-            padding: 4px;
-            transition: color 0.2s;
-        }
-        .toggle-pwd:hover { color: rgba(255,255,255,0.7); }
-
-        /* Remember + forgot */
-        .form-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-        .remember {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: rgba(255,255,255,0.4);
-            font-size: 13px;
-            cursor: pointer;
-        }
-        .remember input[type="checkbox"] { accent-color: var(--gold); width: 15px; height: 15px; }
-        .forgot-link {
-            color: var(--gold);
-            font-size: 13px;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-        .forgot-link:hover { color: var(--gold-light); }
-
-        /* Button */
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
-            color: #0a0a0f;
-            border: none;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 700;
-            font-family: 'Inter', sans-serif;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.25s;
-            box-shadow: 0 6px 24px rgba(201,168,76,0.25);
-        }
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(201,168,76,0.35);
-        }
-        .btn-login:active { transform: translateY(0); }
-
-        .divider {
-            display: flex; align-items: center; gap: 12px;
-            margin: 24px 0;
-        }
-        .divider::before, .divider::after {
-            content: ''; flex: 1;
-            height: 1px; background: rgba(255,255,255,0.08);
-        }
-        .divider span { color: rgba(255,255,255,0.25); font-size: 12px; }
-
-        .register-link {
-            text-align: center;
-            color: rgba(255,255,255,0.35);
-            font-size: 13.5px;
-        }
-        .register-link a {
-            color: var(--gold);
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.2s;
-        }
-        .register-link a:hover { color: var(--gold-light); }
-
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            .panel-image { display: none; }
-            .panel-form { width: 100%; }
-        }
     </style>
 </head>
-<body>
-
-<!-- Left: Resort Image -->
-<div class="panel-image">
-    <div class="brand">
-        <div class="brand-stars">★ ★ ★ ★ ★</div>
-        <div class="brand-logo">Azure<br><span>Resort</span> &amp; Spa</div>
-        <div class="brand-tagline">Luxury · Nature · Serenity</div>
-    </div>
+<!-- Custom Background Layer (Night Serenity) -->
+<div class="fixed inset-0 z-0 overflow-hidden bg-dark">
+    <div class="absolute inset-0 bg-cover bg-center animate-slow-zoom opacity-60" 
+         style="background-image: url('https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1920&q=80')"></div>
+    <div class="absolute inset-0 bg-gradient-to-tr from-dark via-dark/80 to-transparent"></div>
 </div>
 
-<!-- Right: Login Form -->
-<div class="panel-form">
-    <div class="form-wrapper">
-        <div class="form-header">
-            <h2>Chào mừng trở lại</h2>
-            <div class="gold-line"></div>
-            <p>Đăng nhập để tiếp tục hành trình nghỉ dưỡng của bạn</p>
+<div class="relative z-10 min-h-screen flex flex-col lg:flex-row items-center justify-center lg:justify-between p-6 lg:px-24">
+    <!-- Brand Info (Restored from old design) -->
+    <div class="hidden lg:block max-w-md animate-[fadeUp_1s_ease-out]">
+        <div class="text-gold text-xl tracking-[0.5em] mb-4">★ ★ ★ ★ ★</div>
+        <h1 class="font-serif text-5xl text-white font-bold leading-tight mb-4">Azure<br><span class="text-gold">Resort</span> &amp; Spa</h1>
+        <p class="text-white/40 text-sm tracking-[0.3em] uppercase mb-12">Luxury · Nature · Serenity</p>
+        
+        <div class="space-y-6">
+            <div class="flex items-center gap-4 text-white/70">
+                <div class="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center text-gold">✦</div>
+                <p class="text-sm font-light">Đăng nhập để nhận ưu đãi thành viên Platinum.</p>
+            </div>
+            <div class="flex items-center gap-4 text-white/70">
+                <div class="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center text-gold">✦</div>
+                <p class="text-sm font-light">Quản lý kỳ nghỉ và lịch sử đặt phòng dễ dàng.</p>
+            </div>
+            <div class="flex items-center gap-4 text-white/70">
+                <div class="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center text-gold">✦</div>
+                <p class="text-sm font-light">Hỗ trợ khách hàng 24/7 cho mọi yêu cầu.</p>
+            </div>
         </div>
+    </div>
 
-        <%-- Alert messages --%>
-        <c:if test="${not empty requestScope.error}">
-        <div class="alert alert-error">
-            <span>⚠️</span>
-            <span>${requestScope.error}</span>
-        </div>
-        </c:if>
-        <c:if test="${not empty param.registered}">
-        <div class="alert alert-success">
-            <span>✅</span>
-            <span>Đăng ký thành công! Vui lòng đăng nhập.</span>
-        </div>
-        </c:if>
+    <!-- Panel Container -->
+    <div class="panel-form w-full max-w-[460px] animate-blur-in bg-[#0a0a0f]/80 backdrop-blur-3xl border border-white/10 rounded-[40px] overflow-hidden shadow-2xl p-10 relative">
+        <div class="absolute -top-24 -right-24 w-48 h-48 bg-gold/10 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl"></div>
 
-        <form action="login" method="POST" id="loginForm">
+        <div class="form-wrapper relative z-10">
+            <a href="${pageContext.request.contextPath}/index.jsp" class="inline-flex items-center gap-2 text-white/40 hover:text-gold transition-colors text-sm mb-8 group">
+                <span class="group-hover:-translate-x-1 transition-transform">←</span> Quay lại trang chủ
+            </a>
 
-            <div class="form-group">
-                <label for="username">Tên tài khoản</label>
-                <div class="input-wrap">
-                    <input type="text" id="username" name="username"
-                           placeholder="Nhập tên tài khoản"
-                           value="${not empty param.username ? param.username : ''}"
-                           required autocomplete="username">
-                    <span class="input-icon">👤</span>
+            <div class="form-header mb-8">
+                <h2 class="font-serif text-3xl text-white font-bold">Chào mừng trở lại</h2>
+                <div class="w-12 h-0.5 bg-gradient-to-r from-gold to-gold-light my-4 rounded-full"></div>
+                <p class="text-white/40 text-sm">Đăng nhập để tiếp tục hành trình nghỉ dưỡng của bạn</p>
+            </div>
+
+            <%-- Alert messages --%>
+            <c:if test="${not empty requestScope.error}">
+            <div class="bg-red-500/10 border border-red-500/30 text-red-200 p-4 rounded-xl text-sm flex items-center gap-3 mb-6">
+                <span>⚠️</span>
+                <span>${requestScope.error}</span>
+            </div>
+            </c:if>
+            <c:if test="${not empty param.registered}">
+            <div class="bg-gold/10 border border-gold/30 text-gold-light p-4 rounded-xl text-sm flex items-center gap-3 mb-6">
+                <span>✅</span>
+                <span>Đăng ký thành công! Vui lòng đăng nhập.</span>
+            </div>
+            </c:if>
+
+            <form action="${pageContext.request.contextPath}/login" method="POST" id="loginForm" class="space-y-6">
+                <div class="form-group">
+                    <label class="block text-white/50 text-[10px] uppercase tracking-widest font-bold mb-2">Tên tài khoản</label>
+                    <div class="relative group">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-gold transition-colors">👤</span>
+                        <input type="text" id="username" name="username"
+                               placeholder="Tài khoản của bạn"
+                               class="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder-white/20 focus:outline-none focus:border-gold/50 focus:bg-white/10 transition-all shadow-inner"
+                               value="${not empty param.username ? param.username : ''}"
+                               required autocomplete="username">
+                    </div>
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label for="password">Mật khẩu</label>
-                <div class="input-wrap">
-                    <input type="password" id="password" name="password"
-                           placeholder="Nhập mật khẩu"
-                           required autocomplete="current-password">
-                    <span class="input-icon">🔑</span>
-                    <button type="button" class="toggle-pwd" onclick="togglePwd()">👁️</button>
+                <div class="form-group">
+                    <label class="block text-white/50 text-[10px] uppercase tracking-widest font-bold mb-2">Mật khẩu</label>
+                    <div class="relative group">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-gold transition-colors">🔑</span>
+                        <input type="password" id="password" name="password"
+                               placeholder="••••••••"
+                               class="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-12 text-white placeholder-white/20 focus:outline-none focus:border-gold/50 focus:bg-white/10 transition-all shadow-inner"
+                               required autocomplete="current-password">
+                        <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors toggle-pwd" onclick="togglePwd()">👁️</button>
+                    </div>
                 </div>
+
+                <div class="flex items-center justify-between text-sm">
+                    <label class="flex items-center gap-2 text-white/40 cursor-pointer hover:text-white/60 transition-colors">
+                        <input type="checkbox" name="remember" class="accent-gold w-4 h-4"> Ghi nhớ đăng nhập
+                    </label>
+                    <a href="#" class="text-gold hover:text-gold-light transition-colors">Quên mật khẩu?</a>
+                </div>
+
+                <button type="submit" id="btnLogin" class="group relative w-full py-4 bg-gradient-to-r from-gold to-gold-light hover:scale-[1.02] active:scale-100 text-dark font-bold rounded-2xl tracking-widest uppercase transition-all shadow-xl shadow-gold/20">
+                    <span class="relative z-10 transition-colors group-hover:text-black">Đăng Nhập</span>
+                    <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity rounded-2xl"></div>
+                </button>
+            </form>
+
+            <div class="flex items-center gap-4 my-8">
+                <div class="flex-1 h-px bg-white/10"></div>
+                <span class="text-white/20 text-xs text-center">hoặc</span>
+                <div class="flex-1 h-px bg-white/10"></div>
             </div>
 
-            <div class="form-meta">
-                <label class="remember">
-                    <input type="checkbox" name="remember"> Ghi nhớ đăng nhập
-                </label>
-                <a href="#" class="forgot-link">Quên mật khẩu?</a>
+            <div class="text-center text-white/40 text-sm">
+                Chưa có tài khoản? <a href="${pageContext.request.contextPath}/register.jsp" class="text-gold font-bold hover:underline decoration-gold/30 underline-offset-4">Đăng ký ngay</a>
             </div>
-
-            <button type="submit" class="btn-login" id="btnLogin">Đăng Nhập</button>
-        </form>
-
-        <div class="divider"><span>hoặc</span></div>
-
-        <div class="register-link">
-            Chưa có tài khoản? <a href="register">Đăng ký ngay</a>
         </div>
     </div>
 </div>

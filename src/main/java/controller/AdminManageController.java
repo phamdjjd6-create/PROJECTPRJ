@@ -5,6 +5,7 @@ import DAO.ContractDAO;
 import DAO.CustomerDAO;
 import DAO.EmployeeDAO;
 import DAO.FacilityDAO;
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -198,6 +199,43 @@ public class AdminManageController extends HttpServlet {
                     redirect = req.getParameter("redirect");
                     if (redirect == null) redirect = req.getContextPath() + "/dashboard/users";
                 }
+                case "add_employee" -> {
+                    String fullName  = req.getParameter("fullName");
+                    String email     = req.getParameter("email");
+                    String phone     = req.getParameter("phone");
+                    String account   = req.getParameter("account");
+                    String password  = req.getParameter("password");
+                    String position  = req.getParameter("position");
+                    String salaryStr = req.getParameter("salary");
+                    String role      = req.getParameter("role");
+                    try {
+                        String hashed = BCrypt.withDefaults().hashToString(12, password.toCharArray());
+                        model.TblEmployees newEmp = new model.TblEmployees();
+                        // Generate ID: EMP + timestamp suffix
+                        String newId = "EMP" + System.currentTimeMillis() % 100000;
+                        newEmp.setId(newId);
+                        newEmp.setFullName(fullName);
+                        newEmp.setEmail(email);
+                        newEmp.setPhoneNumber(phone);
+                        newEmp.setAccount(account);
+                        newEmp.setPasswordHash(hashed);
+                        newEmp.setPosition(position);
+                        newEmp.setSalary(salaryStr != null && !salaryStr.isBlank()
+                            ? new java.math.BigDecimal(salaryStr) : java.math.BigDecimal.ZERO);
+                        newEmp.setRole(role != null ? role : "STAFF");
+                        newEmp.setIsActive(true);
+                        newEmp.setDeleted(false);
+                        newEmp.setCreatedAt(new java.util.Date());
+                        newEmp.setUpdatedAt(new java.util.Date());
+                        newEmp.setHireDate(new java.util.Date());
+                        employeeDAO.save(newEmp);
+                        req.getSession().setAttribute("flashMsg", "✅ Đã thêm nhân viên " + fullName + " (tài khoản: " + account + ")");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        req.getSession().setAttribute("flashMsg", "❌ Lỗi thêm nhân viên: " + e.getMessage());
+                    }
+                    redirect = req.getContextPath() + "/dashboard/users?filter=EMPLOYEE";
+                }
                 case "update_employee" -> {
                     String id = req.getParameter("empId");
                     String salaryStr = req.getParameter("salary");
@@ -269,6 +307,10 @@ public class AdminManageController extends HttpServlet {
 
         // STAFF chỉ xem, không sửa employee
         req.setAttribute("canManageEmployee", "ADMIN".equals(emp.getRole()));
+
+        // Flash message
+        String flash = (String) req.getSession().getAttribute("flashMsg");
+        if (flash != null) { req.setAttribute("flashMsg", flash); req.getSession().removeAttribute("flashMsg"); }
 
         req.getRequestDispatcher("/WEB-INF/dashboard/manage-users.jsp").forward(req, res);
     }

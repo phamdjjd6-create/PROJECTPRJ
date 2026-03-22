@@ -4,451 +4,293 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%
     TblPersons currentUser = (TblPersons) session.getAttribute("account");
-    if (currentUser == null) { response.sendRedirect(request.getContextPath() + "/login.jsp"); return; }
+    if (currentUser == null) { response.sendRedirect(request.getContextPath() + "/login"); return; }
     pageContext.setAttribute("currentUser", currentUser);
     pageContext.setAttribute("account", currentUser.getFullName());
 %>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hợp Đồng Của Tôi — Azure Resort</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#c9a84c',
+                        'gold-light': '#e8cc82',
+                        dark: '#0a0a0f',
+                        navy: '#0d1526',
+                        azure: '#3b82f6',
+                    },
+                    fontFamily: {
+                        serif: ['Playfair Display', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'reveal': 'reveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'shimmer': 'shimmer 2s infinite linear',
+                    },
+                    keyframes: {
+                        reveal: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shimmer: {
+                            '0%': { transform: 'translateX(-100%)' },
+                            '100%': { transform: 'translateX(100%)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root { --gold: #c9a84c; --gold-light: #e8cc82; --dark: #0a0a0f; --navy: #0d1526; --card: rgba(255,255,255,0.03); --border: rgba(255,255,255,0.07); --text: #e8e8e8; --muted: rgba(255,255,255,0.45); }
-        html { scroll-behavior: smooth; }
-        body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--text); min-height: 100vh; }
-
-        /* ── NAVBAR ── */
-        .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 0 60px; height: 72px; display: flex; align-items: center; justify-content: space-between; background: rgba(10,10,15,0.96); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(201,168,76,0.15); }
-        .nav-brand { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #fff; text-decoration: none; }
-        .nav-brand span { color: var(--gold); }
-        .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
-        .nav-links a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: color 0.2s; }
-        .nav-links a:hover, .nav-links a.active { color: var(--gold); }
-        .nav-right { display: flex; align-items: center; gap: 16px; }
-        .nav-greeting { color: var(--muted); font-size: 13px; }
-        .nav-greeting strong { color: var(--gold); }
-        .btn-logout { padding: 8px 20px; border: 1px solid rgba(201,168,76,0.4); border-radius: 50px; background: transparent; color: var(--gold); font-size: 13px; text-decoration: none; transition: all 0.25s; }
-        .btn-logout:hover { background: var(--gold); color: var(--dark); }
-
-        /* ── PAGE HERO ── */
-        .page-hero { margin-top: 72px; background: linear-gradient(135deg, var(--navy) 0%, #0a0a0f 100%); border-bottom: 1px solid rgba(201,168,76,0.1); padding: 48px 60px 40px; }
-        .page-hero-inner { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 24px; }
-        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-bottom: 16px; }
-        .breadcrumb a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
-        .breadcrumb a:hover { color: var(--gold); }
-        .breadcrumb .sep { color: rgba(255,255,255,0.15); }
-        .section-label { display: inline-block; color: var(--gold); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
-        .page-title { font-family: 'Playfair Display', serif; font-size: clamp(28px,4vw,40px); color: #fff; line-height: 1.15; }
-        .page-title em { color: var(--gold); font-style: italic; }
-        .page-desc { color: var(--muted); font-size: 14px; margin-top: 6px; }
-
-        /* ── STATS ── */
-        .stats-row { display: flex; gap: 16px; flex-wrap: wrap; }
-        .stat-pill { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.18); border-radius: 14px; padding: 14px 22px; text-align: center; min-width: 110px; }
-        .stat-pill .num { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--gold); line-height: 1; }
-        .stat-pill .lbl { font-size: 11px; color: var(--muted); margin-top: 4px; letter-spacing: 0.5px; }
-        .stat-pill.green .num { color: #4ade80; }
-        .stat-pill.blue  .num { color: #60a5fa; }
-
-        /* ── WRAP ── */
-        .page-wrap { max-width: 1100px; margin: 0 auto; padding: 36px 60px 80px; }
-
-        /* ── FILTER BAR ── */
-        .filter-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; }
-        .filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
-        .tab { padding: 7px 18px; border-radius: 50px; font-size: 12.5px; font-weight: 600; border: 1.5px solid var(--border); color: var(--muted); background: transparent; cursor: pointer; transition: all 0.2s; }
-        .tab:hover { border-color: rgba(201,168,76,0.4); color: var(--gold); }
-        .tab.active { background: var(--gold); color: var(--dark); border-color: var(--gold); }
-        .result-count { font-size: 13px; color: var(--muted); }
-        .result-count strong { color: var(--gold); }
-
-        /* ── CONTRACT CARD ── */
-        .contracts-list { display: flex; flex-direction: column; gap: 20px; }
-        .contract-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; overflow: hidden; transition: all 0.3s; animation: fadeUp 0.4s ease both; }
-        .contract-card:hover { border-color: rgba(201,168,76,0.25); box-shadow: 0 16px 48px rgba(0,0,0,0.35); transform: translateY(-2px); }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-
-        /* Card accent bar */
-        .card-accent { height: 4px; }
-        .accent-active    { background: linear-gradient(90deg, #4ade80, #22c55e); }
-        .accent-completed { background: linear-gradient(90deg, var(--gold), var(--gold-light)); }
-        .accent-cancelled { background: linear-gradient(90deg, #f87171, #ef4444); }
-        .accent-draft     { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
-        .accent-expired   { background: linear-gradient(90deg, #94a3b8, #64748b); }
-
-        .card-inner { padding: 28px 32px; }
-
-        /* Card header */
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
-        .card-title-block { display: flex; align-items: center; gap: 14px; }
-        .card-icon { width: 48px; height: 48px; border-radius: 14px; background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.2); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
-        .card-title { font-family: 'Playfair Display', serif; font-size: 19px; color: #fff; font-weight: 600; }
-        .card-subtitle { color: var(--muted); font-size: 12px; margin-top: 3px; }
-        .status-badge { padding: 5px 14px; border-radius: 50px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; white-space: nowrap; }
-        .badge-active    { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
-        .badge-completed { background: rgba(201,168,76,0.12); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
-        .badge-cancelled { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
-        .badge-draft     { background: rgba(96,165,250,0.12); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3); }
-        .badge-expired   { background: rgba(148,163,184,0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.3); }
-
-        /* Info grid */
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 24px; }
-        .info-cell { padding: 16px 20px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-        .info-cell:last-child { border-right: none; }
-        .info-cell:nth-last-child(-n+3) { border-bottom: none; }
-        .info-lbl { font-size: 10px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; margin-bottom: 6px; }
-        .info-val { font-size: 14px; color: #fff; font-weight: 500; }
-        .info-val.gold { color: var(--gold); font-family: 'Playfair Display', serif; font-size: 16px; }
-        .info-val.green { color: #4ade80; }
-        .info-val.yellow { color: #fbbf24; }
-
-        /* Payment progress */
-        .payment-block { margin-bottom: 20px; }
-        .payment-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .payment-label { font-size: 12px; color: var(--muted); }
-        .payment-amounts { display: flex; gap: 16px; align-items: center; }
-        .paid-amt { font-size: 13px; color: #4ade80; font-weight: 600; }
-        .remain-amt { font-size: 13px; color: #fbbf24; font-weight: 600; }
-        .remain-amt.zero { color: #4ade80; }
-        .pct-label { font-size: 13px; color: var(--gold); font-weight: 700; }
-        .progress-track { height: 8px; background: rgba(255,255,255,0.07); border-radius: 50px; overflow: hidden; position: relative; }
-        .progress-fill { height: 100%; border-radius: 50px; transition: width 1s cubic-bezier(.4,0,.2,1); position: relative; }
-        .progress-fill::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent); animation: shimmer 2s infinite; }
-        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-        .fill-full    { background: linear-gradient(90deg, #4ade80, #22c55e); }
-        .fill-partial { background: linear-gradient(90deg, var(--gold), var(--gold-light)); }
-        .fill-low     { background: linear-gradient(90deg, #f87171, #fbbf24); }
-
-        /* Notes */
-        .notes-row { display: flex; align-items: flex-start; gap: 10px; padding: 14px 18px; background: rgba(201,168,76,0.04); border: 1px solid rgba(201,168,76,0.1); border-radius: 12px; margin-bottom: 20px; }
-        .notes-row .note-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
-        .notes-row p { font-size: 13px; color: var(--muted); font-style: italic; line-height: 1.6; }
-
-        /* Card footer */
-        .card-footer { display: flex; justify-content: flex-end; gap: 10px; padding-top: 16px; border-top: 1px solid var(--border); }
-        .btn-action { padding: 9px 22px; border-radius: 50px; font-size: 12.5px; font-weight: 600; text-decoration: none; transition: all 0.25s; cursor: pointer; border: none; font-family: 'Inter', sans-serif; }
-        .btn-outline { background: transparent; border: 1.5px solid rgba(201,168,76,0.35); color: var(--gold); }
-        .btn-outline:hover { background: var(--gold); color: var(--dark); }
-        .btn-primary { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--dark); }
-        .btn-primary:hover { transform: scale(1.04); }
-
-        /* ── EMPTY ── */
-        .empty-state { text-align: center; padding: 100px 24px; }
-        .empty-icon { font-size: 64px; opacity: 0.25; margin-bottom: 20px; }
-        .empty-state h3 { font-family: 'Playfair Display', serif; font-size: 22px; color: #fff; margin-bottom: 10px; }
-        .empty-state p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
-        .btn-explore { display: inline-block; padding: 12px 32px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--dark); border-radius: 50px; font-size: 13px; font-weight: 700; text-decoration: none; transition: all 0.25s; }
-        .btn-explore:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201,168,76,0.3); }
-
-        /* ── ERROR ── */
-        .error-box { background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.2); border-radius: 16px; padding: 24px 28px; color: #f87171; }
-        .error-box strong { display: block; margin-bottom: 6px; font-size: 15px; }
-        .error-box code { font-size: 12px; opacity: 0.8; }
-
-        @media (max-width: 768px) {
-            .navbar { padding: 0 20px; }
-            .page-hero { padding: 36px 20px 28px; }
-            .page-wrap { padding: 24px 20px 60px; }
-            .card-inner { padding: 20px; }
-            .info-grid { grid-template-columns: 1fr 1fr; }
+        :root {
+            --gold: #c9a84c; --gold-light: #e8cc82;
+            --dark: #0a0a0f; --navy: #0d1526; --azure: #3b82f6;
+        }
+        body { background-color: var(--dark); color: white; font-family: 'Inter', sans-serif; margin: 0; }
+        .contract-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 40px; overflow: hidden; }
+        .stat-pill { background: rgba(201, 168, 76, 0.05); border: 1px solid rgba(201, 168, 76, 0.2); border-radius: 16px; padding: 16px 24px; display: flex; flex-direction: column; align-items: center; }
+    </style>
+    <style type="text/tailwindcss">
+        @layer base {
+            body { @apply bg-dark text-white font-sans antialiased selection:bg-gold/30; }
+        }
+        @layer components {
+            .nav-link { @apply text-white/70 hover:text-gold text-sm font-medium transition-colors relative py-2; }
+            .nav-link.active { @apply text-gold after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-gold after:rounded-full; }
+            .stat-pill { @apply bg-gold/5 border border-gold/20 rounded-2xl px-6 py-4 flex flex-col items-center justify-center min-w-[120px]; }
+            .contract-card { @apply bg-white/[0.02] border border-white/5 rounded-[40px] overflow-hidden hover:border-gold/25 transition-all hover:shadow-2xl hover:shadow-black/50; }
+            .badge-status { @apply px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border; }
         }
     </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <a href="${pageContext.request.contextPath}/" class="nav-brand">Azure <span>Resort</span></a>
-    <ul class="nav-links">
-        <li><a href="${pageContext.request.contextPath}/rooms.jsp">Phòng &amp; Villa</a></li>
-        <li><a href="${pageContext.request.contextPath}/booking">Đặt Phòng</a></li>
-        <li><a href="${pageContext.request.contextPath}/contracts" class="active">Hợp Đồng</a></li>
-        <li><a href="${pageContext.request.contextPath}/account.jsp">Tài Khoản</a></li>
-    </ul>
-    <div class="nav-right">
-        <span class="nav-greeting">Xin chào, <strong>${account}</strong></span>
-        <a href="${pageContext.request.contextPath}/logout" class="btn-logout">Đăng xuất</a>
+<!-- NAVBAR -->
+<nav class="fixed top-0 left-0 right-0 z-50 h-24 bg-dark/80 backdrop-blur-xl border-b border-white/5 px-8 md:px-16 flex items-center justify-between">
+    <a href="${pageContext.request.contextPath}/" class="text-2xl font-serif font-bold text-white tracking-tight">
+        Azure <span class="text-gold">Resort</span>
+    </a>
+    
+    <div class="hidden lg:flex items-center gap-12">
+        <a href="${pageContext.request.contextPath}/rooms" class="nav-link">Phòng & Room</a>
+        <a href="${pageContext.request.contextPath}/booking" class="nav-link">Đặt Phòng</a>
+        <a href="${pageContext.request.contextPath}/contracts" class="nav-link active">Hợp Đồng</a>
+        <a href="${pageContext.request.contextPath}/account.jsp" class="nav-link">Tài Khoản</a>
+        <c:if test="${sessionScope.account.personType == 'EMPLOYEE'}">
+            <a href="${pageContext.request.contextPath}/dashboard/admin" class="nav-link text-gold font-bold border border-gold/20 px-4 py-1.5 rounded-full hover:bg-gold hover:text-dark transition-all">Bảng điều khiền</a>
+        </c:if>
+    </div>
+
+    <div class="flex items-center gap-6">
+        <div class="text-right hidden sm:block">
+            <p class="text-[10px] text-white/30 uppercase tracking-widest font-bold">Thành viên</p>
+            <p class="text-sm font-medium text-gold">${account}</p>
+        </div>
+        <a href="${pageContext.request.contextPath}/logout" class="px-6 py-2.5 rounded-full border border-gold/30 text-gold text-xs font-bold hover:bg-gold hover:text-dark transition-all">Đăng xuất</a>
     </div>
 </nav>
 
-<%-- ── Tính thống kê ── --%>
+<%-- ── Thống kê ── --%>
 <c:set var="total" value="0"/>
 <c:set var="cntActive" value="0"/>
 <c:set var="cntCompleted" value="0"/>
-<c:set var="cntOther" value="0"/>
 <c:forEach var="c" items="${contracts}">
     <c:set var="total" value="${total + 1}"/>
     <c:choose>
-        <c:when test="${c.status == 'ACTIVE'}">   <c:set var="cntActive"    value="${cntActive + 1}"/></c:when>
+        <c:when test="${c.status == 'ACTIVE'}"><c:set var="cntActive" value="${cntActive + 1}"/></c:when>
         <c:when test="${c.status == 'COMPLETED'}"><c:set var="cntCompleted" value="${cntCompleted + 1}"/></c:when>
-        <c:otherwise>                             <c:set var="cntOther"     value="${cntOther + 1}"/></c:otherwise>
     </c:choose>
 </c:forEach>
 
-<!-- PAGE HERO -->
-<div class="page-hero">
-    <div class="page-hero-inner">
-        <div>
-            <div class="breadcrumb">
-                <a href="${pageContext.request.contextPath}/">Trang Chủ</a>
-                <span class="sep">›</span>
-                <a href="${pageContext.request.contextPath}/account.jsp">Tài Khoản</a>
-                <span class="sep">›</span>
-                <span style="color:var(--gold)">Hợp Đồng</span>
+<!-- HERO SECTION -->
+<section class="pt-48 pb-20 px-8 md:px-16 bg-gradient-to-b from-navy/30 to-transparent border-b border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-end gap-12">
+        <div class="space-y-4 animate-reveal">
+            <div class="flex items-center gap-3 text-[10px] text-white/30 uppercase tracking-[0.3em] font-bold">
+                <a href="${pageContext.request.contextPath}/" class="hover:text-gold transition-colors">Azure</a>
+                <span>/</span>
+                <span class="text-gold">Hợp đồng pháp lý</span>
             </div>
-            <span class="section-label">Quản Lý Tài Chính</span>
-            <h1 class="page-title">Hợp Đồng <em>Của Tôi</em></h1>
-            <p class="page-desc">Theo dõi tình trạng hợp đồng và tiến độ thanh toán tại Azure Resort &amp; Spa</p>
+            <h1 class="text-5xl md:text-7xl font-serif font-bold text-white leading-tight">Hợp Đồng <br><span class="text-gold italic font-light">Của Tôi</span></h1>
+            <p class="text-white/40 max-w-md font-light leading-relaxed">Theo dõi, quản lý và thanh toán các hợp đồng lưu trú của bạn một cách minh bạch và an toàn.</p>
         </div>
-        <div class="stats-row">
+
+        <div class="flex gap-4 animate-reveal" style="animation-delay: 200ms">
             <div class="stat-pill">
-                <div class="num">${total}</div>
-                <div class="lbl">Tổng</div>
+                <span class="text-3xl font-serif font-bold text-gold">${total}</span>
+                <span class="text-[9px] text-white/30 uppercase tracking-widest font-bold mt-1">Tổng số</span>
             </div>
-            <div class="stat-pill green">
-                <div class="num">${cntActive}</div>
-                <div class="lbl">Hiệu Lực</div>
+            <div class="stat-pill border-emerald-500/20 bg-emerald-500/5">
+                <span class="text-3xl font-serif font-bold text-emerald-500">${cntActive}</span>
+                <span class="text-[9px] text-white/30 uppercase tracking-widest font-bold mt-1">Hiệu lực</span>
             </div>
-            <div class="stat-pill">
-                <div class="num">${cntCompleted}</div>
-                <div class="lbl">Hoàn Thành</div>
+            <div class="stat-pill border-white/10 bg-white/5">
+                <span class="text-3xl font-serif font-bold text-white/60">${cntCompleted}</span>
+                <span class="text-[9px] text-white/30 uppercase tracking-widest font-bold mt-1">Đã trả</span>
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<!-- MAIN CONTENT -->
-<div class="page-wrap">
+<!-- CONTENT -->
+<main class="py-20 px-8 md:px-16 max-w-7xl mx-auto space-y-12">
     <c:choose>
         <c:when test="${not empty contractError}">
-            <div class="error-box">
-                <strong>⚠ Không thể tải dữ liệu hợp đồng</strong>
-                <code>${contractError}</code>
+            <div class="p-8 bg-red-500/10 border border-red-500/20 rounded-[40px] text-center space-y-4 animate-reveal">
+                <div class="text-4xl">⚠️</div>
+                <h3 class="text-xl font-bold text-white">Không thể kết nối dữ liệu</h3>
+                <p class="text-red-400/60 font-mono text-xs">${contractError}</p>
             </div>
         </c:when>
         <c:when test="${empty contracts}">
-            <div class="empty-state">
-                <div class="empty-icon">📋</div>
-                <h3>Chưa có hợp đồng nào</h3>
-                <p>Đặt phòng và hoàn tất thủ tục để hợp đồng xuất hiện tại đây.</p>
-                <a href="${pageContext.request.contextPath}/rooms.jsp" class="btn-explore">Khám Phá Phòng →</a>
+            <div class="py-32 text-center space-y-8 animate-reveal">
+                <div class="text-8xl opacity-10">🏜️</div>
+                <div class="space-y-2">
+                    <h3 class="text-2xl font-serif font-bold text-white">Chưa có hợp đồng nào</h3>
+                    <p class="text-white/30 font-light">Bạn cần hoàn tất đặt phòng để hệ thống khởi tạo hợp đồng.</p>
+                </div>
+                <a href="${pageContext.request.contextPath}/rooms.jsp" class="inline-block px-10 py-5 bg-gold text-dark text-[10px] font-bold uppercase tracking-[0.3em] rounded-full hover:bg-gold-light transition-all shadow-2xl shadow-gold/20">Khám phá ngay</a>
             </div>
         </c:when>
         <c:otherwise>
-            <!-- Filter bar -->
-            <div class="filter-bar">
-                <div class="filter-tabs">
-                    <button class="tab active" onclick="filterBy('ALL',this)">Tất Cả (${total})</button>
-                    <button class="tab" onclick="filterBy('ACTIVE',this)">Đang Hiệu Lực</button>
-                    <button class="tab" onclick="filterBy('COMPLETED',this)">Hoàn Thành</button>
-                    <button class="tab" onclick="filterBy('DRAFT',this)">Chờ Duyệt</button>
-                    <button class="tab" onclick="filterBy('CANCELLED',this)">Đã Hủy</button>
+            <!-- Filters -->
+            <div class="flex flex-wrap items-center justify-between gap-6 animate-reveal" style="animation-delay: 300ms">
+                <div class="flex gap-2">
+                    <button class="px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-gold bg-gold text-dark transition-all" onclick="filterBy('ALL', this)">Tất cả</button>
+                    <button class="px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-white/40 hover:text-white transition-all" onclick="filterBy('ACTIVE', this)">Đang Hiệu Lực</button>
+                    <button class="px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-white/40 hover:text-white transition-all" onclick="filterBy('COMPLETED', this)">Hoàn Thành</button>
                 </div>
-                <span class="result-count" id="resultCount">Hiển thị <strong>${total}</strong> hợp đồng</span>
+                <p class="text-[10px] text-white/20 uppercase tracking-widest font-bold" id="resultCount">Hiển thị <strong>${total}</strong> hợp đồng</p>
             </div>
 
-            <!-- Contract list -->
-            <div class="contracts-list" id="contractsList">
+            <!-- List -->
+            <div class="grid grid-cols-1 gap-10 animate-reveal" id="contractsList" style="animation-delay: 400ms">
                 <c:forEach var="ct" items="${contracts}" varStatus="loop">
-                    <%-- Resolve status labels & classes --%>
-                    <c:choose>
-                        <c:when test="${ct.status == 'ACTIVE'}">
-                            <c:set var="accentClass" value="accent-active"/>
-                            <c:set var="badgeClass"  value="badge-active"/>
-                            <c:set var="statusLabel" value="Đang Hiệu Lực"/>
-                        </c:when>
-                        <c:when test="${ct.status == 'COMPLETED'}">
-                            <c:set var="accentClass" value="accent-completed"/>
-                            <c:set var="badgeClass"  value="badge-completed"/>
-                            <c:set var="statusLabel" value="Hoàn Thành"/>
-                        </c:when>
-                        <c:when test="${ct.status == 'CANCELLED'}">
-                            <c:set var="accentClass" value="accent-cancelled"/>
-                            <c:set var="badgeClass"  value="badge-cancelled"/>
-                            <c:set var="statusLabel" value="Đã Hủy"/>
-                        </c:when>
-                        <c:when test="${ct.status == 'EXPIRED'}">
-                            <c:set var="accentClass" value="accent-expired"/>
-                            <c:set var="badgeClass"  value="badge-expired"/>
-                            <c:set var="statusLabel" value="Hết Hạn"/>
-                        </c:when>
-                        <c:otherwise>
-                            <c:set var="accentClass" value="accent-draft"/>
-                            <c:set var="badgeClass"  value="badge-draft"/>
-                            <c:set var="statusLabel" value="Chờ Duyệt"/>
-                        </c:otherwise>
-                    </c:choose>
-
-                    <%-- Payment % --%>
+                    <c:set var="statusCls" value="${ct.status == 'ACTIVE' ? 'emerald' : ct.status == 'COMPLETED' ? 'gold' : ct.status == 'CANCELLED' ? 'red' : 'blue'}"/>
+                    <c:set var="statusText" value="${ct.status == 'ACTIVE' ? 'Đang Hiệu Lực' : ct.status == 'COMPLETED' ? 'Đã Hoàn Thành' : ct.status == 'CANCELLED' ? 'Đã Hủy' : 'Chờ Duyệt'}"/>
+                    
                     <c:set var="pct" value="0"/>
-                    <c:if test="${ct.totalPayment != null && ct.totalPayment > 0}">
-                        <c:set var="pct" value="${ct.paidAmount * 100 / ct.totalPayment}"/>
-                    </c:if>
-                    <c:choose>
-                        <c:when test="${pct >= 100}"><c:set var="fillClass" value="fill-full"/></c:when>
-                        <c:when test="${pct >= 50}"> <c:set var="fillClass" value="fill-partial"/></c:when>
-                        <c:otherwise>               <c:set var="fillClass" value="fill-low"/></c:otherwise>
-                    </c:choose>
+                    <c:if test="${ct.totalPayment > 0}"><c:set var="pct" value="${ct.paidAmount * 100 / ct.totalPayment}"/></c:if>
 
-                    <div class="contract-card" data-status="${ct.status}" style="animation-delay:${loop.index * 0.07}s">
-                        <div class="card-accent ${accentClass}"></div>
-                        <div class="card-inner">
-                            <!-- Header -->
-                            <div class="card-header">
-                                <div class="card-title-block">
-                                    <div class="card-icon">📄</div>
-                                    <div>
-                                        <div class="card-title">${ct.contractId}</div>
-                                        <div class="card-subtitle">
-                                            Booking: <strong style="color:rgba(255,255,255,0.7)">${ct.bookingId}</strong>
-                                            &nbsp;·&nbsp; Phòng: <strong style="color:var(--gold)">${ct.facilityId}</strong>
-                                        </div>
+                    <div class="contract-card group" data-status="${ct.status}">
+                        <div class="h-1.5 w-full bg-gradient-to-r ${ct.status == 'ACTIVE' ? 'from-emerald-500 to-teal-500' : ct.status == 'COMPLETED' ? 'from-gold to-gold-light' : 'from-azure to-blue-500'}"></div>
+                        
+                        <div class="p-8 md:p-12 space-y-12">
+                            <div class="flex flex-col md:flex-row justify-between items-start gap-8">
+                                <div class="flex gap-6 items-center">
+                                    <div class="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">📄</div>
+                                    <div class="space-y-1">
+                                        <h3 class="text-2xl font-serif font-bold text-white tracking-wide">${ct.contractId}</h3>
+                                        <p class="text-[10px] text-white/30 uppercase tracking-widest font-bold">Booking #${ct.bookingId.bookingId} · Phòng: <span class="text-gold font-mono tracking-normal">${ct.bookingId.facilityId.serviceName}</span></p>
                                     </div>
                                 </div>
-                                <span class="status-badge ${badgeClass}">${statusLabel}</span>
+                                <span class="badge-status ${ct.status == 'ACTIVE' ? 'border-emerald-500/20 text-emerald-500 bg-emerald-500/5' : ct.status == 'COMPLETED' ? 'border-gold/20 text-gold bg-gold/5' : 'border-white/10 text-white/30'}">
+                                    ${statusText}
+                                </span>
                             </div>
 
-                            <!-- Info grid -->
-                            <div class="info-grid">
-                                <div class="info-cell">
-                                    <div class="info-lbl">Ngày Ký</div>
-                                    <div class="info-val">
-                                        <c:choose>
-                                            <c:when test="${ct.signedDate != null}"><fmt:formatDate value="${ct.signedDate}" pattern="dd/MM/yyyy"/></c:when>
-                                            <c:otherwise>—</c:otherwise>
-                                        </c:choose>
+                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                                <div class="space-y-1.5">
+                                    <p class="text-[9px] text-white/20 uppercase tracking-[0.2em] font-bold">Ngày ký kết</p>
+                                    <p class="text-sm font-medium text-white/80"><fmt:formatDate value="${ct.signedDate}" pattern="dd / MM / yyyy"/></p>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <p class="text-[9px] text-white/20 uppercase tracking-[0.2em] font-bold">Thời gian ở</p>
+                                    <p class="text-sm font-medium text-white/80"><fmt:formatDate value="${ct.bookingId.startDate}" pattern="dd/MM"/> <span class="mx-2 text-white/10">→</span> <fmt:formatDate value="${ct.bookingId.endDate}" pattern="dd/MM"/></p>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <p class="text-[9px] text-white/20 uppercase tracking-[0.2em] font-bold">Đặt cọc</p>
+                                    <p class="text-sm font-bold text-emerald-500"><fmt:formatNumber value="${ct.deposit}" type="number" groupingUsed="true"/> đ</p>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <p class="text-[9px] text-white/20 uppercase tracking-[0.2em] font-bold">Tổng hợp đồng</p>
+                                    <p class="text-xl font-serif font-bold text-gold"><fmt:formatNumber value="${ct.totalPayment}" type="number" groupingUsed="true"/> đ</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-end">
+                                    <div class="space-y-1">
+                                        <p class="text-[10px] text-white/20 uppercase tracking-widest font-bold">Tiến độ thanh toán</p>
+                                        <p class="text-sm font-bold text-white">Đã trả: <span class="text-emerald-500"><fmt:formatNumber value="${ct.paidAmount}" type="number" groupingUsed="true"/> đ</span></p>
+                                    </div>
+                                    <span class="text-lg font-serif font-bold text-gold"><fmt:formatNumber value="${pct}" maxFractionDigits="1"/>%</span>
+                                </div>
+                                <div class="h-2 bg-white/5 rounded-full overflow-hidden relative">
+                                    <div class="h-full bg-gradient-to-r from-gold to-gold-light rounded-full transition-all duration-1000 relative" style="width: 0%" data-pct="${pct}">
+                                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
                                     </div>
                                 </div>
-                                <div class="info-cell">
-                                    <div class="info-lbl">Nhận Phòng</div>
-                                    <div class="info-val">${ct.startDate}</div>
-                                </div>
-                                <div class="info-cell">
-                                    <div class="info-lbl">Trả Phòng</div>
-                                    <div class="info-val">${ct.endDate}</div>
-                                </div>
-                                <div class="info-cell">
-                                    <div class="info-lbl">Đặt Cọc</div>
-                                    <div class="info-val"><fmt:formatNumber value="${ct.deposit}" type="number" groupingUsed="true"/> đ</div>
-                                </div>
-                                <div class="info-cell">
-                                    <div class="info-lbl">Tổng Giá Trị</div>
-                                    <div class="info-val gold"><fmt:formatNumber value="${ct.totalPayment}" type="number" groupingUsed="true"/> đ</div>
-                                </div>
-                                <div class="info-cell">
-                                    <div class="info-lbl">Còn Phải Trả</div>
-                                    <c:choose>
-                                        <c:when test="${ct.remainingAmount != null && ct.remainingAmount > 0}">
-                                            <div class="info-val yellow"><fmt:formatNumber value="${ct.remainingAmount}" type="number" groupingUsed="true"/> đ</div>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <div class="info-val green">✓ Đã thanh toán đủ</div>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </div>
-                                <c:if test="${not empty ct.employeeName}">
-                                <div class="info-cell">
-                                    <div class="info-lbl">Nhân Viên Phụ Trách</div>
-                                    <div class="info-val">${ct.employeeName}</div>
-                                </div>
+                                <c:if test="${ct.totalPayment - ct.paidAmount > 0}">
+                                    <p class="text-right text-[10px] text-amber-500/60 uppercase tracking-widest font-bold italic">Còn lại: <fmt:formatNumber value="${ct.totalPayment - ct.paidAmount}" type="number" groupingUsed="true"/> đ</p>
                                 </c:if>
                             </div>
 
-                            <!-- Payment progress -->
-                            <div class="payment-block">
-                                <div class="payment-row">
-                                    <span class="payment-label">Tiến độ thanh toán</span>
-                                    <div class="payment-amounts">
-                                        <span class="paid-amt">Đã trả: <fmt:formatNumber value="${ct.paidAmount}" type="number" groupingUsed="true"/> đ</span>
-                                        <span class="pct-label"><fmt:formatNumber value="${pct}" maxFractionDigits="0"/>%</span>
-                                    </div>
-                                </div>
-                                <div class="progress-track">
-                                    <div class="progress-fill ${fillClass}" style="width:0%" data-width="<fmt:formatNumber value='${pct}' maxFractionDigits='0'/>%"></div>
-                                </div>
-                            </div>
-
-                            <!-- Notes -->
                             <c:if test="${not empty ct.notes}">
-                            <div class="notes-row">
-                                <span class="note-icon">💬</span>
-                                <p>${ct.notes}</p>
-                            </div>
+                                <div class="p-5 bg-white/[0.03] border border-white/5 rounded-2xl flex gap-4">
+                                    <span class="text-gold">💬</span>
+                                    <p class="text-xs text-white/40 leading-relaxed italic">${ct.notes}</p>
+                                </div>
                             </c:if>
-
-                            <!-- Footer actions -->
-                            <div class="card-footer">
-                                <c:if test="${ct.status == 'ACTIVE' && ct.remainingAmount > 0}">
-                                    <span style="font-size:12px;color:#fbbf24;align-self:center">⏳ Vui lòng liên hệ nhân viên để thanh toán thêm</span>
-                                </c:if>
-                            </div>
                         </div>
                     </div>
                 </c:forEach>
             </div>
         </c:otherwise>
     </c:choose>
-</div>
+</main>
 
-<footer style="background:#060608;border-top:1px solid rgba(201,168,76,0.1);padding:28px 60px;margin-top:40px;">
-    <div style="max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;color:rgba(255,255,255,0.2);font-size:12.5px;">
-        <span>© 2026 <span style="color:var(--gold)">Azure Resort &amp; Spa</span>. All rights reserved.</span>
-        <span>Made with ❤️ in Vietnam</span>
+<footer class="py-20 border-t border-white/5 bg-navy/20">
+    <div class="max-w-7xl mx-auto px-8 md:px-16 flex flex-col md:flex-row justify-between items-center gap-8">
+        <p class="text-xs text-white/20 uppercase tracking-widest font-medium">© 2026 Azure Resort & Spa · Một không gian tuyệt đối</p>
+        <div class="flex gap-8">
+            <a href="#" class="text-[10px] text-white/20 uppercase tracking-widest font-bold hover:text-gold transition-colors">Chính sách bảo mật</a>
+            <a href="#" class="text-[10px] text-white/20 uppercase tracking-widest font-bold hover:text-gold transition-colors">Điều khoản hợp đồng</a>
+        </div>
     </div>
 </footer>
 
-<!-- FLASH TOAST -->
-<c:if test="${not empty sessionScope.paymentFlash}">
-    <div class="flash-toast ${sessionScope.paymentFlash.startsWith('✅') ? 'flash-success' : 'flash-error'}" id="flashToast">
-        ${sessionScope.paymentFlash}
-    </div>
-    <c:remove var="paymentFlash" scope="session"/>
-</c:if>
-
 <script>
-    // Animate progress bars on load
+    // Animate progress bars
     window.addEventListener('load', () => {
-        document.querySelectorAll('.progress-fill').forEach(el => {
-            el.style.width = el.dataset.width;
+        document.querySelectorAll('[data-pct]').forEach(el => {
+            el.style.width = el.getAttribute('data-pct') + '%';
         });
-        const toast = document.getElementById('flashToast');
-        if (toast) setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.5s'; setTimeout(() => toast.remove(), 500); }, 4000);
     });
 
-    // Filter contracts
+    // Simple Filter
     function filterBy(status, btn) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
+        document.querySelectorAll('button').forEach(b => {
+             if(b.classList.contains('bg-gold')) {
+                 b.classList.remove('bg-gold', 'text-dark', 'border-gold');
+                 b.classList.add('border-white/10', 'text-white/40');
+             }
+        });
+        btn.classList.remove('border-white/10', 'text-white/40');
+        btn.classList.add('bg-gold', 'text-dark', 'border-gold');
+
         let visible = 0;
         document.querySelectorAll('.contract-card').forEach(card => {
-            const show = status === 'ALL' || card.dataset.status === status;
-            card.style.display = show ? '' : 'none';
-            if (show) visible++;
+            if (status === 'ALL' || card.getAttribute('data-status') === status) {
+                card.classList.remove('hidden');
+                visible++;
+            } else {
+                card.classList.add('hidden');
+            }
         });
-        document.getElementById('resultCount').innerHTML =
-            'Hiển thị <strong>' + visible + '</strong> hợp đồng';
+        document.getElementById('resultCount').innerHTML = 'Hiển thị <strong>' + visible + '</strong> hợp đồng';
     }
-
-    function openPayModal(contractId, remaining) {
-        document.getElementById('modalContractId').value = contractId;
-        document.getElementById('modalRemaining').textContent = new Intl.NumberFormat('vi-VN').format(remaining) + ' đ';
-        document.getElementById('modalAmount').max = remaining;
-        document.getElementById('modalAmount').value = '';
-        document.getElementById('payModal').classList.add('open');
-    }
-
-    function closePayModal() {
-        document.getElementById('payModal').classList.remove('open');
-    }
-
-    // Close modal on overlay click
-    document.getElementById('payModal').addEventListener('click', function(e) {
-        if (e.target === this) closePayModal();
-    });
 </script>
+
 </body>
 </html>

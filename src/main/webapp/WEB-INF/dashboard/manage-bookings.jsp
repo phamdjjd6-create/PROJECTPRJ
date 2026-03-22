@@ -43,7 +43,6 @@
         .content{padding:32px 36px 60px;flex:1}
         .section-label{font-size:9.5px;color:var(--gold);letter-spacing:2.5px;text-transform:uppercase;font-weight:600;margin-bottom:4px}
         .section-title{font-family:'Playfair Display',serif;font-size:22px;color:#fff;margin-bottom:24px}
-
         .stats-row{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap}
         .stat-pill{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 22px;display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;transition:all 0.2s}
         .stat-pill:hover{border-color:rgba(201,168,76,0.3)}
@@ -52,7 +51,6 @@
         .stat-pill.yellow .num{color:#fbbf24}
         .stat-pill.green .num{color:#4ade80}
         .stat-pill.blue .num{color:#60a5fa}
-
         .toolbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
         .search-box{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px 14px;flex:1;min-width:200px;max-width:360px}
         .search-box input{background:none;border:none;outline:none;color:#fff;font-size:13.5px;width:100%}
@@ -61,7 +59,6 @@
         .tab{padding:7px 16px;border-radius:50px;font-size:12.5px;font-weight:600;border:1.5px solid var(--border);color:var(--muted);background:transparent;cursor:pointer;transition:all 0.2s;text-decoration:none}
         .tab:hover{border-color:rgba(201,168,76,0.4);color:var(--gold)}
         .tab.active{background:var(--gold);color:var(--dark);border-color:var(--gold)}
-
         .table-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
         table{width:100%;border-collapse:collapse}
         th{padding:12px 20px;text-align:left;font-size:9.5px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;border-bottom:1px solid var(--border)}
@@ -86,6 +83,9 @@
         .btn-checkout:hover{background:#94a3b8;color:#000}
         .empty{padding:60px;text-align:center;color:var(--muted)}
         .occupied-warn{color:#fbbf24;font-size:11px}
+        .flash{padding:14px 20px;border-radius:10px;margin-bottom:20px;font-size:13.5px;font-weight:500}
+        .flash-success{background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);color:#4ade80}
+        .flash-error{background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);color:#f87171}
     </style>
 </head>
 <body>
@@ -133,6 +133,10 @@
     <div class="content">
         <div class="section-label">Nghiệp Vụ</div>
         <div class="section-title">Danh Sách Đặt Phòng</div>
+
+        <c:if test="${not empty flashMsg}">
+            <div class="flash ${flashMsg.startsWith('✅') ? 'flash-success' : 'flash-error'}">${flashMsg}</div>
+        </c:if>
 
         <div class="stats-row">
             <a href="?status=PENDING" class="stat-pill yellow">

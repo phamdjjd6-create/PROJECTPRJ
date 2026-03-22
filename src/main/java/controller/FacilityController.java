@@ -44,7 +44,7 @@ public class FacilityController extends HttpServlet {
             request.setAttribute("statusLabel", getStatusLabel(facility.getStatus()));
             request.setAttribute("statusClass", getStatusClass(facility.getStatus()));
             request.setAttribute("rentalTypeLabel", getRentalTypeLabel(facility.getRentalType()));
-            request.setAttribute("imgSrc", getImgSrc(facility.getImageUrl()));
+            request.setAttribute("imgSrc", getImgSrc(facility.getImageUrl(), facility.getFacilityType()));
             request.setAttribute("isAvailable", "AVAILABLE".equalsIgnoreCase(facility.getStatus()));
             request.getRequestDispatcher("/facility-detail.jsp").forward(request, response);
 
@@ -103,7 +103,13 @@ public class FacilityController extends HttpServlet {
         return "Theo Đêm";
     }
 
-    public static String getImgSrc(String imageUrl) {
-        return (imageUrl != null && !imageUrl.isEmpty()) ? imageUrl : "assets/img/hero-bg.png";
+    public static String getImgSrc(String imageUrl, String facilityType) {
+        if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+            return imageUrl;
+        }
+        if ("VILLA".equalsIgnoreCase(facilityType)) {
+            return "assets/img/villa-ocean.png";
+        }
+        return "assets/img/hero-bg.png";
     }
 }

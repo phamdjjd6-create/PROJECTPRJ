@@ -9,417 +9,193 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/drum-datepicker.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#c9a84c',
+                        'gold-light': '#e8cc82',
+                        dark: '#0a0a0f',
+                    },
+                    animation: {
+                        'ken-burns': 'kenBurns 30s ease-in-out infinite alternate',
+                        'slide-in-right': 'slideInRight 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'reveal-stagger': 'revealStagger 0.6s ease-out forwards',
+                        'fade-up': 'fadeUp 1s ease-out forwards',
+                    },
+                    keyframes: {
+                        kenBurns: {
+                            '0%': { transform: 'scale(1) translate(0, 0)' },
+                            '100%': { transform: 'scale(1.2) translate(-5%, -5%)' },
+                        },
+                        slideInRight: {
+                            '0%': { opacity: '0', transform: 'translateX(50px)' },
+                            '100%': { opacity: '1', transform: 'translateX(0)' },
+                        },
+                        revealStagger: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
         :root {
-            --gold: #c9a84c;
-            --gold-light: #e8cc82;
+            --gold: #c9a84c; --gold-light: #e8cc82;
             --dark: #0a0a0f;
-            --card-bg: rgba(255,255,255,0.06);
         }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            background: var(--dark);
-            overflow-x: hidden;
-        }
-
-        /* ── Left panel: resort image ── */
-        .panel-image {
-            flex: 1;
-            position: relative;
-            background: url('assets/img/hero-bg.png') center 30%/cover no-repeat;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 48px;
-        }
-        .panel-image::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.65) 100%);
-        }
-        .panel-image .brand { position: relative; z-index: 1; }
-        .brand-stars { color: var(--gold); font-size: 18px; margin-bottom: 10px; letter-spacing: 4px; }
-        .brand-logo {
-            font-family: 'Playfair Display', serif;
-            font-size: 38px; font-weight: 700;
-            color: #fff; letter-spacing: 1px; line-height: 1.1;
-        }
-        .brand-logo span { color: var(--gold); }
-        .brand-tagline {
-            color: rgba(255,255,255,0.65);
-            font-size: 14px; margin-top: 10px;
-            letter-spacing: 3px; text-transform: uppercase; font-weight: 300;
-        }
-        .perks {
-            margin-top: 32px;
-            display: flex; flex-direction: column; gap: 12px;
-        }
-        .perk {
-            display: flex; align-items: center; gap: 12px;
-            color: rgba(255,255,255,0.75); font-size: 13.5px;
-        }
-        .perk-icon {
-            width: 32px; height: 32px;
-            background: rgba(201,168,76,0.15);
-            border: 1px solid rgba(201,168,76,0.3);
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 15px; flex-shrink: 0;
-        }
-
-        /* ── Right panel: form ── */
-        .panel-form {
-            width: 520px; flex-shrink: 0;
-            background: rgba(10,10,15,0.97);
-            display: flex; align-items: center; justify-content: center;
-            padding: 40px 44px;
-            position: relative; overflow: hidden;
-            overflow-y: auto;
-        }
-        .panel-form::before {
-            content: '';
-            position: absolute;
-            width: 350px; height: 350px;
-            background: radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%);
-            top: -80px; right: -80px;
-            border-radius: 50%; pointer-events: none;
-        }
-
-        .form-wrapper { width: 100%; position: relative; z-index: 1; }
-
-        .form-header { margin-bottom: 28px; }
-        .form-header h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 28px; color: #fff; font-weight: 600;
-        }
-        .gold-line {
-            width: 48px; height: 2px;
-            background: linear-gradient(90deg, var(--gold), var(--gold-light));
-            margin: 12px 0; border-radius: 2px;
-        }
-        .form-header p { color: rgba(255,255,255,0.4); font-size: 13.5px; }
-
-        /* Alert */
-        .alert {
-            border-radius: 10px; padding: 12px 16px;
-            font-size: 13px; margin-bottom: 20px;
-            display: flex; align-items: flex-start; gap: 10px; line-height: 1.5;
-        }
-        .alert-error {
-            background: rgba(239,68,68,0.1);
-            border: 1px solid rgba(239,68,68,0.3);
-            color: #fca5a5;
-        }
-        .alert-success {
-            background: rgba(201,168,76,0.1);
-            border: 1px solid rgba(201,168,76,0.35);
-            color: var(--gold-light);
-        }
-
-        /* Two-column row */
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
-
-        /* Form inputs */
-        .form-group { margin-bottom: 16px; }
-        label {
-            display: block;
-            color: rgba(255,255,255,0.5);
-            font-size: 11px; font-weight: 600;
-            letter-spacing: 1.5px; text-transform: uppercase;
-            margin-bottom: 7px;
-        }
-        .required { color: #f87171; margin-left: 2px; }
-        .input-wrap { position: relative; }
-        .input-icon {
-            position: absolute; left: 13px; top: 50%;
-            transform: translateY(-50%);
-            font-size: 15px; color: rgba(255,255,255,0.6);
-            pointer-events: none; transition: color 0.2s;
-        }
-        input[type="text"],
-        input[type="email"],
-        input[type="tel"],
-        input[type="password"] {
-            width: 100%;
-            padding: 12px 14px 12px 40px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 11px; color: #fff;
-            font-size: 13.5px; font-family: 'Inter', sans-serif;
-            outline: none; transition: all 0.25s;
-        }
-        input::placeholder { color: rgba(255,255,255,0.2); }
-        input:focus {
-            border-color: rgba(201,168,76,0.5);
-            background: rgba(255,255,255,0.08);
-            box-shadow: 0 0 0 3px rgba(201,168,76,0.08);
-        }
-        .input-wrap:has(input:focus) .input-icon { color: var(--gold); }
-
-        input[type="date"] {
-            color-scheme: dark;
-        }
-
-
-        /* Password field with toggle */
-        input[type="password"] { padding-right: 42px; }
-        .toggle-pwd {
-            position: absolute; right: 12px; top: 50%;
-            transform: translateY(-50%);
-            background: none; border: none;
-            color: rgba(255,255,255,0.3);
-            cursor: pointer; font-size: 15px; padding: 4px;
-            transition: color 0.2s;
-        }
-        .toggle-pwd:hover { color: rgba(255,255,255,0.7); }
-
-        /* Password strength bar */
-        .pwd-strength { margin-top: 6px; }
-        .strength-bar {
-            height: 3px; border-radius: 2px;
-            background: rgba(255,255,255,0.08);
-            overflow: hidden;
-        }
-        .strength-fill {
-            height: 100%; width: 0%;
-            border-radius: 2px;
-            transition: width 0.3s, background 0.3s;
-        }
-        .strength-label {
-            font-size: 11px; color: rgba(255,255,255,0.3);
-            margin-top: 4px;
-        }
-
-        /* Hint text */
-        .field-hint {
-            font-size: 11px; color: rgba(255,255,255,0.25);
-            margin-top: 5px;
-        }
-
-        /* Submit button */
-        .btn-register {
-            width: 100%; padding: 14px;
-            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
-            color: var(--dark);
-            border: none; border-radius: 12px;
-            font-size: 14px; font-weight: 700;
-            font-family: 'Inter', sans-serif;
-            letter-spacing: 1.5px; text-transform: uppercase;
-            cursor: pointer; margin-top: 6px;
-            transition: all 0.25s;
-            box-shadow: 0 6px 24px rgba(201,168,76,0.25);
-        }
-        .btn-register:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(201,168,76,0.35);
-        }
-        .btn-register:active { transform: translateY(0); }
-        .btn-register:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-        .divider {
-            display: flex; align-items: center; gap: 12px;
-            margin: 20px 0;
-        }
-        .divider::before, .divider::after {
-            content: ''; flex: 1;
-            height: 1px; background: rgba(255,255,255,0.08);
-        }
-        .divider span { color: rgba(255,255,255,0.25); font-size: 12px; }
-
-        .login-link {
-            text-align: center;
-            color: rgba(255,255,255,0.35); font-size: 13.5px;
-        }
-        .login-link a {
-            color: var(--gold); text-decoration: none;
-            font-weight: 600; transition: color 0.2s;
-        }
-        .login-link a:hover { color: var(--gold-light); }
-
-        /* Mobile */
-        @media (max-width: 900px) {
-            .panel-image { display: none; }
-            .panel-form { width: 100%; padding: 32px 24px; }
-            .form-row { grid-template-columns: 1fr; }
-        }
+        body { background-color: var(--dark); color: white; font-family: 'Inter', sans-serif; margin: 0; }
+        .panel-form { background: rgba(10, 10, 15, 0.7); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.1); }
     </style>
 </head>
 <body>
 
-<!-- Left: Resort Image + Perks -->
-<div class="panel-image">
-    <div class="brand">
-        <div class="brand-stars">★ ★ ★ ★ ★</div>
-        <div class="brand-logo">Azure<br><span>Resort</span> &amp; Spa</div>
-        <div class="brand-tagline">Luxury · Nature · Serenity</div>
-        <div class="perks">
-            <div class="perk">
-                <div class="perk-icon">★</div>
-                <span>Đặt phòng nhanh chóng, dễ dàng</span>
+<div class="fixed inset-0 z-0">
+    <div class="absolute inset-0 bg-cover bg-center animate-ken-burns" 
+         style="background-image: url('https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1920&q=80')"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-dark/60 to-dark/40"></div>
+</div>
+
+<div class="relative z-10 min-h-screen flex flex-col lg:flex-row items-center justify-center lg:justify-between p-6 lg:px-24">
+    <!-- Brand Info (Restored) -->
+    <div class="hidden lg:block max-w-md animate-[fadeUp_1s_ease-out]">
+        <div class="text-gold text-xl tracking-[0.5em] mb-4">★ ★ ★ ★ ★</div>
+        <h1 class="font-serif text-5xl text-white font-bold leading-tight mb-4">Azure<br><span class="text-gold">Resort</span> &amp; Spa</h1>
+        <p class="text-white/40 text-sm tracking-[0.3em] uppercase mb-12">Luxury · Nature · Serenity</p>
+        
+        <div class="grid grid-cols-1 gap-6">
+            <div class="flex items-center gap-4 text-white/70">
+                <div class="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center text-gold">✔</div>
+                <p class="text-sm font-light leading-relaxed">Đặt phòng nhanh chóng, quy trình thanh toán bảo mật.</p>
             </div>
-            <div class="perk">
-                <div class="perk-icon">★</div>
-                <span>Nhận ưu đãi dành riêng cho thành viên</span>
+            <div class="flex items-center gap-4 text-white/70">
+                <div class="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center text-gold">✔</div>
+                <p class="text-sm font-light leading-relaxed">Nhận ưu đãi độc quyền 15-30% cho khách hàng mới.</p>
             </div>
-            <div class="perk">
-                <div class="perk-icon">★</div>
-                <span>Quản lý hợp đồng &amp; booking mọi nơi</span>
-            </div>
-            <div class="perk">
-                <div class="perk-icon">★</div>
-                <span>Tích điểm đổi quà với mỗi kỳ nghỉ</span>
+            <div class="flex items-center gap-4 text-white/70">
+                <div class="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center text-gold">✔</div>
+                <p class="text-sm font-light leading-relaxed">Tích lũy điểm thưởng đổi lấy đêm nghỉ miễn phí.</p>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Right: Register Form -->
-<div class="panel-form">
-    <div class="form-wrapper">
-        <div class="form-header">
-            <h2>Tạo Tài Khoản</h2>
-            <div class="gold-line"></div>
-            <p>Đăng ký miễn phí &amp; bắt đầu trải nghiệm nghỉ dưỡng đẳng cấp</p>
-        </div>
+    <!-- Panel Form -->
+    <div class="panel-form w-full max-w-[580px] bg-dark/70 backdrop-blur-2xl border border-white/10 rounded-[40px] shadow-2xl p-8 md:p-12 animate-slide-in-right">
+        <div class="form-wrapper">
+            <a href="${pageContext.request.contextPath}/index.jsp" class="inline-flex items-center gap-2 text-white/30 hover:text-gold transition-colors text-sm mb-6 group">
+                <span class="group-hover:-translate-x-1 transition-transform">←</span> Quay lại trang chủ
+            </a>
 
-        <%-- Alert messages từ server --%>
-        <c:if test="${not empty requestScope.error}">
-        <div class="alert alert-error">
-            <span>⚠️</span>
-            <span>${requestScope.error}</span>
-        </div>
-        </c:if>
-        <c:if test="${not empty requestScope.success}">
-        <div class="alert alert-success">
-            <span>✅</span>
-            <span>${requestScope.success}</span>
-        </div>
-        </c:if>
-
-        <form action="register" method="POST" id="registerForm" novalidate>
-
-            <%-- Hàng 1: Họ tên + Tên tài khoản --%>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="fullName">Họ và tên <span class="required">*</span></label>
-                    <div class="input-wrap">
-                        <input type="text" id="fullName" name="fullName"
-                               placeholder="Nguyễn Văn A"
-                               value="${not empty param.fullName ? param.fullName : ''}"
-                               required maxlength="100" autocomplete="name">
-<!--                        <span class="input-icon">👤</span>-->
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="username">Tên tài khoản <span class="required">*</span></label>
-                    <div class="input-wrap">
-                        <input type="text" id="username" name="username"
-                               placeholder="nguyenvana"
-                               value="${not empty param.username ? param.username : ''}"
-                               required maxlength="50" autocomplete="username">
-<!--                        <span class="input-icon">🔖</span>-->
-                    </div>
-                </div>
+            <div class="form-header mb-8">
+                <h2 class="font-serif text-3xl text-white font-bold">Tạo Tài Khoản</h2>
+                <div class="w-12 h-1 bg-gold my-4 rounded-full"></div>
+                <p class="text-white/40 text-sm">Đăng ký miễn phí &amp; bắt đầu hành trình nghỉ dưỡng đẳng cấp</p>
             </div>
 
-            <%-- Hàng 2: Ngày sinh (dob) + Giới tính --%>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="dateOfBirth">Ngày Sinh <span class="required">*</span></label>
-                    <div class="input-wrap">
-                        <input type="date" id="dateOfBirth" name="dateOfBirth"
-                               value="${not empty param.dateOfBirth ? param.dateOfBirth : ''}"
-                               required class="form-control" style="width: 100%; padding: 12px 14px 12px 40px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 11px; color: #fff; font-size: 13.5px; outline: none;">
-                        <span class="input-icon">📅</span>
+            <%-- Alert messages --%>
+            <c:if test="${not empty requestScope.error}">
+            <div class="bg-red-500/10 border border-red-500/20 text-red-300 p-4 rounded-2xl text-sm mb-6 flex items-start gap-3">
+                <span>⚠️</span> <span>${requestScope.error}</span>
+            </div>
+            </c:if>
+            <c:if test="${not empty requestScope.success}">
+            <div class="bg-green-500/10 border border-green-500/20 text-green-300 p-4 rounded-2xl text-sm mb-6 flex items-start gap-3">
+                <span>✅</span> <span>${requestScope.success}</span>
+            </div>
+            </c:if>
+
+            <form action="${pageContext.request.contextPath}/register" method="POST" id="registerForm" novalidate class="space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="form-group group">
+                        <label class="block text-white/40 text-[10px] font-bold uppercase tracking-wider mb-2">Họ và tên <span class="text-red-500">*</span></label>
+                        <input type="text" id="fullName" name="fullName" placeholder="Nguyễn Văn A" 
+                               class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:border-gold/50 focus:bg-white/10 transition-all outline-none" required>
+                    </div>
+                    <div class="form-group group">
+                        <label class="block text-white/40 text-[10px] font-bold uppercase tracking-wider mb-2">Tên tài khoản <span class="text-red-500">*</span></label>
+                        <input type="text" id="username" name="username" placeholder="nguyenvana" 
+                               class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:border-gold/50 focus:bg-white/10 transition-all outline-none" required>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="gender">Giới tính <span class="required">*</span></label>
-                    <div class="input-wrap">
-                        <select id="gender" name="gender" required style="width: 100%; padding: 12px 14px 12px 40px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 11px; color: #fff; font-size: 13.5px; -webkit-appearance: none; outline: none;">
-                            <option value="" ${empty param.gender ? 'selected' : ''} style="color: black;">Chọn giới tính</option>
-                            <option value="Male" ${param.gender == 'Male' ? 'selected' : ''} style="color: black;">Nam</option>
-                            <option value="Female" ${param.gender == 'Female' ? 'selected' : ''} style="color: black;">Nữ</option>
-                            <option value="Other" ${param.gender == 'Other' ? 'selected' : ''} style="color: black;">Khác</option>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="form-group relative">
+                        <label class="block text-white/40 text-[10px] font-bold uppercase tracking-wider mb-2">Ngày Sinh <span class="text-red-500">*</span></label>
+                        <span class="absolute left-4 bottom-3.5 text-white/20">📅</span>
+                        <input type="date" id="dateOfBirth" name="dateOfBirth" 
+                               class="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-5 py-3.5 text-white focus:outline-none focus:border-gold/50 transition-all" required>
+                    </div>
+                    <div class="form-group relative">
+                        <label class="block text-white/40 text-[10px] font-bold uppercase tracking-wider mb-2">Giới tính <span class="text-red-500">*</span></label>
+                        <span class="absolute left-4 bottom-3.5 text-white/20">🚻</span>
+                        <select id="gender" name="gender" 
+                                class="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-5 py-3.5 text-white focus:outline-none focus:border-gold/50 transition-all appearance-none cursor-pointer" required>
+                            <option value="" class="bg-dark">Chọn giới tính</option>
+                            <option value="Male" class="bg-dark">Nam</option>
+                            <option value="Female" class="bg-dark">Nữ</option>
+                            <option value="Other" class="bg-dark">Khác</option>
                         </select>
-                        <span class="input-icon">🚻</span>
                     </div>
                 </div>
-            </div>
 
-            <%-- Hàng 3: Email + SĐT --%>
-            <div class="form-row">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="form-group">
+                        <label class="block text-white/40 text-[10px] font-bold uppercase tracking-wider mb-2">Email <span class="text-red-500">*</span></label>
+                        <input type="email" id="email" name="email" placeholder="example@gmail.com" 
+                               class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:border-gold/50 transition-all" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="block text-white/40 text-[10px] font-bold uppercase tracking-wider mb-2">Số điện thoại</label>
+                        <input type="tel" id="phone" name="phone" placeholder="09xx xxx xxx" 
+                               class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:border-gold/50 transition-all">
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label for="email">Email <span class="required">*</span></label>
-                    <div class="input-wrap">
-                        <input type="email" id="email" name="email"
-                               placeholder="email@gmail.com"
-                               value="${not empty param.email ? param.email : ''}"
-                               required maxlength="100" autocomplete="email">
-<!--                        <span class="input-icon">✉️</span>-->
+                    <label class="block text-white/40 text-[10px] font-bold uppercase tracking-wider mb-2">Mật khẩu <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-white/20">🔒</span>
+                        <input type="password" id="password" name="password" placeholder="Tối thiểu 6 ký tự" 
+                               class="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-12 py-3.5 text-white focus:outline-none focus:border-gold/50 transition-all" required oninput="checkStrength(this.value)">
+                        <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white" onclick="togglePwd('password',this)">👁️</button>
+                    </div>
+                    <div class="mt-2 space-y-1">
+                        <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden"><div id="strengthFill" class="h-full w-0 transition-all duration-300"></div></div>
+                        <div id="strengthLabel" class="text-[10px] text-white/30 text-right"></div>
                     </div>
                 </div>
+
                 <div class="form-group">
-                    <label for="phone">Số điện thoại</label>
-                    <div class="input-wrap">
-                        <input type="tel" id="phone" name="phone"
-                               placeholder="0912 345 678"
-                               value="${not empty param.phone ? param.phone : ''}"
-                               maxlength="20" autocomplete="tel">
-<!--                        <span class="input-icon">📱</span>-->
+                    <label class="block text-white/40 text-[10px] font-bold uppercase tracking-wider mb-2">Xác nhận mật khẩu <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-white/20">🔒</span>
+                        <input type="password" id="confPass" name="confPass" placeholder="Nhập lại mật khẩu" 
+                               class="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-12 py-3.5 text-white focus:outline-none focus:border-gold/50 transition-all" required>
+                        <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white" onclick="togglePwd('confPass',this)">👁️</button>
                     </div>
                 </div>
+
+                <button type="submit" id="btnRegister" class="w-full py-4 bg-gold hover:bg-gold-light active:scale-95 text-dark font-bold rounded-2xl transition-all shadow-xl shadow-gold/10 uppercase tracking-widest mt-4">
+                    Tạo Tài Khoản
+                </button>
+            </form>
+
+            <div class="relative my-8 text-center">
+                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/5"></div></div>
+                <span class="relative bg-transparent px-4 text-white/20 text-xs">hoặc</span>
             </div>
 
-            <%-- Mật khẩu --%>
-            <div class="form-group">
-                <label for="password">Mật khẩu <span class="required">*</span></label>
-                <div class="input-wrap">
-                    <input type="password" id="password" name="password"
-                           placeholder="Tối thiểu 6 ký tự"
-                           required minlength="6" autocomplete="new-password"
-                           oninput="checkStrength(this.value)">
-                    <span class="input-icon">🔒</span>
-                    <button type="button" class="toggle-pwd" onclick="togglePwd('password',this)">👁️</button>
-                </div>
-                <div class="pwd-strength">
-                    <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
-                    <div class="strength-label" id="strengthLabel"></div>
-                </div>
+            <div class="text-center text-white/40 text-sm">
+                Đã có tài khoản? <a href="${pageContext.request.contextPath}/login.jsp" class="text-gold font-bold hover:underline">Đăng nhập ngay</a>
             </div>
-
-            <%-- Xác nhận mật khẩu --%>
-            <div class="form-group">
-                <label for="confPass">Xác nhận mật khẩu <span class="required">*</span></label>
-                <div class="input-wrap">
-                    <%-- name="confPass" — phải khớp với request.getParameter("confPass") trong RegisterController --%>
-                    <input type="password" id="confPass" name="confPass"
-                           placeholder="Nhập lại mật khẩu"
-                           required autocomplete="new-password">
-                    <span class="input-icon">🔒</span>
-                    <button type="button" class="toggle-pwd" onclick="togglePwd('confPass',this)">👁️</button>
-                </div>
-            </div>
-
-            <button type="submit" class="btn-register" id="btnRegister">
-                Tạo Tài Khoản
-            </button>
-        </form>
-
-        <div class="divider"><span>hoặc</span></div>
-
-        <div class="login-link">
-            Đã có tài khoản? <a href="login">Đăng nhập</a>
         </div>
     </div>
 </div>

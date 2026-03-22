@@ -20,7 +20,7 @@ import model.TblPersons;
 public class AccountDAO {
 
     // ── JDBC connection string (khớp với persistence.xml) ────────
-    private static final String JDBC_URL  = "jdbc:sqlserver://localhost:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true";
+    private static final String JDBC_URL  = "jdbc:sqlserver://MSI:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true";
     private static final String JDBC_USER = "sa";
     private static final String JDBC_PASS = "123";
 

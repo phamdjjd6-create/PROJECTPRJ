@@ -46,6 +46,8 @@
         .flash{padding:14px 20px;border-radius:10px;margin-bottom:20px;font-size:13.5px;font-weight:500}
         .flash-success{background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);color:#4ade80}
         .flash-error{background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);color:#f87171}
+    </style>
+    <style>
         .stats-row{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap}
         .stat-pill{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 22px;display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;transition:all 0.2s}
         .stat-pill:hover{border-color:rgba(201,168,76,0.3)}
@@ -140,6 +142,148 @@
         </a>
     </nav>
     <div class="sidebar-footer">
-        <a href="${pageContext.request.contextPath}/logout" class="btn-logout">Đăng Xuất</a>
+        <a href="${pageContext.request.contextPath}/logout" class="btn-logout">🚪 Đăng Xuất</a>
     </div>
 </aside>
+
+<div class="main">
+    <div class="topbar">
+        <div class="topbar-title">Quản Lý Phòng &amp; Villa</div>
+        <span style="font-size:12px;color:var(--muted)" id="topbarDate"></span>
+    </div>
+    <div class="content">
+        <div class="section-label">Quản Lý</div>
+        <div class="section-title">Phòng &amp; Villa</div>
+
+        <c:if test="${not empty flashMsg}">
+            <div class="flash ${flashMsg.startsWith('✅') ? 'flash-success' : 'flash-error'}">${flashMsg}</div>
+        </c:if>
+
+        <div class="stats-row">
+            <a href="?type=ALL&status=AVAILABLE" class="stat-pill green">
+                <div><div class="num">${cntAvailable}</div><div class="lbl">Trống</div></div>
+            </a>
+            <a href="?type=ALL&status=OCCUPIED" class="stat-pill red">
+                <div><div class="num">${cntOccupied}</div><div class="lbl">Đang Thuê</div></div>
+            </a>
+            <a href="?type=ALL&status=MAINTENANCE" class="stat-pill yellow">
+                <div><div class="num">${cntMaintenance}</div><div class="lbl">Bảo Trì</div></div>
+            </a>
+            <a href="?type=ALL&status=CLEANING" class="stat-pill blue">
+                <div><div class="num">${cntCleaning}</div><div class="lbl">Dọn Dẹp</div></div>
+            </a>
+        </div>
+
+        <form method="get" action="${pageContext.request.contextPath}/dashboard/facilities">
+            <div class="toolbar">
+                <div class="search-box">
+                    <span>🔍</span>
+                    <input type="text" name="q" placeholder="Tìm mã phòng, tên..." value="${search}">
+                </div>
+                <div class="filter-tabs">
+                    <a href="?type=ALL" class="tab ${(empty typeFilter || typeFilter == 'ALL') ? 'active' : ''}">Tất Cả</a>
+                    <a href="?type=VILLA" class="tab ${typeFilter == 'VILLA' ? 'active' : ''}">Villa</a>
+                    <a href="?type=HOUSE" class="tab ${typeFilter == 'HOUSE' ? 'active' : ''}">House</a>
+                    <a href="?type=ROOM" class="tab ${typeFilter == 'ROOM' ? 'active' : ''}">Phòng</a>
+                </div>
+            </div>
+        </form>
+
+        <c:choose>
+            <c:when test="${not empty facilities}">
+                <div class="facility-grid">
+                <c:forEach var="f" items="${facilities}">
+                    <c:choose>
+                        <c:when test="${f.status == 'AVAILABLE'}"><c:set var="badgeSt" value="badge-available"/><c:set var="stLbl" value="Trống"/></c:when>
+                        <c:when test="${f.status == 'OCCUPIED'}"><c:set var="badgeSt" value="badge-occupied"/><c:set var="stLbl" value="Đang Thuê"/></c:when>
+                        <c:when test="${f.status == 'MAINTENANCE'}"><c:set var="badgeSt" value="badge-maintenance"/><c:set var="stLbl" value="Bảo Trì"/></c:when>
+                        <c:when test="${f.status == 'CLEANING'}"><c:set var="badgeSt" value="badge-cleaning"/><c:set var="stLbl" value="Dọn Dẹp"/></c:when>
+                        <c:otherwise><c:set var="badgeSt" value="badge-available"/><c:set var="stLbl" value="${f.status}"/></c:otherwise>
+                    </c:choose>
+                    <c:choose>
+                        <c:when test="${f.facilityType == 'VILLA'}"><c:set var="typeBadge" value="badge-villa"/><c:set var="typeLbl" value="Villa"/></c:when>
+                        <c:when test="${f.facilityType == 'HOUSE'}"><c:set var="typeBadge" value="badge-house"/><c:set var="typeLbl" value="House"/></c:when>
+                        <c:otherwise><c:set var="typeBadge" value="badge-room"/><c:set var="typeLbl" value="Phòng"/></c:otherwise>
+                    </c:choose>
+                    <div class="facility-card">
+                        <div class="card-header">
+                            <div>
+                                <div class="facility-code">${f.serviceCode}</div>
+                                <div class="facility-name">${f.serviceName}</div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+                                <span class="badge ${badgeSt}">${stLbl}</span>
+                                <span class="badge ${typeBadge}">${typeLbl}</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <c:if test="${f.status == 'OCCUPIED'}">
+                                <div class="status-notice notice-red">🔴 Đang có khách — không thể thay đổi trạng thái</div>
+                            </c:if>
+                            <c:if test="${f.status == 'MAINTENANCE'}">
+                                <div class="status-notice notice-yellow">🔧 Đang bảo trì</div>
+                            </c:if>
+                            <c:if test="${f.status == 'CLEANING'}">
+                                <div class="status-notice notice-blue">🧹 Đang dọn dẹp</div>
+                            </c:if>
+                            <div class="info-row">
+                                <div class="info-item">
+                                    <div class="lbl">Giá</div>
+                                    <div class="val gold"><fmt:formatNumber value="${f.cost}" type="number" groupingUsed="true"/> đ</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="lbl">Sức Chứa</div>
+                                    <div class="val">${f.maxPeople} người</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="lbl">Diện Tích</div>
+                                    <div class="val">${f.usableArea} m²</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="lbl">Loại Thuê</div>
+                                    <div class="val">${f.rentalType}</div>
+                                </div>
+                            </div>
+                            <div class="card-actions">
+                                <c:if test="${f.status != 'OCCUPIED'}">
+                                <form method="post" action="${pageContext.request.contextPath}/dashboard/action" style="display:inline">
+                                    <input type="hidden" name="action" value="facility_status">
+                                    <input type="hidden" name="facilityId" value="${f.serviceCode}">
+                                    <input type="hidden" name="status" value="AVAILABLE">
+                                    <button type="submit" class="btn-sm btn-available ${f.status == 'AVAILABLE' ? 'btn-disabled' : ''}">✓ Trống</button>
+                                </form>
+                                <form method="post" action="${pageContext.request.contextPath}/dashboard/action" style="display:inline">
+                                    <input type="hidden" name="action" value="facility_status">
+                                    <input type="hidden" name="facilityId" value="${f.serviceCode}">
+                                    <input type="hidden" name="status" value="MAINTENANCE">
+                                    <button type="submit" class="btn-sm btn-maintenance ${f.status == 'MAINTENANCE' ? 'btn-disabled' : ''}">🔧 Bảo Trì</button>
+                                </form>
+                                <form method="post" action="${pageContext.request.contextPath}/dashboard/action" style="display:inline">
+                                    <input type="hidden" name="action" value="facility_status">
+                                    <input type="hidden" name="facilityId" value="${f.serviceCode}">
+                                    <input type="hidden" name="status" value="CLEANING">
+                                    <button type="submit" class="btn-sm btn-cleaning ${f.status == 'CLEANING' ? 'btn-disabled' : ''}">🧹 Dọn Dẹp</button>
+                                </form>
+                                </c:if>
+                                <c:if test="${f.status == 'OCCUPIED'}">
+                                    <span style="font-size:12px;color:var(--muted)">Không thể thay đổi khi đang có khách</span>
+                                </c:if>
+                            </div>
+                        </div>
+                    </div>
+                </c:forEach>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <div class="empty"><p>Không có phòng/villa nào</p></div>
+            </c:otherwise>
+        </c:choose>
+    </div>
+</div>
+
+<script>
+    const d = new Date();
+    document.getElementById('topbarDate').textContent = d.toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+</script>
+</body>
+</html>

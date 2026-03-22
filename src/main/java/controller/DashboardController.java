@@ -54,9 +54,11 @@ public class DashboardController extends HttpServlet {
 
         if ("/dashboard/admin".equals(path)) {
             try {
+                request.setAttribute("totalBookings",  bookingDAO.count());
                 request.setAttribute("totalCustomers", customerDAO.count());
-                request.setAttribute("totalEmployees", employeeDAO.findAll().size());
-                request.setAttribute("employees", employeeDAO.findAll());
+                request.setAttribute("totalEmployees", employeeDAO.count());
+                request.setAttribute("totalRevenue",   contractDAO.getTotalRevenue());
+                request.setAttribute("employees",      employeeDAO.findAll());
                 request.setAttribute("cntDraftContracts", contractDAO.countByStatus("DRAFT"));
             } catch (Exception e) { e.printStackTrace(); }
 
