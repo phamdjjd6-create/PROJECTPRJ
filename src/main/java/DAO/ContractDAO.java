@@ -221,7 +221,8 @@ public class ContractDAO {
             em.getTransaction().begin();
             TblContracts c = em.find(TblContracts.class, contractId);
             if (c == null) return "ERROR:Không tìm thấy hợp đồng";
-            if (!"ACTIVE".equals(c.getStatus())) return "ERROR:Hợp đồng không ở trạng thái hiệu lực";
+            if (!"ACTIVE".equals(c.getStatus()) && !"DRAFT".equals(c.getStatus()))
+                return "ERROR:Hợp đồng không ở trạng thái có thể thanh toán (cần ACTIVE hoặc DRAFT)";
 
             java.math.BigDecimal newPaid = c.getPaidAmount().add(amount);
             // Không cho trả vượt quá tổng
@@ -229,7 +230,15 @@ public class ContractDAO {
             c.setPaidAmount(newPaid);
 
             boolean completed = newPaid.compareTo(c.getTotalPayment()) >= 0;
-            if (completed) c.setStatus("COMPLETED");
+            if (completed) {
+                c.setStatus("COMPLETED");
+            } else if ("DRAFT".equals(c.getStatus())) {
+                // Có thanh toán một phần → kích hoạt hợp đồng
+                c.setStatus("ACTIVE");
+                if (c.getDeposit() == null || c.getDeposit().compareTo(java.math.BigDecimal.ZERO) == 0) {
+                    c.setDeposit(amount);
+                }
+            }
 
             // Ghi vào tbl_payments
             model.TblPayments payment = new model.TblPayments();
@@ -290,6 +299,63 @@ public class ContractDAO {
             return false;
         } finally { em.close(); }
     }
+    /**
+     * Tạo contract kèm đặt cọc ngay (10% tổng tiền).
+     * totalPayment truyền vào đã tính voucher từ BookingController.
+     * Booking status → CONFIRMED, Contract status → ACTIVE
+     */
+    public TblContracts createWithDeposit(String bookingId, java.math.BigDecimal totalPayment,
+                                          java.math.BigDecimal depositAmount, String paymentCode) {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            em.getTransaction().begin();
+            model.TblBookings bk = em.find(model.TblBookings.class, bookingId);
+            if (bk == null) throw new RuntimeException("Booking không tồn tại: " + bookingId);
+
+            // Kiểm tra đã có contract chưa
+            List<TblContracts> existing = em.createQuery(
+                "SELECT c FROM TblContracts c WHERE c.bookingId.bookingId = :bid", TblContracts.class)
+                .setParameter("bid", bookingId).getResultList();
+            if (!existing.isEmpty()) {
+                em.getTransaction().rollback();
+                return existing.get(0);
+            }
+
+            TblContracts contract = new TblContracts();
+            contract.setContractId("CT" + System.currentTimeMillis() % 10000000);
+            contract.setBookingId(bk);
+            contract.setDeposit(depositAmount);
+            contract.setTotalPayment(totalPayment);
+            contract.setPaidAmount(depositAmount);
+            contract.setStatus("ACTIVE");
+            contract.setSignedDate(new java.util.Date());
+            contract.setNotes("Đặt cọc 10% — Mã GD: " + paymentCode);
+
+            em.persist(contract);
+
+            // Ghi payment record
+            model.TblPayments payment = new model.TblPayments();
+            payment.setAmount(depositAmount);
+            payment.setPaymentDate(new java.util.Date());
+            payment.setPaymentMethod("TRANSFER");
+            payment.setNote("Đặt cọc 10% khi đặt phòng. Mã GD: " + paymentCode);
+            payment.setContractId(contract);
+            em.persist(payment);
+
+            // Cập nhật booking → CONFIRMED
+            bk.setStatus("CONFIRMED");
+            em.merge(bk);
+
+            em.getTransaction().commit();
+            return contract;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw new RuntimeException(e);
+        } finally {
+            em.close();
+        }
+    }
+
     public java.math.BigDecimal getTotalRevenue() {
         EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {

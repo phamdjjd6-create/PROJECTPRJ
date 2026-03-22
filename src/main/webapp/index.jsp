@@ -325,6 +325,224 @@
     </div>
 </footer>
 
+<!-- CHATBOT WIDGET -->
+<style>
+    #chat-bubble{position:fixed;bottom:28px;right:28px;z-index:9999;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#c9a84c,#e8cc82);border:none;cursor:pointer;box-shadow:0 8px 28px rgba(201,168,76,0.5);display:flex;align-items:center;justify-content:center;font-size:24px;transition:all 0.3s cubic-bezier(.34,1.56,.64,1)}
+    #chat-bubble:hover{transform:scale(1.12);box-shadow:0 12px 36px rgba(201,168,76,0.65)}
+    #chat-unread{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;background:#f87171;border-radius:9px;font-size:10px;font-weight:700;color:#fff;display:none;align-items:center;justify-content:center;padding:0 4px;border:2px solid #0a0a0f}
+    @keyframes pulse-ring{0%{transform:scale(1);opacity:0.6}100%{transform:scale(1.5);opacity:0}}
+    #chat-bubble::after{content:'';position:absolute;inset:0;border-radius:50%;background:rgba(201,168,76,0.4);animation:pulse-ring 2s ease-out infinite}
+    #chat-bubble.open::after{display:none}
+    #chat-box{position:fixed;bottom:96px;right:28px;z-index:9998;width:380px;background:#0d1117;border:1px solid rgba(201,168,76,0.18);border-radius:24px;box-shadow:0 24px 64px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.03);display:none;flex-direction:column;overflow:hidden;font-family:'Inter',sans-serif}
+    #chat-box.open{display:flex}
+    .ch{background:linear-gradient(135deg,#0d1526 0%,#080c14 100%);padding:16px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(201,168,76,0.1);flex-shrink:0}
+    .ch-av{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#c9a84c,#e8cc82);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 4px 12px rgba(201,168,76,0.3)}
+    .ch-info .ch-name{font-size:14px;font-weight:700;color:#fff}
+    .ch-info .ch-sub{font-size:11px;color:rgba(255,255,255,0.4);margin-top:1px}
+    .ch-status{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;color:#4ade80;font-weight:600}
+    .ch-status::before{content:'';width:6px;height:6px;border-radius:50%;background:#4ade80;display:inline-block;animation:blink 2s ease-in-out infinite}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
+    .ch-actions{margin-left:auto;display:flex;gap:4px}
+    .ch-btn{background:none;border:none;color:rgba(255,255,255,0.35);font-size:16px;cursor:pointer;padding:6px;border-radius:8px;transition:all 0.15s;line-height:1}
+    .ch-btn:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.8)}
+    #chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;min-height:240px;max-height:360px;scroll-behavior:smooth}
+    #chat-msgs::-webkit-scrollbar{width:3px}
+    #chat-msgs::-webkit-scrollbar-thumb{background:rgba(201,168,76,0.15);border-radius:4px}
+    .msg-row{display:flex;gap:8px;align-items:flex-end}
+    .msg-row.user{flex-direction:row-reverse}
+    .msg-av{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#c9a84c,#e8cc82);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+    .msg-av.user-av{background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);font-size:11px;color:#c9a84c;font-weight:700}
+    .msg-wrap{display:flex;flex-direction:column;gap:3px;max-width:78%}
+    .msg-row.user .msg-wrap{align-items:flex-end}
+    .msg-bubble{padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.6;word-break:break-word}
+    .msg-bubble.bot{background:rgba(255,255,255,0.06);color:#e8e8e8;border-bottom-left-radius:4px;border:1px solid rgba(255,255,255,0.05)}
+    .msg-bubble.user{background:linear-gradient(135deg,rgba(201,168,76,0.28),rgba(201,168,76,0.18));color:#fff;border-bottom-right-radius:4px;border:1px solid rgba(201,168,76,0.25)}
+    .msg-time{font-size:9.5px;color:rgba(255,255,255,0.2);padding:0 2px}
+    .msg-bubble strong{color:#e8cc82;font-weight:700}
+    .msg-bubble em{color:rgba(255,255,255,0.7);font-style:italic}
+    .msg-bubble ul{padding-left:16px;margin:4px 0}
+    .msg-bubble li{margin:2px 0}
+    .typing-dots{display:flex;gap:4px;padding:12px 14px;align-items:center}
+    .typing-dots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.3);animation:dot-bounce 1.2s ease-in-out infinite}
+    .typing-dots span:nth-child(2){animation-delay:0.2s}
+    .typing-dots span:nth-child(3){animation-delay:0.4s}
+    @keyframes dot-bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+    .msg-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+    .act-btn{padding:6px 13px;border-radius:50px;font-size:11.5px;font-weight:600;border:1px solid rgba(201,168,76,0.3);color:#c9a84c;background:rgba(201,168,76,0.07);cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;text-decoration:none;display:inline-block}
+    .act-btn:hover{background:rgba(201,168,76,0.18);border-color:rgba(201,168,76,0.6);color:#e8cc82}
+    #chat-chips{padding:0 14px 10px;display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0}
+    .chip{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);border-radius:50px;padding:6px 13px;font-size:11.5px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;white-space:nowrap}
+    .chip:hover{background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.35);color:#c9a84c}
+    .cf{padding:12px 14px;border-top:1px solid rgba(255,255,255,0.05);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;background:rgba(0,0,0,0.2)}
+    #chat-input{flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px 14px;color:#fff;font-size:13px;font-family:'Inter',sans-serif;outline:none;resize:none;max-height:100px;transition:border-color 0.2s;line-height:1.5}
+    #chat-input:focus{border-color:rgba(201,168,76,0.4);background:rgba(255,255,255,0.07)}
+    #chat-input::placeholder{color:rgba(255,255,255,0.25)}
+    #chat-send{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#c9a84c,#e8cc82);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;color:#0a0a0f}
+    #chat-send:hover{transform:scale(1.08);box-shadow:0 4px 12px rgba(201,168,76,0.4)}
+    #chat-send:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none}
+    .cf-hint{font-size:9.5px;color:rgba(255,255,255,0.15);text-align:center;padding:0 14px 8px;flex-shrink:0}
+</style>
+
+<button id="chat-bubble" onclick="chatToggle()" title="Chat với Azure Assistant" aria-label="Mở chat">
+    <span id="chat-icon">💬</span>
+    <span id="chat-unread"></span>
+</button>
+
+<div id="chat-box" role="dialog" aria-label="Azure Assistant Chat">
+    <div class="ch">
+        <div class="ch-av">🏖️</div>
+        <div class="ch-info">
+            <div class="ch-name">Azure Assistant</div>
+            <div class="ch-sub"><span class="ch-status">Trực tuyến</span> · Azure Resort & Spa</div>
+        </div>
+        <div class="ch-actions">
+            <button class="ch-btn" onclick="chatClear()" title="Xóa lịch sử">🗑</button>
+            <button class="ch-btn" onclick="chatToggle()" title="Đóng">✕</button>
+        </div>
+    </div>
+    <div id="chat-msgs" aria-live="polite"></div>
+    <div id="chat-chips">
+        <button class="chip" onclick="chipSend(this)">👋 Xin chào</button>
+        <button class="chip" onclick="chipSend(this)">🌤️ Thời tiết Đà Nẵng</button>
+        <button class="chip" onclick="chipSend(this)">🏡 Phòng còn trống</button>
+        <button class="chip" onclick="chipSend(this)">💰 Bảng giá villa</button>
+        <button class="chip" onclick="chipSend(this)">📋 Chính sách hủy</button>
+        <button class="chip" onclick="chipSend(this)">🎁 Ưu đãi hiện có</button>
+    </div>
+    <div class="cf">
+        <textarea id="chat-input" rows="1" placeholder="Nhập tin nhắn..." onkeydown="chatKey(event)" oninput="chatResize(this)"></textarea>
+        <button id="chat-send" onclick="chatSend()" aria-label="Gửi">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+    </div>
+    <div class="cf-hint">Azure AI · Powered by Groq · Dữ liệu thực từ hệ thống</div>
+</div>
+
+<script>
+(function(){
+    const CTX = '${pageContext.request.contextPath}';
+    const UNAME = '<c:out value="${sessionScope.account.fullName}" default=""/>';
+    let isOpen = false, unread = 0;
+
+    function init() {
+        const greet = UNAME
+            ? 'Xin ch\u00e0o <strong>' + esc(UNAME) + '</strong>! \uD83D\uDC4B T\u00f4i l\u00e0 <strong>Azure</strong>, tr\u1ee3 l\u00fd c\u1ee7a Azure Resort & Spa.<br>T\u00f4i c\u00f3 th\u1ec3 gi\u00fap b\u1ea1n t\u01b0 v\u1ea5n ph\u00f2ng, th\u1eddi ti\u1ebft, gi\u00e1 c\u1ea3 v\u00e0 \u0111\u1eb7t ph\u00f2ng. B\u1ea1n c\u1ea7n h\u1ed7 tr\u1ee3 g\u00ec?'
+            : 'Xin ch\u00e0o! \uD83D\uDC4B T\u00f4i l\u00e0 <strong>Azure</strong>, tr\u1ee3 l\u00fd \u1ea3o c\u1ee7a <strong>Azure Resort & Spa</strong>.<br>T\u00f4i c\u00f3 th\u1ec3 t\u01b0 v\u1ea5n v\u1ec1 ph\u00f2ng/villa, th\u1eddi ti\u1ebft \u0110\u00e0 N\u1eb5ng, gi\u00e1 c\u1ea3 v\u00e0 h\u1ed7 tr\u1ee3 \u0111\u1eb7t ph\u00f2ng. B\u1ea1n c\u1ea7n h\u1ed7 tr\u1ee3 g\u00ec?';
+        botMsg(greet);
+        setTimeout(function(){ if (!isOpen) showBadge(1); }, 3500);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    window.chatToggle = function() {
+        isOpen = !isOpen;
+        document.getElementById('chat-box').classList.toggle('open', isOpen);
+        document.getElementById('chat-icon').textContent = isOpen ? '\u2715' : '\uD83D\uDCAC';
+        document.getElementById('chat-bubble').classList.toggle('open', isOpen);
+        if (isOpen) { clearBadge(); setTimeout(function(){ document.getElementById('chat-input').focus(); }, 150); scrollBot(); }
+    };
+
+    window.chatClear = function() {
+        document.getElementById('chat-msgs').innerHTML = '';
+        document.getElementById('chat-chips').style.display = 'flex';
+        botMsg('L\u1ecbch s\u1eed \u0111\u00e3 x\u00f3a. T\u00f4i c\u00f3 th\u1ec3 gi\u00fap g\u00ec cho b\u1ea1n? \uD83D\uDE0A');
+    };
+
+    window.chipSend = function(btn) {
+        var t = btn.textContent.replace(/^\S+\s/, '').trim();
+        document.getElementById('chat-input').value = t;
+        document.getElementById('chat-chips').style.display = 'none';
+        chatSend();
+    };
+
+    window.chatKey = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chatSend(); } };
+    window.chatResize = function(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100) + 'px'; };
+
+    window.chatSend = async function() {
+        var inp = document.getElementById('chat-input');
+        var msg = inp.value.trim();
+        if (!msg) return;
+        userMsg(msg);
+        inp.value = ''; inp.style.height = 'auto';
+        document.getElementById('chat-send').disabled = true;
+        var typing = typingMsg();
+        try {
+            var fd = new FormData(); fd.append('message', msg);
+            var res = await fetch(CTX + '/chatbot', { method: 'POST', body: fd });
+            var data = await res.json();
+            typing.remove();
+            botMsg(fmt(data.reply || 'Xin l\u1ed7i, c\u00f3 l\u1ed7i x\u1ea3y ra.'), data.actions || []);
+        } catch(err) {
+            typing.remove();
+            botMsg('Kh\u00f4ng th\u1ec3 k\u1ebft n\u1ed1i. Vui l\u00f2ng th\u1eed l\u1ea1i ho\u1eb7c g\u1ecdi <strong>1800 7777</strong>.', [{label:'\uD83D\uDCDE G\u1ecdi ngay',url:'tel:18007777'}]);
+        } finally {
+            document.getElementById('chat-send').disabled = false;
+            inp.focus();
+        }
+    };
+
+    function userMsg(text) {
+        var init = UNAME ? UNAME.charAt(0).toUpperCase() : '?';
+        addRow('msg-row user',
+            '<div class="msg-wrap">' +
+            '<div class="msg-bubble user">' + esc(text) + '</div>' +
+            '<div class="msg-time">' + now() + '</div>' +
+            '</div>' +
+            '<div class="msg-av user-av">' + init + '</div>');
+    }
+
+    function botMsg(html, actions) {
+        actions = actions || [];
+        var acts = '';
+        if (actions.length) {
+            acts = '<div class="msg-actions">' +
+                actions.map(function(a){ return '<a class="act-btn" href="' + CTX + a.url + '">' + esc(a.label) + '</a>'; }).join('') +
+                '</div>';
+        }
+        addRow('msg-row',
+            '<div class="msg-av">\uD83C\uDFD6\uFE0F</div>' +
+            '<div class="msg-wrap">' +
+            '<div class="msg-bubble bot">' + html + '</div>' +
+            acts +
+            '<div class="msg-time">Azure \u00b7 ' + now() + '</div>' +
+            '</div>');
+        if (!isOpen) showBadge(++unread);
+    }
+
+    function typingMsg() {
+        return addRow('msg-row',
+            '<div class="msg-av">\uD83C\uDFD6\uFE0F</div>' +
+            '<div class="msg-wrap"><div class="msg-bubble bot" style="padding:0">' +
+            '<div class="typing-dots"><span></span><span></span><span></span></div>' +
+            '</div></div>');
+    }
+
+    function addRow(cls, html) {
+        var msgs = document.getElementById('chat-msgs');
+        var el = document.createElement('div');
+        el.className = cls; el.innerHTML = html;
+        msgs.appendChild(el); scrollBot(); return el;
+    }
+
+    function fmt(t) {
+        return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+            .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g,'<em>$1</em>')
+            .replace(/^[-\u2022]\s(.+)/gm,'<li>$1</li>')
+            .replace(/\n/g,'<br>');
+    }
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function now() { return new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}); }
+    function scrollBot() { var m = document.getElementById('chat-msgs'); setTimeout(function(){ m.scrollTop = m.scrollHeight; }, 50); }
+    function showBadge(n) { var b = document.getElementById('chat-unread'); b.textContent = n > 9 ? '9+' : n; b.style.display = 'flex'; }
+    function clearBadge() { unread = 0; document.getElementById('chat-unread').style.display = 'none'; }
+})();
+</script>
+
 <script>
     window.addEventListener('scroll', () => {
         document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);

@@ -2,6 +2,7 @@
 <%@ page import="model.TblPersons, model.TblEmployees" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%
     TblPersons acc = (TblPersons) session.getAttribute("account");
     if (acc == null) { response.sendRedirect(request.getContextPath() + "/login"); return; }
@@ -65,47 +66,43 @@
         .tab{padding:7px 16px;border-radius:50px;font-size:12.5px;font-weight:600;border:1.5px solid var(--border);color:var(--muted);background:transparent;cursor:pointer;transition:all 0.2s;text-decoration:none}
         .tab:hover{border-color:rgba(201,168,76,0.4);color:var(--gold)}
         .tab.active{background:var(--gold);color:var(--dark);border-color:var(--gold)}
-        .facility-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
-        .facility-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all 0.3s}
-        .facility-card:hover{border-color:rgba(201,168,76,0.2);transform:translateY(-2px)}
-        .card-header{padding:20px 22px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start}
-        .facility-code{font-family:'Playfair Display',serif;font-size:17px;font-weight:600;color:#fff}
-        .facility-name{font-size:12px;color:var(--muted);margin-top:3px}
-        .badge{display:inline-block;padding:4px 10px;border-radius:4px;font-size:10.5px;font-weight:700}
+        .facility-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+        .facility-card{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;transition:all 0.3s;position:relative}
+        .facility-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,0.05);transition:background 0.3s}
+        .facility-card.type-villa::before{background:linear-gradient(90deg,var(--gold),var(--gold-light))}
+        .facility-card.type-house::before{background:linear-gradient(90deg,#60a5fa,#3b82f6)}
+        .facility-card.type-room::before{background:linear-gradient(90deg,#a78bfa,#7c3aed)}
+        .facility-card:hover{border-color:rgba(201,168,76,0.25);transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,0.3)}
+        .card-header{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start}
+        .facility-code{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#fff;letter-spacing:0.3px}
+        .facility-name{font-size:11.5px;color:var(--muted);margin-top:3px}
+        .badge{display:inline-block;padding:3px 9px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.5px}
         .badge-available{background:rgba(74,222,128,0.12);color:#4ade80}
         .badge-occupied{background:rgba(248,113,113,0.12);color:#f87171}
         .badge-maintenance{background:rgba(251,191,36,0.12);color:#fbbf24}
         .badge-cleaning{background:rgba(96,165,250,0.12);color:#60a5fa}
-        .badge-villa{background:rgba(201,168,76,0.12);color:var(--gold)}
+        .badge-villa{background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid rgba(201,168,76,0.2)}
         .badge-house{background:rgba(96,165,250,0.12);color:#60a5fa}
         .badge-room{background:rgba(167,139,250,0.12);color:#a78bfa}
-        .card-body{padding:16px 22px}
-        .info-row{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px}
-        .info-item .lbl{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
-        .info-item .val{font-size:13.5px;color:#fff;font-weight:500}
-        .info-item .val.gold{color:var(--gold);font-family:'Playfair Display',serif}
-        .usage-bar-wrap{margin-bottom:14px}
-        .usage-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px}
-        .usage-bar{height:5px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden}
-        .usage-fill{height:100%;border-radius:3px;transition:width 0.5s}
-        .fill-green{background:linear-gradient(90deg,#4ade80,#22c55e)}
-        .fill-yellow{background:linear-gradient(90deg,#fbbf24,#f59e0b)}
-        .fill-red{background:linear-gradient(90deg,#f87171,#ef4444)}
-        .card-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--border)}
-        .btn-sm{padding:6px 14px;border-radius:4px;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif}
-        .btn-available{background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.3)}
-        .btn-available:hover{background:#4ade80;color:#000}
-        .btn-occupied{background:rgba(248,113,113,0.1);color:#f87171;border:1px solid rgba(248,113,113,0.3)}
-        .btn-occupied:hover{background:#f87171;color:#fff}
-        .btn-maintenance{background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.3)}
-        .btn-maintenance:hover{background:#fbbf24;color:#000}
-        .btn-cleaning{background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.3)}
-        .btn-cleaning:hover{background:#60a5fa;color:#000}
-        .btn-disabled{opacity:0.35;cursor:not-allowed;pointer-events:none}
-        .status-notice{border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:12px}
-        .notice-red{background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.2);color:#f87171}
-        .notice-blue{background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.2);color:#60a5fa}
-        .notice-yellow{background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);color:#fbbf24}
+        .card-body{padding:16px 20px}
+        .info-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+        .info-item{background:rgba(255,255,255,0.02);border-radius:8px;padding:8px 10px}
+        .info-item .lbl{font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;font-weight:600}
+        .info-item .val{font-size:13px;color:#fff;font-weight:600}
+        .info-item .val.gold{color:var(--gold);font-family:'Playfair Display',serif;font-size:14px}
+        .card-actions{display:flex;gap:6px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--border)}
+        .btn-sm{padding:6px 13px;border-radius:6px;font-size:11.5px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;letter-spacing:0.2px}
+        .btn-available{background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.25)}
+        .btn-available:hover{background:#4ade80;color:#000;border-color:#4ade80}
+        .btn-maintenance{background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.25)}
+        .btn-maintenance:hover{background:#fbbf24;color:#000;border-color:#fbbf24}
+        .btn-cleaning{background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.25)}
+        .btn-cleaning:hover{background:#60a5fa;color:#000;border-color:#60a5fa}
+        .btn-disabled{opacity:0.3;cursor:not-allowed;pointer-events:none}
+        .status-notice{border-radius:8px;padding:9px 12px;font-size:11.5px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+        .notice-red{background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.18);color:#f87171}
+        .notice-blue{background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.18);color:#60a5fa}
+        .notice-yellow{background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.18);color:#fbbf24}
         .empty{padding:60px;text-align:center;color:var(--muted)}
     </style>
 </head>
@@ -127,22 +124,28 @@
         <a href="${pageContext.request.contextPath}/dashboard/${isAdmin ? 'admin' : 'staff'}" class="nav-item">
             <span class="nav-dot"></span> Dashboard
         </a>
-        <div class="nav-section">Quản Lý</div>
-        <a href="${pageContext.request.contextPath}/dashboard/users" class="nav-item">
-            <span class="nav-dot"></span> Người Dùng
-        </a>
+        <div class="nav-section">Vận Hành</div>
         <a href="${pageContext.request.contextPath}/dashboard/bookings" class="nav-item">
             <span class="nav-dot"></span> Booking
         </a>
         <a href="${pageContext.request.contextPath}/dashboard/contracts" class="nav-item">
             <span class="nav-dot"></span> Hợp Đồng
         </a>
+        <div class="nav-section">Quản Lý</div>
+        <a href="${pageContext.request.contextPath}/dashboard/users" class="nav-item">
+            <span class="nav-dot"></span> Người Dùng
+        </a>
         <a href="${pageContext.request.contextPath}/dashboard/facilities" class="nav-item active">
             <span class="nav-dot"></span> Phòng &amp; Villa
         </a>
+        <div class="nav-section">Cá Nhân</div>
+        <a href="${pageContext.request.contextPath}/profile" class="nav-item">
+            <span class="nav-dot"></span> Hồ Sơ
+        </a>
     </nav>
     <div class="sidebar-footer">
-        <a href="${pageContext.request.contextPath}/logout" class="btn-logout">🚪 Đăng Xuất</a>
+        <a href="${pageContext.request.contextPath}/" class="btn-logout" style="color:rgba(201,168,76,0.7);margin-bottom:6px">🏖️ Trang Chủ</a>
+        <a href="${pageContext.request.contextPath}/logout" class="btn-logout">Đăng Xuất</a>
     </div>
 </aside>
 
@@ -156,7 +159,10 @@
         <div class="section-title">Phòng &amp; Villa</div>
 
         <c:if test="${not empty flashMsg}">
-            <div class="flash ${flashMsg.startsWith('✅') ? 'flash-success' : 'flash-error'}">${flashMsg}</div>
+            <c:choose>
+                <c:when test="${fn:startsWith(flashMsg, '✅')}"><div class="flash flash-success">${flashMsg}</div></c:when>
+                <c:otherwise><div class="flash flash-error">${flashMsg}</div></c:otherwise>
+            </c:choose>
         </c:if>
 
         <div class="stats-row">
@@ -201,11 +207,11 @@
                         <c:otherwise><c:set var="badgeSt" value="badge-available"/><c:set var="stLbl" value="${f.status}"/></c:otherwise>
                     </c:choose>
                     <c:choose>
-                        <c:when test="${f.facilityType == 'VILLA'}"><c:set var="typeBadge" value="badge-villa"/><c:set var="typeLbl" value="Villa"/></c:when>
-                        <c:when test="${f.facilityType == 'HOUSE'}"><c:set var="typeBadge" value="badge-house"/><c:set var="typeLbl" value="House"/></c:when>
-                        <c:otherwise><c:set var="typeBadge" value="badge-room"/><c:set var="typeLbl" value="Phòng"/></c:otherwise>
+                        <c:when test="${f.facilityType == 'VILLA'}"><c:set var="typeBadge" value="badge-villa"/><c:set var="typeLbl" value="Villa"/><c:set var="typeClass" value="type-villa"/></c:when>
+                        <c:when test="${f.facilityType == 'HOUSE'}"><c:set var="typeBadge" value="badge-house"/><c:set var="typeLbl" value="House"/><c:set var="typeClass" value="type-house"/></c:when>
+                        <c:otherwise><c:set var="typeBadge" value="badge-room"/><c:set var="typeLbl" value="Phòng"/><c:set var="typeClass" value="type-room"/></c:otherwise>
                     </c:choose>
-                    <div class="facility-card">
+                    <div class="facility-card ${typeClass}">
                         <div class="card-header">
                             <div>
                                 <div class="facility-code">${f.serviceCode}</div>

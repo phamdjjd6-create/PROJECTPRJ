@@ -75,9 +75,6 @@
         <li><a href="${pageContext.request.contextPath}/rooms" class="nav-link">Phòng &amp; Villa</a></li>
         <li><a href="${pageContext.request.contextPath}/booking" class="nav-link active">Đặt Phòng</a></li>
         <li><a href="${pageContext.request.contextPath}/account.jsp" class="nav-link">Tài Khoản</a></li>
-        <c:if test="${sessionScope.account.personType == 'EMPLOYEE'}">
-            <li><a href="${pageContext.request.contextPath}/dashboard/admin" class="nav-link text-gold font-bold border border-gold/20 px-4 py-1.5 rounded-full hover:bg-gold hover:text-dark transition-all">Bảng điều khiển</a></li>
-        </c:if>
     </ul>
 
     <div class="flex items-center gap-6">
@@ -159,7 +156,23 @@
                 </div>
 
                 <div class="pt-6">
-                    <button type="submit" class="w-full py-6 bg-gradient-to-r from-gold to-gold-light text-dark font-bold rounded-2xl uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-gold/30 flex items-center justify-center gap-3">
+                    <!-- Deposit Option -->
+                    <div id="depositBox" class="mb-6 p-5 rounded-2xl border border-gold/20 bg-gold/5 hidden">
+                        <div class="flex items-start gap-4">
+                            <input type="checkbox" name="depositNow" id="depositNow" value="1"
+                                   class="mt-1 w-4 h-4 accent-[#c9a84c] cursor-pointer flex-shrink-0">
+                            <div>
+                                <label for="depositNow" class="text-sm font-semibold text-gold cursor-pointer">Đặt cọc 10% ngay</label>
+                                <p class="text-[11px] text-white/40 mt-1 leading-relaxed">
+                                    Thanh toán trước 10% để xác nhận booking ngay lập tức — không cần chờ admin duyệt.<br>
+                                    Số tiền cọc: <strong id="depositAmt" class="text-gold">0 đ</strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" id="btnSubmitBooking" onclick="handleBookingSubmit()"
+                            class="w-full py-6 bg-gradient-to-r from-gold to-gold-light text-dark font-bold rounded-2xl uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-gold/30 flex items-center justify-center gap-3">
                         Gửi yêu cầu đặt phòng ✦
                     </button>
                     <p class="text-center mt-4 text-[10px] text-white/30 uppercase tracking-widest leading-relaxed">
@@ -167,6 +180,56 @@
                     </p>
                 </div>
             </form>
+
+            <!-- Payment Modal -->
+            <div id="payModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="display:none!important">
+                <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closePayModal()"></div>
+                <div class="relative bg-[#0d1526] border border-gold/25 rounded-[32px] p-8 w-full max-w-md shadow-2xl">
+                    <div class="text-center mb-6">
+                        <div class="text-4xl mb-3">💳</div>
+                        <h3 class="text-xl font-serif font-bold text-white">Thanh Toán Đặt Cọc</h3>
+                        <p class="text-xs text-white/40 mt-1">Chuyển khoản để xác nhận booking ngay</p>
+                    </div>
+
+                    <!-- QR placeholder + bank info -->
+                    <div class="bg-white rounded-2xl p-4 mb-5 flex items-center justify-center">
+                        <div style="width:160px;height:160px;background:#f0f0f0;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px">
+                            <div style="font-size:48px">📱</div>
+                            <div style="font-size:10px;color:#666;text-align:center;font-family:monospace" id="qrCode">QR CODE</div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                            <span class="text-xs text-white/40">Ngân hàng</span>
+                            <span class="text-xs font-bold text-white">VietcomBank</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                            <span class="text-xs text-white/40">Số tài khoản</span>
+                            <span class="text-xs font-bold text-white font-mono">1234 5678 9012</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                            <span class="text-xs text-white/40">Chủ tài khoản</span>
+                            <span class="text-xs font-bold text-white">AZURE RESORT SPA</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gold/10 border border-gold/20 rounded-xl">
+                            <span class="text-xs text-white/40">Số tiền</span>
+                            <span class="text-sm font-bold text-gold" id="modalAmt">0 đ</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                            <span class="text-xs text-white/40">Nội dung CK</span>
+                            <span class="text-xs font-bold text-white font-mono" id="modalCode">AZ...</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="closePayModal()" class="flex-1 py-3 border border-white/10 rounded-xl text-xs text-white/50 hover:text-white transition-colors">Hủy</button>
+                        <button onclick="confirmPayment()" class="flex-1 py-3 bg-gradient-to-r from-gold to-gold-light text-dark font-bold rounded-xl text-xs uppercase tracking-widest">
+                            Đã chuyển khoản ✓
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Right Column: Summary Card -->
@@ -264,108 +327,125 @@
 </footer>
 
 <script>
-    // Logic initialization
-    (function() {
-        const todayStrVal = new Date().toISOString().split('T')[0];
-        document.getElementById('startDate').min = todayStrVal;
-        document.getElementById('endDate').min = todayStrVal;
+(function() {
+    const today = new Date().toISOString().split('T')[0];
+    const startEl  = document.getElementById('startDate');
+    const endEl    = document.getElementById('endDate');
+    const endErr   = document.getElementById('endDateError');
+    const selEl    = document.getElementById('facilityId');
+    const fmtVND   = n => new Intl.NumberFormat('vi-VN').format(n) + ' đ';
 
-        const startDateInput = document.getElementById('startDate');
-        const endDateInput = document.getElementById('endDate');
-        const endDateError = document.getElementById('endDateError');
-        const bookingForm = document.getElementById('bookingForm');
-        const facilitySelect = document.getElementById('facilityId');
+    startEl.min = today;
+    endEl.min   = today;
 
-        function updatePrice() {
-            const selectedOption = facilitySelect.options[facilitySelect.selectedIndex];
-            const startVal = startDateInput.value;
-            const endVal = endDateInput.value;
-            const preview = document.getElementById('pricePreview');
-            const empty = document.getElementById('summaryEmpty');
+    // ── Price + deposit summary ───────────────────────────────────────────────
+    function updateSummary() {
+        const opt    = selEl.options[selEl.selectedIndex];
+        const start  = startEl.value;
+        const end    = endEl.value;
+        const preview = document.getElementById('pricePreview');
+        const empty   = document.getElementById('summaryEmpty');
 
-            if (!selectedOption || !selectedOption.value || !startVal || !endVal) {
-                preview.style.display = 'none';
-                empty.style.display = 'block';
-                return;
-            }
-
-            const price = parseFloat(selectedOption.getAttribute('data-price'));
-            const nights = Math.round((new Date(endVal) - new Date(startVal)) / 86400000);
-
-            if (!price || nights <= 0) {
-                preview.style.display = 'none';
-                empty.style.display = 'block';
-                return;
-            }
-
-            const fmt = n => new Intl.NumberFormat('vi-VN').format(n) + ' đ';
-            document.getElementById('summaryFacilityName').textContent = selectedOption.text.trim();
-            document.getElementById('summaryRate').textContent = fmt(price);
-            document.getElementById('summaryNights').textContent = nights + ' đêm';
-            document.getElementById('summaryTotal').textContent = fmt(price * nights);
-            
-            preview.style.display = 'block';
-            empty.style.display = 'none';
+        if (!opt || !opt.value || !start || !end) {
+            preview.style.display = 'none';
+            empty.style.display   = 'block';
+            document.getElementById('depositBox').classList.add('hidden');
+            return;
         }
 
-        function validateGuests() {
-            const facilityId = facilitySelect.value;
-            if(!facilityId) return true;
-            const limit = facilityId.startsWith('VL') ? 15 : facilityId.startsWith('HS') ? 5 : 3;
-            const adults = parseInt(document.getElementById('adults').value) || 0;
-            const children = parseInt(document.getElementById('children').value) || 0;
-            const total = adults + children;
-            const guestError = document.getElementById('guestError');
+        const price  = parseFloat(opt.getAttribute('data-price'));
+        const nights = Math.round((new Date(end) - new Date(start)) / 86400000);
 
-            if (limit && total > limit) {
-                guestError.textContent = `Giới hạn số người cho loại này là ${limit}.`;
-                guestError.style.display = 'block';
-                return false;
-            }
-            guestError.style.display = 'none';
-            return true;
+        if (!price || nights <= 0) {
+            preview.style.display = 'none';
+            empty.style.display   = 'block';
+            document.getElementById('depositBox').classList.add('hidden');
+            return;
         }
 
-        startDateInput.addEventListener('change', function() {
-            if(this.value) {
-                const startDate = new Date(this.value);
-                startDate.setDate(startDate.getDate() + 1);
-                const minEndDateStr = startDate.toISOString().split('T')[0];
-                endDateInput.min = minEndDateStr;
-                if(endDateInput.value && endDateInput.value < minEndDateStr) {
-                    endDateInput.value = minEndDateStr;
-                }
-            }
-            updatePrice();
-        });
+        const total = price * nights;
+        document.getElementById('summaryFacilityName').textContent = opt.text.trim();
+        document.getElementById('summaryRate').textContent         = fmtVND(price);
+        document.getElementById('summaryNights').textContent       = nights + ' đêm';
+        document.getElementById('summaryTotal').textContent        = fmtVND(total);
+        preview.style.display = 'block';
+        empty.style.display   = 'none';
 
-        endDateInput.addEventListener('change', updatePrice);
-        facilitySelect.addEventListener('change', () => {
-            updatePrice();
-            validateGuests();
-        });
-        document.getElementById('adults').addEventListener('input', validateGuests);
-        document.getElementById('children').addEventListener('input', validateGuests);
+        // Deposit box
+        document.getElementById('depositAmt').textContent = fmtVND(Math.round(total * 0.1));
+        document.getElementById('depositBox').classList.remove('hidden');
+    }
 
-        bookingForm.addEventListener('submit', function(e) {
-            let valid = true;
-            const start = new Date(startDateInput.value);
-            const end = new Date(endDateInput.value);
-            
-            if (end <= start) {
-                endDateError.classList.remove('hidden');
-                valid = false;
-            } else {
-                endDateError.classList.add('hidden');
-            }
+    // ── Guest validation ──────────────────────────────────────────────────────
+    function validateGuests() {
+        const id    = selEl.value;
+        if (!id) return true;
+        const limit = id.startsWith('VL') ? 15 : id.startsWith('HS') ? 5 : 3;
+        const total = (parseInt(document.getElementById('adults').value) || 0)
+                    + (parseInt(document.getElementById('children').value) || 0);
+        const err   = document.getElementById('guestError');
+        if (total > limit) {
+            err.textContent     = `Giới hạn số người cho loại này là ${limit}.`;
+            err.style.display   = 'block';
+            return false;
+        }
+        err.style.display = 'none';
+        return true;
+    }
 
-            if (!validateGuests()) valid = false;
-            if (!valid) e.preventDefault();
-        });
+    // ── Events ────────────────────────────────────────────────────────────────
+    startEl.addEventListener('change', function() {
+        if (this.value) {
+            const d = new Date(this.value);
+            d.setDate(d.getDate() + 1);
+            const min = d.toISOString().split('T')[0];
+            endEl.min = min;
+            if (endEl.value && endEl.value < min) endEl.value = min;
+        }
+        updateSummary();
+    });
+    endEl.addEventListener('change', updateSummary);
+    selEl.addEventListener('change', () => { updateSummary(); validateGuests(); });
+    document.getElementById('adults').addEventListener('input', validateGuests);
+    document.getElementById('children').addEventListener('input', validateGuests);
 
-        // Initial run
-        updatePrice();
-    })();
+    updateSummary();
+
+    // ── Submit handler ────────────────────────────────────────────────────────
+    let _payCode = '';
+
+    window.handleBookingSubmit = function() {
+        // Basic HTML5 validation
+        if (!document.getElementById('bookingForm').reportValidity()) return;
+
+        const start = new Date(startEl.value);
+        const end   = new Date(endEl.value);
+        if (end <= start) { endErr.classList.remove('hidden'); return; }
+        endErr.classList.add('hidden');
+        if (!validateGuests()) return;
+
+        if (document.getElementById('depositNow').checked) {
+            const total   = parseFloat(document.getElementById('summaryTotal').textContent.replace(/[^0-9]/g, '')) || 0;
+            const deposit = Math.round(total * 0.1);
+            _payCode = 'AZ' + Date.now().toString().slice(-8);
+            document.getElementById('modalAmt').textContent  = fmtVND(deposit);
+            document.getElementById('modalCode').textContent = _payCode;
+            document.getElementById('qrCode').textContent    = _payCode;
+            document.getElementById('payModal').style.removeProperty('display');
+        } else {
+            document.getElementById('bookingForm').submit();
+        }
+    };
+
+    window.closePayModal = function() {
+        document.getElementById('payModal').style.setProperty('display', 'none', 'important');
+    };
+
+    window.confirmPayment = function() {
+        closePayModal();
+        document.getElementById('bookingForm').submit();
+    };
+})();
 </script>
 
 <script src="assets/js/drum-datepicker.js"></script>

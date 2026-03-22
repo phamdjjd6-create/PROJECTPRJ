@@ -135,6 +135,7 @@
         </a>
     </nav>
     <div class="sidebar-footer">
+        <a href="${pageContext.request.contextPath}/" class="btn-logout" style="color:rgba(201,168,76,0.7);margin-bottom:6px">🏖️ Trang Chủ</a>
         <a href="${pageContext.request.contextPath}/logout" class="btn-logout">Đăng Xuất</a>
     </div>
 </aside>

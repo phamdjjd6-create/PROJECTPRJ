@@ -256,7 +256,7 @@
                                     <div class="flex items-center gap-4">
                                         <a href="facility-detail?code=${f.serviceCode}" class="flex-1 text-center py-3.5 border border-white/10 rounded-2xl text-xs font-bold text-white uppercase tracking-widest hover:border-gold hover:text-gold transition-all">Chi tiết</a>
                                         <c:if test="${isAvailable}">
-                                            <a href="booking?facility=${f.serviceCode}" class="flex-[1.5] text-center py-3.5 bg-gradient-to-r from-gold to-gold-light rounded-2xl text-xs font-bold text-dark uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-gold/20">Đặt ngay</a>
+                                            <button onclick="openBookingModal('${f.serviceCode}','${f.serviceName}',${f.cost})" class="flex-[1.5] text-center py-3.5 bg-gradient-to-r from-gold to-gold-light rounded-2xl text-xs font-bold text-dark uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-gold/20">Đặt ngay</button>
                                         </c:if>
                                     </div>
                                 </div>
@@ -282,6 +282,60 @@
     </div>
 </footer>
 
+<!-- BOOKING MODAL -->
+<div id="bookingModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4" style="display:none!important">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeBookingModal()"></div>
+    <div class="relative bg-[#0d1526] border border-gold/20 rounded-[32px] p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <p class="text-[10px] text-gold uppercase tracking-[0.3em] font-bold mb-1">Đặt Phòng Nhanh</p>
+                <h3 class="text-xl font-serif font-bold text-white" id="modalRoomName">—</h3>
+            </div>
+            <button onclick="closeBookingModal()" class="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all text-lg">✕</button>
+        </div>
+
+        <form action="${pageContext.request.contextPath}/booking" method="POST" id="quickBookForm" class="space-y-5">
+            <input type="hidden" name="facilityId" id="modalFacilityId">
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-2">Nhận Phòng</label>
+                    <input type="date" name="startDate" id="modalStart" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-gold/50 transition-all [color-scheme:dark]" required>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-2">Trả Phòng</label>
+                    <input type="date" name="endDate" id="modalEnd" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-gold/50 transition-all [color-scheme:dark]" required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-2">Người Lớn</label>
+                    <input type="number" name="adults" id="modalAdults" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-gold/50 transition-all" min="1" max="15" value="1" required>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-2">Trẻ Em</label>
+                    <input type="number" name="children" id="modalChildren" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-gold/50 transition-all" min="0" max="15" value="0" required>
+                </div>
+            </div>
+
+            <!-- Price preview -->
+            <div id="modalPriceRow" class="hidden p-4 bg-gold/5 border border-gold/15 rounded-2xl flex justify-between items-center">
+                <span class="text-xs text-white/40 uppercase tracking-widest">Tổng tạm tính</span>
+                <span class="text-lg font-serif font-bold text-gold" id="modalTotalPrice">—</span>
+            </div>
+
+            <p id="modalDateErr" class="text-xs text-red-400 hidden">Ngày trả phòng phải sau ngày nhận phòng.</p>
+
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeBookingModal()" class="flex-1 py-3.5 border border-white/10 rounded-2xl text-xs font-bold text-white/50 hover:text-white hover:border-white/30 transition-all uppercase tracking-widest">← Quay lại</button>
+                <button type="submit" class="flex-[2] py-3.5 bg-gradient-to-r from-gold to-gold-light rounded-2xl text-xs font-bold text-dark uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-gold/20">Xác nhận đặt phòng ✦</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     // Smooth Navbar Transition
     const nav = document.getElementById('navbar');
@@ -294,6 +348,63 @@
             nav.classList.add('h-20', 'bg-dark/80');
         }
     });
+
+    // ── Booking Modal ─────────────────────────────────────────────────────────
+    var _roomPrice = 0;
+    var modal = document.getElementById('bookingModal');
+
+    function openBookingModal(code, name, price) {
+        _roomPrice = parseFloat(price) || 0;
+        document.getElementById('modalFacilityId').value = code;
+        document.getElementById('modalRoomName').textContent = name;
+        var today = new Date().toISOString().split('T')[0];
+        var tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+        document.getElementById('modalStart').min = today;
+        document.getElementById('modalStart').value = today;
+        document.getElementById('modalEnd').min = tomorrow;
+        document.getElementById('modalEnd').value = tomorrow;
+        document.getElementById('modalPriceRow').classList.remove('hidden');
+        document.getElementById('modalTotalPrice').textContent = fmtVND(_roomPrice * 1);
+        modal.style.removeProperty('display');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeBookingModal() {
+        modal.style.setProperty('display', 'none', 'important');
+        document.body.style.overflow = '';
+    }
+
+    function fmtVND(n) { return new Intl.NumberFormat('vi-VN').format(Math.round(n)) + ' \u0111'; }
+
+    document.getElementById('modalStart').addEventListener('change', calcModalPrice);
+    document.getElementById('modalEnd').addEventListener('change', calcModalPrice);
+
+    function calcModalPrice() {
+        var s = document.getElementById('modalStart').value;
+        var e = document.getElementById('modalEnd').value;
+        var err = document.getElementById('modalDateErr');
+        if (!s || !e) return;
+        var nights = Math.round((new Date(e) - new Date(s)) / 86400000);
+        if (nights <= 0) { err.classList.remove('hidden'); document.getElementById('modalPriceRow').classList.add('hidden'); return; }
+        err.classList.add('hidden');
+        document.getElementById('modalPriceRow').classList.remove('hidden');
+        document.getElementById('modalTotalPrice').textContent = fmtVND(_roomPrice * nights) + ' (' + nights + ' \u0111\u00eam)';
+        // keep end min in sync
+        var minEnd = new Date(s); minEnd.setDate(minEnd.getDate() + 1);
+        document.getElementById('modalEnd').min = minEnd.toISOString().split('T')[0];
+    }
+
+    document.getElementById('quickBookForm').addEventListener('submit', function(e) {
+        var s = document.getElementById('modalStart').value;
+        var en = document.getElementById('modalEnd').value;
+        if (!s || !en || new Date(en) <= new Date(s)) {
+            e.preventDefault();
+            document.getElementById('modalDateErr').classList.remove('hidden');
+        }
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeBookingModal(); });
 </script>
 </body>
 </html>

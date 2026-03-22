@@ -68,6 +68,11 @@ public class BookingController extends HttpServlet {
                 TblBookings bk = bookingDAO.findById(bookingId);
                 if (bk == null) {
                     session.setAttribute("bookingFlash", "❌ Không tìm thấy booking " + bookingId);
+                } else if ("CHECKED_IN".equals(bk.getStatus()) || "CHECKED_OUT".equals(bk.getStatus())) {
+                    session.setAttribute("bookingFlash", "❌ Không thể hủy — khách đã check-in hoặc check-out.");
+                } else if ("CONFIRMED".equals(bk.getStatus())) {
+                    // Đã cọc → không cho hủy tự do, yêu cầu liên hệ admin
+                    session.setAttribute("bookingFlash", "❌ Booking đã xác nhận (có đặt cọc). Vui lòng liên hệ hotline 1800 7777 để được hỗ trợ hủy.");
                 } else if (!"PENDING".equals(bk.getStatus())) {
                     session.setAttribute("bookingFlash", "❌ Không thể hủy — booking đang ở trạng thái: " + bk.getStatus());
                 } else {
@@ -163,8 +168,21 @@ public class BookingController extends HttpServlet {
             
             bookingDAO.save(booking);
 
-            // Contract sẽ được tạo khi admin duyệt booking
-            session.setAttribute("bookingFlash", "✅ Đặt phòng thành công! Vui lòng chờ admin xác nhận.");
+            // Xử lý đặt cọc 10% ngay nếu user chọn
+            String depositNow = request.getParameter("depositNow");
+            if ("1".equals(depositNow)) {
+                BigDecimal deposit10 = totalPayment
+                    .multiply(new BigDecimal("0.10"))
+                    .setScale(0, java.math.RoundingMode.HALF_UP);
+                String payCode = "AZ" + System.currentTimeMillis() % 100000000L;
+                // Truyền totalPayment đã tính voucher vào để contract dùng đúng giá
+                contractDAO.createWithDeposit(booking.getBookingId(), totalPayment, deposit10, payCode);
+                session.setAttribute("bookingFlash",
+                    "✅ Đặt phòng thành công! Đã đặt cọc 10% (" +
+                    String.format("%,.0f", deposit10.doubleValue()) + " đ). Mã GD: " + payCode);
+            } else {
+                session.setAttribute("bookingFlash", "✅ Đặt phòng thành công! Vui lòng chờ admin xác nhận.");
+            }
             response.sendRedirect(request.getContextPath() + "/booking?view=my");
 
         } catch (Exception e) {
