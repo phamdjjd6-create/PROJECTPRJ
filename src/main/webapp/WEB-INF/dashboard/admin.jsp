@@ -304,9 +304,7 @@
                     <div style="padding:48px;text-align:center;color:var(--muted);font-size:13px;">Chưa có dữ liệu nhân viên</div>
                 </c:otherwise>
             </c:choose>
-        </div><!-- end recent bookings table-card -->
-    </div>
-</div>
+        </div><!-- end employees table-card -->
 
         <!-- RECENT BOOKINGS -->
         <div class="section-header" style="margin-top:28px">
@@ -353,7 +351,10 @@
                     <div style="padding:40px;text-align:center;color:var(--muted);font-size:13px;">Chưa có booking nào</div>
                 </c:otherwise>
             </c:choose>
-        </div>
+        </div><!-- end recent bookings table-card -->
+
+    </div><!-- end .content -->
+</div><!-- end .main -->
 
 <!-- Modal Report -->
 <div class="modal-overlay" id="reportModal">
