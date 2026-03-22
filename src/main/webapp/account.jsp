@@ -13,18 +13,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tài Khoản — Azure Resort</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
+        window.tailwind = { config: {
             darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: { gold: '#c9a84c', dark: '#0a0a0f', navy: '#0d1526', azure: '#3b82f6' },
-                    fontFamily: { serif: ['Playfair Display', 'serif'], sans: ['Inter', 'sans-serif'] }
-                }
-            }
-        }
+            theme: { extend: {
+                colors: { gold: '#c9a84c', 'gold-light': '#e8cc82', dark: '#0a0a0f', navy: '#0d1526', azure: '#3b82f6' },
+                fontFamily: { serif: ['Playfair Display', 'serif'], sans: ['Inter', 'sans-serif'] }
+            }}
+        }};
     </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0a0a0f; }
+        .nav-fixed { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; display: flex; align-items: center; justify-content: space-between; transition: all 0.5s; }
+        .glass-panel { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); backdrop-filter: blur(20px); }
+        @keyframes reveal { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-reveal { animation: reveal 0.6s ease forwards; opacity: 0; }
+    </style>
 </head>
 <body class="dark font-sans antialiased">
 
