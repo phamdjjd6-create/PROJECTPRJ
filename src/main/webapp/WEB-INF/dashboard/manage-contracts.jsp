@@ -155,7 +155,11 @@
         <div class="section-title">Hợp Đồng Phòng</div>
 
         <c:if test="${not empty flashMsg}">
-            <div class="flash ${flashMsg.startsWith('✅') ? 'flash-success' : flashMsg.startsWith('⚠️') ? 'flash-warn' : 'flash-error'}">${flashMsg}</div>
+            <c:choose>
+                <c:when test="${fn:startsWith(flashMsg, '✅')}"><div class="flash flash-success">${flashMsg}</div></c:when>
+                <c:when test="${fn:startsWith(flashMsg, '⚠️')}"><div class="flash flash-warn">${flashMsg}</div></c:when>
+                <c:otherwise><div class="flash flash-error">${flashMsg}</div></c:otherwise>
+            </c:choose>
         </c:if>
 
         <div class="stats-row">
@@ -217,7 +221,10 @@
                             <div class="info-row">
                                 <div class="info-item">
                                     <div class="lbl">Đặt Cọc</div>
-                                    <div class="val ${ct.deposit > 0 ? 'green' : 'yellow'}"><fmt:formatNumber value="${ct.deposit}" type="number" groupingUsed="true"/> đ</div>
+                                    <c:choose>
+                                        <c:when test="${ct.deposit > 0}"><div class="val green"><fmt:formatNumber value="${ct.deposit}" type="number" groupingUsed="true"/> đ</div></c:when>
+                                        <c:otherwise><div class="val yellow"><fmt:formatNumber value="${ct.deposit}" type="number" groupingUsed="true"/> đ</div></c:otherwise>
+                                    </c:choose>
                                 </div>
                                 <div class="info-item">
                                     <div class="lbl">Tổng Giá Trị</div>
@@ -229,12 +236,14 @@
                                 </div>
                                 <div class="info-item">
                                     <div class="lbl">Còn Lại</div>
-                                    <div class="val ${ct.remainingAmount > 0 ? 'yellow' : 'green'}">
-                                        <c:choose>
-                                            <c:when test="${ct.remainingAmount > 0}"><fmt:formatNumber value="${ct.remainingAmount}" type="number" groupingUsed="true"/> đ</c:when>
-                                            <c:otherwise>✓ Đủ</c:otherwise>
-                                        </c:choose>
-                                    </div>
+                                    <c:choose>
+                                        <c:when test="${ct.remainingAmount > 0}">
+                                            <div class="val yellow"><fmt:formatNumber value="${ct.remainingAmount}" type="number" groupingUsed="true"/> đ</div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="val green">✓ Đủ</div>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                                 <div class="info-item"><div class="lbl">Nhận Phòng</div><div class="val">${ct.startDate}</div></div>
                                 <div class="info-item"><div class="lbl">Trả Phòng</div><div class="val">${ct.endDate}</div></div>
@@ -271,9 +280,11 @@
                             </div>
                             </c:if>
                             <c:if test="${ct.status == 'ACTIVE' && ct.remainingAmount > 0}">
+                            <c:set var="remAmt" value="${ct.remainingAmount}"/>
                             <div class="card-actions">
                                 <button type="button" class="btn-action btn-complete"
-                                    onclick="openPayModal('${ct.contractId}', ${ct.remainingAmount})">
+                                    data-contract="${ct.contractId}" data-remaining="${remAmt}"
+                                    onclick="openPayModal(this.dataset.contract, this.dataset.remaining)">
                                     💳 Xác Nhận Thanh Toán Thêm
                                 </button>
                             </div>

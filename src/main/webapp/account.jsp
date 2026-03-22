@@ -1,11 +1,20 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<c:if test="${empty sessionScope.account}">
-    <c:redirect url="/login.jsp"/>
-</c:if>
-<c:set var="account" value="${sessionScope.account.fullName}"/>
-<c:set var="currentUser" value="${sessionScope.account}"/>
+<%@ page import="model.TblPersons, model.TblEmployees" %>
+<%
+    TblPersons currentUser = (TblPersons) session.getAttribute("account");
+    if (currentUser == null) { response.sendRedirect(request.getContextPath() + "/login"); return; }
+    pageContext.setAttribute("currentUser", currentUser);
+    boolean isEmployee = currentUser instanceof TblEmployees;
+    pageContext.setAttribute("isEmployee", isEmployee);
+    String dashboardUrl = "";
+    if (isEmployee) {
+        String role = ((TblEmployees) currentUser).getRole();
+        dashboardUrl = "ADMIN".equals(role) ? request.getContextPath() + "/dashboard/admin" : request.getContextPath() + "/dashboard/staff";
+    }
+    pageContext.setAttribute("dashboardUrl", dashboardUrl);
+%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -13,167 +22,208 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tài Khoản — Azure Resort</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        window.tailwind = { config: {
-            darkMode: 'class',
-            theme: { extend: {
-                colors: { gold: '#c9a84c', 'gold-light': '#e8cc82', dark: '#0a0a0f', navy: '#0d1526', azure: '#3b82f6' },
-                fontFamily: { serif: ['Playfair Display', 'serif'], sans: ['Inter', 'sans-serif'] }
-            }}
-        }};
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0a0a0f; }
-        .nav-fixed { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; display: flex; align-items: center; justify-content: space-between; transition: all 0.5s; }
-        .glass-panel { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); backdrop-filter: blur(20px); }
-        @keyframes reveal { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-reveal { animation: reveal 0.6s ease forwards; opacity: 0; }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{--gold:#c9a84c;--gold-light:#e8cc82;--dark:#0a0a0f;--navy:#0d1526;--card:rgba(255,255,255,0.025);--border:rgba(255,255,255,0.07);--text:#e8e8e8;--muted:rgba(255,255,255,0.35)}
+        body{font-family:'Inter',sans-serif;background:var(--dark);color:var(--text);min-height:100vh}
+
+        /* ── Navbar ── */
+        .navbar{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:70px;background:rgba(10,10,15,0.88);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,0.05);transition:height 0.3s,background 0.3s}
+        .brand{display:flex;align-items:center;gap:12px;text-decoration:none;font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:#fff}
+        .brand-icon{width:34px;height:34px;border-radius:9px;background:var(--gold);display:flex;align-items:center;justify-content:center;color:var(--dark);font-style:italic;font-size:17px;font-weight:700;flex-shrink:0}
+        .brand em{color:var(--gold);font-style:normal}
+        .nav-links{display:flex;align-items:center;gap:32px;list-style:none}
+        .nav-links a{color:rgba(255,255,255,0.38);text-decoration:none;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;transition:color 0.2s;padding:4px 0;position:relative}
+        .nav-links a:hover{color:#fff}
+        .nav-links a.active{color:var(--gold)}
+        .nav-links a.active::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:1.5px;background:var(--gold);border-radius:2px}
+        .nav-links a.btn-dash{padding:7px 18px;border:1.5px solid rgba(201,168,76,0.35);border-radius:50px;color:var(--gold)}
+        .nav-links a.btn-dash:hover{background:var(--gold);color:var(--dark)}
+        .nav-links a.btn-dash::after{display:none}
+        .nav-right{display:flex;align-items:center;gap:14px}
+        .nav-user-info{display:flex;flex-direction:column;align-items:flex-end}
+        .nav-user-info .label{font-size:8.5px;color:rgba(255,255,255,0.18);text-transform:uppercase;letter-spacing:0.3em;font-weight:700}
+        .nav-user-info .name{font-size:13px;font-weight:700;color:var(--gold)}
+        .btn-logout-nav{width:34px;height:34px;border-radius:9px;border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.35);text-decoration:none;transition:all 0.2s;font-size:15px}
+        .btn-logout-nav:hover{color:#f87171;border-color:rgba(248,113,113,0.3);background:rgba(248,113,113,0.06)}
+
+        /* ── Layout ── */
+        main{max-width:1100px;margin:0 auto;padding:110px 28px 80px}
+
+        /* ── Breadcrumb ── */
+        .breadcrumb{display:flex;align-items:center;gap:8px;font-size:10px;color:rgba(255,255,255,0.22);text-transform:uppercase;letter-spacing:0.25em;font-weight:700;margin-bottom:40px}
+        .breadcrumb a{color:rgba(255,255,255,0.22);text-decoration:none;transition:color 0.2s}
+        .breadcrumb a:hover{color:var(--gold)}
+        .breadcrumb .sep{opacity:0.3}
+        .breadcrumb .current{color:var(--gold)}
+
+        /* ── Hero Banner ── */
+        .hero-banner{background:var(--card);border:1px solid var(--border);border-radius:28px;padding:36px 44px;margin-bottom:40px;display:flex;align-items:center;gap:28px;position:relative;overflow:hidden}
+        .hero-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold-light),transparent)}
+        .avatar{width:88px;height:88px;border-radius:20px;background:linear-gradient(135deg,var(--gold),var(--gold-light));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--dark);flex-shrink:0;box-shadow:0 8px 32px rgba(201,168,76,0.25)}
+        .hero-info{flex:1}
+        .hero-badge{display:inline-block;padding:4px 14px;border-radius:50px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);color:var(--gold);font-size:9px;text-transform:uppercase;letter-spacing:0.3em;font-weight:700;margin-bottom:10px}
+        .hero-name{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:#fff;margin-bottom:8px;line-height:1.1}
+        .hero-meta{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+        .hero-meta span{font-size:13px;color:rgba(255,255,255,0.38);display:flex;align-items:center;gap:6px}
+        .btn-edit-profile{padding:10px 24px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;text-decoration:none;transition:all 0.2s;white-space:nowrap;flex-shrink:0}
+        .btn-edit-profile:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.05)}
+
+        /* ── Section header ── */
+        .section-header{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+        .section-header span{font-size:10px;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.35em;font-weight:700;white-space:nowrap}
+        .section-header::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.05)}
+
+        /* ── Cards grid ── */
+        .cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+        @media(max-width:900px){.cards-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:560px){.cards-grid{grid-template-columns:1fr}}
+
+        .card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:28px;text-decoration:none;display:block;transition:all 0.25s;position:relative;overflow:hidden}
+        .card:hover{border-color:rgba(201,168,76,0.28);transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,0.3),0 0 0 1px rgba(201,168,76,0.08)}
+        .card-icon-wrap{width:52px;height:52px;border-radius:14px;background:rgba(201,168,76,0.08);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:20px;transition:all 0.25s}
+        .card:hover .card-icon-wrap{background:var(--gold);transform:scale(1.05)}
+        .card-arrow{position:absolute;top:28px;right:28px;color:var(--gold);font-size:16px;opacity:0.5;transition:all 0.25s}
+        .card:hover .card-arrow{opacity:1;transform:translateX(3px)}
+        .card-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#fff;margin-bottom:6px;transition:color 0.2s}
+        .card:hover .card-title{color:var(--gold)}
+        .card-desc{font-size:10.5px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.15em;font-weight:600}
+
+        /* Special cards */
+        .card-admin{border-color:rgba(201,168,76,0.18);background:rgba(201,168,76,0.04)}
+        .card-admin .card-icon-wrap{background:var(--gold)}
+        .card-admin .card-title{color:var(--gold)}
+        .card-logout:hover{border-color:rgba(248,113,113,0.3);box-shadow:0 16px 40px rgba(0,0,0,0.3),0 0 0 1px rgba(248,113,113,0.08)}
+        .card-logout .card-icon-wrap{background:rgba(248,113,113,0.08)}
+        .card-logout:hover .card-icon-wrap{background:#f87171}
+        .card-logout .card-arrow{color:#f87171}
+        .card-logout:hover .card-title{color:#f87171}
+
+        /* ── Footer ── */
+        footer{border-top:1px solid rgba(255,255,255,0.05);padding:32px 48px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:rgba(255,255,255,0.15);text-transform:uppercase;letter-spacing:0.25em;font-weight:700}
+        footer em{color:var(--gold);font-style:italic;font-family:'Playfair Display',serif}
     </style>
 </head>
-<body class="dark font-sans antialiased">
+<body>
 
-<!-- NAVBAR -->
-<nav id="navbar" class="nav-fixed px-12 h-24 bg-dark/40 backdrop-blur-2xl border-b border-white/5">
-    <a href="${pageContext.request.contextPath}/" class="text-2xl font-serif font-bold tracking-tight text-white group flex items-center gap-3">
-        <span class="w-10 h-10 rounded-xl bg-gold flex items-center justify-center text-dark italic text-xl">A</span>
-        Azure <span class="text-gold group-hover:text-white transition-colors">Resort</span>
+<nav class="navbar" id="navbar">
+    <a href="${pageContext.request.contextPath}/" class="brand">
+        <div class="brand-icon">A</div>
+        Azure <em>Resort</em>
     </a>
-    
-    <ul class="hidden lg:flex items-center gap-12">
-        <li><a href="${pageContext.request.contextPath}/" class="text-white/40 hover:text-gold transition-all text-[11px] font-bold uppercase tracking-[0.2em] relative py-2">Trang Chủ</a></li>
-        <li><a href="${pageContext.request.contextPath}/rooms" class="text-white/40 hover:text-gold transition-all text-[11px] font-bold uppercase tracking-[0.2em] relative py-2">Phòng &amp; Villa</a></li>
-        <li><a href="${pageContext.request.contextPath}/booking" class="text-white/40 hover:text-gold transition-all text-[11px] font-bold uppercase tracking-[0.2em] relative py-2">Đặt Phòng</a></li>
-        <li><a href="${pageContext.request.contextPath}/account.jsp" class="text-gold transition-all text-[11px] font-bold uppercase tracking-[0.2em] relative py-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-px after:bg-gold">Tài Khoản</a></li>
-        <c:if test="${sessionScope.account.personType == 'EMPLOYEE'}">
-            <li><a href="${pageContext.request.contextPath}/dashboard/admin" class="px-6 py-2.5 bg-white/5 border border-gold/30 rounded-full text-[10px] font-bold text-gold uppercase tracking-[0.2em] hover:bg-gold hover:text-dark transition-all">Bảng Điều Khiển</a></li>
+    <ul class="nav-links">
+        <li><a href="${pageContext.request.contextPath}/">Trang Chủ</a></li>
+        <li><a href="${pageContext.request.contextPath}/rooms">Phòng &amp; Villa</a></li>
+        <li><a href="${pageContext.request.contextPath}/booking">Đặt Phòng</a></li>
+        <li><a href="${pageContext.request.contextPath}/account.jsp" class="active">Tài Khoản</a></li>
+        <c:if test="${isEmployee}">
+            <li><a href="${dashboardUrl}" class="btn-dash">Dashboard</a></li>
         </c:if>
     </ul>
-
-    <div class="flex items-center gap-8">
-        <div class="hidden sm:flex flex-col items-end">
-            <span class="text-[9px] text-white/20 uppercase tracking-[0.3em] font-bold">Authenticated as</span>
-            <span class="text-sm font-bold text-gold tracking-tight">${account}</span>
+    <div class="nav-right">
+        <div class="nav-user-info">
+            <span class="label">Logged in as</span>
+            <span class="name">${currentUser.fullName}</span>
         </div>
-        <a href="${pageContext.request.contextPath}/logout" class="w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center text-white/40 hover:text-red-400 hover:border-red-400/30 hover:bg-red-500/5 transition-all" title="Đăng xuất">⎋</a>
+        <a href="${pageContext.request.contextPath}/logout" class="btn-logout-nav" title="Đăng xuất">⎋</a>
     </div>
 </nav>
 
-<main class="max-w-6xl mx-auto px-6 md:px-12 pt-32 pb-24">
-    <!-- Breadcrumbs -->
-    <nav class="flex items-center gap-2 text-[10px] text-white/40 uppercase tracking-[0.2em] mb-12 animate-reveal">
-        <a href="${pageContext.request.contextPath}/" class="hover:text-gold transition-colors">Trang Chủ</a>
-        <span>/</span>
-        <span class="text-gold">Trung tâm khách hàng</span>
+<main>
+    <nav class="breadcrumb">
+        <a href="${pageContext.request.contextPath}/">Trang Chủ</a>
+        <span class="sep">/</span>
+        <span class="current">Tài Khoản</span>
     </nav>
 
-    <!-- Profile Banner -->
-    <div class="glass-panel rounded-[40px] p-10 md:p-14 mb-16 flex flex-col md:flex-row items-center gap-10 animate-reveal" style="animation-delay: 100ms">
-        <div class="w-32 h-32 rounded-3xl bg-gradient-to-br from-gold to-gold-light flex items-center justify-center text-4xl font-serif font-bold text-dark shadow-2xl shadow-gold/20 flex-shrink-0">
-            ${fn:substring(account, 0, 1)}
-        </div>
-        <div class="text-center md:text-left space-y-3">
-            <span class="inline-block px-4 py-1.5 bg-gold/10 border border-gold/20 rounded-full text-[10px] font-bold text-gold uppercase tracking-widest">
-                ${currentUser.personType == 'EMPLOYEE' ? 'Staff Member' : 'Elite Member'}
-            </span>
-            <h2 class="text-4xl md:text-5xl font-serif font-bold text-white tracking-tight">${account}</h2>
-            <div class="flex flex-col md:flex-row md:items-center gap-4 text-white/40 text-sm">
-                <div class="flex items-center gap-2"><span>✉️</span> ${currentUser.email}</div>
-                <div class="hidden md:block w-1 h-1 bg-white/10 rounded-full"></div>
-                <div class="flex items-center gap-2"><span>📱</span> ${not empty currentUser.phoneNumber ? currentUser.phoneNumber : 'Chưa cập nhật'}</div>
+    <!-- Hero -->
+    <div class="hero-banner">
+        <div class="avatar">${fn:substring(currentUser.fullName, 0, 1)}</div>
+        <div class="hero-info">
+            <div class="hero-badge">${isEmployee ? 'Staff Member' : 'Elite Member'}</div>
+            <div class="hero-name">${currentUser.fullName}</div>
+            <div class="hero-meta">
+                <span>✉️ ${not empty currentUser.email ? currentUser.email : 'Chưa cập nhật'}</span>
+                <span>📱 ${not empty currentUser.phoneNumber ? currentUser.phoneNumber : 'Chưa cập nhật'}</span>
             </div>
         </div>
-        <div class="md:ml-auto">
-            <a href="${pageContext.request.contextPath}/profile" class="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-xs font-bold text-white uppercase tracking-widest hover:border-gold hover:text-gold transition-all block text-center">Chỉnh sửa hồ sơ</a>
-        </div>
+        <a href="${pageContext.request.contextPath}/profile" class="btn-edit-profile">✏️ Chỉnh sửa hồ sơ</a>
     </div>
 
-    <!-- Dashboard Tools -->
-    <div class="space-y-10">
-        <div class="flex items-center gap-4 animate-reveal" style="animation-delay: 200ms">
-            <h3 class="text-xs font-bold text-white/30 uppercase tracking-[0.4em]">Quản trị tài khoản</h3>
-            <div class="h-px flex-1 bg-white/5"></div>
-        </div>
+    <!-- Cards -->
+    <div class="section-header"><span>Quản trị tài khoản</span></div>
+    <div class="cards-grid">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-reveal" style="animation-delay: 300ms">
-            <a href="${pageContext.request.contextPath}/booking?view=my" class="glass-panel rounded-[32px] p-8 transition-all duration-300 hover:bg-gold/5 hover:border-gold/30 hover:-translate-y-2 hover:shadow-2xl hover:shadow-gold/10 group">
-                <div class="flex items-start justify-between mb-8">
-                    <div class="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center text-2xl group-hover:bg-gold group-hover:text-dark transition-all duration-300">📋</div>
-                    <span class="text-gold text-lg group-hover:translate-x-1 transition-transform">→</span>
-                </div>
-                <h4 class="text-xl font-serif font-bold text-white mb-3 group-hover:text-gold transition-colors">Booking Của Tôi</h4>
-                <p class="text-xs text-white/40 leading-relaxed font-bold uppercase tracking-widest pt-2">Lịch sử & Trạng thái</p>
-            </a>
+        <a href="${pageContext.request.contextPath}/booking?view=my" class="card">
+            <div class="card-icon-wrap">📋</div>
+            <span class="card-arrow">→</span>
+            <div class="card-title">Booking Của Tôi</div>
+            <div class="card-desc">Lịch sử &amp; Trạng thái</div>
+        </a>
 
-            <a href="${pageContext.request.contextPath}/contracts" class="glass-panel rounded-[32px] p-8 transition-all duration-300 hover:bg-gold/5 hover:border-gold/30 hover:-translate-y-2 hover:shadow-2xl hover:shadow-gold/10 group">
-                <div class="flex items-start justify-between mb-8">
-                    <div class="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center text-2xl group-hover:bg-gold group-hover:text-dark transition-all duration-300">📄</div>
-                    <span class="text-gold text-lg group-hover:translate-x-1 transition-transform">→</span>
-                </div>
-                <h4 class="text-xl font-serif font-bold text-white mb-3 group-hover:text-gold transition-colors">Hợp Đồng & Thanh Toán</h4>
-                <p class="text-xs text-white/40 leading-relaxed font-bold uppercase tracking-widest pt-2">Giao dịch & Chứng từ</p>
-            </a>
+        <a href="${pageContext.request.contextPath}/contracts" class="card">
+            <div class="card-icon-wrap">📄</div>
+            <span class="card-arrow">→</span>
+            <div class="card-title">Hợp Đồng &amp; Thanh Toán</div>
+            <div class="card-desc">Giao dịch &amp; Chứng từ</div>
+        </a>
 
-            <a href="${pageContext.request.contextPath}/profile" class="glass-panel rounded-[32px] p-8 transition-all duration-300 hover:bg-gold/5 hover:border-gold/30 hover:-translate-y-2 hover:shadow-2xl hover:shadow-gold/10 group">
-                <div class="flex items-start justify-between mb-8">
-                    <div class="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center text-2xl group-hover:bg-gold group-hover:text-dark transition-all duration-300">👤</div>
-                    <span class="text-gold text-lg group-hover:translate-x-1 transition-transform">→</span>
-                </div>
-                <h4 class="text-xl font-serif font-bold text-white mb-3 group-hover:text-gold transition-colors">Hồ Sơ Cá Nhân</h4>
-                <p class="text-xs text-white/40 leading-relaxed font-bold uppercase tracking-widest pt-2">Bảo mật & Thông tin</p>
-            </a>
+        <a href="${pageContext.request.contextPath}/profile" class="card">
+            <div class="card-icon-wrap">👤</div>
+            <span class="card-arrow">→</span>
+            <div class="card-title">Hồ Sơ Cá Nhân</div>
+            <div class="card-desc">Bảo mật &amp; Thông tin</div>
+        </a>
 
-            <a href="${pageContext.request.contextPath}/#promotions" class="glass-panel rounded-[32px] p-8 transition-all duration-300 hover:bg-gold/5 hover:border-gold/30 hover:-translate-y-2 hover:shadow-2xl hover:shadow-gold/10 group">
-                <div class="flex items-start justify-between mb-8">
-                    <div class="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center text-2xl group-hover:bg-gold group-hover:text-dark transition-all duration-300">🎁</div>
-                    <span class="text-gold text-lg group-hover:translate-x-1 transition-transform">→</span>
-                </div>
-                <h4 class="text-xl font-serif font-bold text-white mb-3 group-hover:text-gold transition-colors">Ưu Đãi Đặc Quyền</h4>
-                <p class="text-xs text-white/40 leading-relaxed font-bold uppercase tracking-widest pt-2">Voucher & Rewards</p>
-            </a>
+        <a href="${pageContext.request.contextPath}/#promotions" class="card">
+            <div class="card-icon-wrap">🎁</div>
+            <span class="card-arrow">→</span>
+            <div class="card-title">Ưu Đãi Đặc Quyền</div>
+            <div class="card-desc">Voucher &amp; Rewards</div>
+        </a>
 
-            <a href="${pageContext.request.contextPath}/rooms" class="glass-panel rounded-[32px] p-8 transition-all duration-300 hover:bg-gold/5 hover:border-gold/30 hover:-translate-y-2 hover:shadow-2xl hover:shadow-gold/10 group">
-                <div class="flex items-start justify-between mb-8">
-                    <div class="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center text-2xl group-hover:bg-gold group-hover:text-dark transition-all duration-300">🏖️</div>
-                    <span class="text-gold text-lg group-hover:translate-x-1 transition-transform">→</span>
-                </div>
-                <h4 class="text-xl font-serif font-bold text-white mb-3 group-hover:text-gold transition-colors">Đặt Phòng Mới</h4>
-                <p class="text-xs text-white/40 leading-relaxed font-bold uppercase tracking-widest pt-2">Khám phá thiên đường</p>
-            </a>
+        <a href="${pageContext.request.contextPath}/rooms" class="card">
+            <div class="card-icon-wrap">🏖️</div>
+            <span class="card-arrow">→</span>
+            <div class="card-title">Đặt Phòng Mới</div>
+            <div class="card-desc">Khám phá thiên đường</div>
+        </a>
 
-            <c:if test="${sessionScope.account.personType == 'EMPLOYEE'}">
-                <a href="${pageContext.request.contextPath}/dashboard/admin" class="glass-panel rounded-[32px] p-8 transition-all duration-300 hover:bg-gold/5 hover:border-gold/30 hover:-translate-y-2 hover:shadow-2xl hover:shadow-gold/10 ring-1 ring-gold/20 bg-gold/5 border-gold/20 border-dashed group">
-                    <div class="flex items-start justify-between mb-8">
-                        <div class="w-14 h-14 rounded-2xl bg-gold flex items-center justify-center text-dark font-bold text-lg transition-all duration-300">⌘</div>
-                        <span class="text-gold text-lg group-hover:translate-x-1 transition-transform">→</span>
-                    </div>
-                    <h4 class="text-xl font-serif font-bold text-gold mb-3 transition-colors">Bản Điều Khiển Quản Trị</h4>
-                    <p class="text-[10px] text-white/60 leading-relaxed font-bold uppercase tracking-widest italic pt-2">Internal Access Only</p>
-                </a>
-            </c:if>
+        <c:if test="${isEmployee}">
+        <a href="${dashboardUrl}" class="card card-admin">
+            <div class="card-icon-wrap">⌘</div>
+            <span class="card-arrow">→</span>
+            <div class="card-title">Bảng Điều Khiển</div>
+            <div class="card-desc">Internal Access Only</div>
+        </a>
+        </c:if>
 
-            <a href="${pageContext.request.contextPath}/logout" class="glass-panel rounded-[32px] p-8 transition-all duration-300 hover:bg-red-500/5 hover:border-red-500/30 hover:-translate-y-2 hover:shadow-2xl hover:shadow-red-500/10 group">
-                <div class="flex items-start justify-between mb-8">
-                    <div class="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center text-2xl group-hover:bg-red-500 group-hover:text-white transition-all duration-300">🚪</div>
-                    <span class="text-red-500 text-lg group-hover:translate-x-1 transition-transform">→</span>
-                </div>
-                <h4 class="text-xl font-serif font-bold text-white mb-3 group-hover:text-red-500 transition-colors">Đăng Xuất</h4>
-                <p class="text-xs text-white/40 leading-relaxed font-bold uppercase tracking-widest pt-2">Kết thúc phiên làm việc</p>
-            </a>
-        </div>
+        <a href="${pageContext.request.contextPath}/logout" class="card card-logout">
+            <div class="card-icon-wrap">🚪</div>
+            <span class="card-arrow">→</span>
+            <div class="card-title">Đăng Xuất</div>
+            <div class="card-desc">Kết thúc phiên làm việc</div>
+        </a>
+
     </div>
 </main>
 
-<footer class="bg-[#060608] border-t border-white/5 py-12 px-6 md:px-12">
-    <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-        <div class="text-white/20 text-[10px] tracking-[0.2em] font-bold uppercase">
-            © 2026 Azure Resort & Spa — Identity Central
-        </div>
-        <div class="flex items-center gap-1 text-white/20 text-[10px] tracking-[0.2em] font-bold uppercase">
-            Designed for <span class="text-gold font-serif italic ml-1">Excellence</span>
-        </div>
-    </div>
+<footer>
+    <span>© 2026 Azure Resort &amp; Spa</span>
+    <span>Designed for <em>Excellence</em></span>
 </footer>
 
+<script>
+    window.addEventListener('scroll', () => {
+        const nav = document.getElementById('navbar');
+        if (window.scrollY > 40) {
+            nav.style.height = '58px';
+            nav.style.background = 'rgba(10,10,15,0.97)';
+        } else {
+            nav.style.height = '70px';
+            nav.style.background = 'rgba(10,10,15,0.88)';
+        }
+    });
+</script>
 </body>
 </html>

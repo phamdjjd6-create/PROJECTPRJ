@@ -105,9 +105,11 @@ public class VwContracts implements Serializable {
     @Size(min = 1, max = 10)
     @Column(name = "end_date")
     private String endDate;
-    @jakarta.persistence.Transient
+    @Size(max = 20)
+    @Column(name = "facility_id")
     private String facilityId;
-    @jakarta.persistence.Transient
+    @Size(max = 20)
+    @Column(name = "facility_type")
     private String facilityType;
     @Basic(optional = false)
     @NotNull

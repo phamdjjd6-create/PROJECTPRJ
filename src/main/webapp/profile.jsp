@@ -1,10 +1,19 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-<%@ page import="model.TblPersons" %>
+<%@ page import="model.TblPersons, model.TblEmployees" %>
 <%
     TblPersons currentUser = (TblPersons) session.getAttribute("account");
     if (currentUser == null) { response.sendRedirect(request.getContextPath() + "/login"); return; }
+    pageContext.setAttribute("currentUser", currentUser);
+    boolean isEmployee = currentUser instanceof TblEmployees;
+    pageContext.setAttribute("isEmployee", isEmployee);
+    String dashboardUrl = "";
+    if (isEmployee) {
+        String role = ((TblEmployees) currentUser).getRole();
+        dashboardUrl = "ADMIN".equals(role) ? request.getContextPath() + "/dashboard/admin" : request.getContextPath() + "/dashboard/staff";
+    }
+    pageContext.setAttribute("dashboardUrl", dashboardUrl);
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -31,7 +40,8 @@
         .nav-user-name span:first-child{font-size:9px;color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:0.3em;font-weight:700}
         .nav-user-name span:last-child{font-size:13px;font-weight:700;color:var(--gold)}
         .btn-logout-nav{width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.4);text-decoration:none;transition:all 0.2s;font-size:16px}
-        .btn-logout-nav:hover{color:#f87171;border-color:rgba(248,113,113,0.3);background:rgba(248,113,113,0.05)}
+        .nav-links a.btn-dash{padding:7px 18px;border:1.5px solid rgba(201,168,76,0.35);border-radius:50px;color:var(--gold)}
+        .nav-links a.btn-dash:hover{background:var(--gold);color:var(--dark)}
 
         /* Main */
         main{max-width:860px;margin:0 auto;padding:120px 24px 80px}
@@ -95,6 +105,9 @@
         <li><a href="${pageContext.request.contextPath}/rooms">Phòng &amp; Villa</a></li>
         <li><a href="${pageContext.request.contextPath}/booking">Đặt Phòng</a></li>
         <li><a href="${pageContext.request.contextPath}/account.jsp" class="active">Tài Khoản</a></li>
+        <c:if test="${isEmployee}">
+            <li><a href="${dashboardUrl}" class="btn-dash">Dashboard</a></li>
+        </c:if>
     </ul>
     <div class="nav-user">
         <div class="nav-user-name">
@@ -207,6 +220,10 @@
                     <a href="${pageContext.request.contextPath}/account.jsp">Trở về tài khoản</a>
                     <div class="sep"></div>
                     <a href="${pageContext.request.contextPath}/password_change">Đổi mật khẩu</a>
+                    <c:if test="${isEmployee}">
+                        <div class="sep"></div>
+                        <a href="${dashboardUrl}">Quay về Dashboard</a>
+                    </c:if>
                 </div>
             </div>
         </form>
