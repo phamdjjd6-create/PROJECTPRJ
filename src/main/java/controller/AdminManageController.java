@@ -318,8 +318,10 @@ public class AdminManageController extends HttpServlet {
     private void handleBookings(HttpServletRequest req, HttpServletResponse res)
             throws ServletException, IOException {
 
-        String status = req.getParameter("status"); // PENDING, CONFIRMED, CHECKED_IN, etc.
-        String search = req.getParameter("q");
+        String status   = req.getParameter("status");
+        String search   = req.getParameter("q");
+        String dateFrom = req.getParameter("dateFrom");
+        String dateTo   = req.getParameter("dateTo");
 
         List<VwBookings> bookings = (status != null && !status.equals("ALL"))
             ? bookingDAO.findByStatus(status)
@@ -334,9 +336,29 @@ public class AdminManageController extends HttpServlet {
                 .toList();
         }
 
+        // Date range filter on startDate
+        if (dateFrom != null && !dateFrom.isBlank()) {
+            try {
+                java.util.Date from = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dateFrom);
+                bookings = bookings.stream()
+                    .filter(b -> b.getStartDate() != null && !b.getStartDate().before(from))
+                    .toList();
+            } catch (Exception ignored) {}
+        }
+        if (dateTo != null && !dateTo.isBlank()) {
+            try {
+                java.util.Date to = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dateTo);
+                bookings = bookings.stream()
+                    .filter(b -> b.getStartDate() != null && !b.getStartDate().after(to))
+                    .toList();
+            } catch (Exception ignored) {}
+        }
+
         req.setAttribute("bookings", bookings);
         req.setAttribute("statusFilter", status != null ? status : "ALL");
         req.setAttribute("search", search);
+        req.setAttribute("dateFrom", dateFrom);
+        req.setAttribute("dateTo", dateTo);
         req.setAttribute("cntPending",   bookingDAO.countByStatus("PENDING"));
         req.setAttribute("cntConfirmed", bookingDAO.countByStatus("CONFIRMED"));
         req.setAttribute("cntCheckedIn", bookingDAO.countByStatus("CHECKED_IN"));

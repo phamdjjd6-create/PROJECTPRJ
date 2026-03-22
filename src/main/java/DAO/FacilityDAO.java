@@ -1,6 +1,7 @@
 package DAO;
 
 import jakarta.persistence.EntityManager;
+import java.util.Date;
 import java.util.List;
 import model.TblFacilities;
 
@@ -12,6 +13,28 @@ public class FacilityDAO {
         try {
             return em.createQuery("SELECT f FROM TblFacilities f WHERE f.deleted = false", TblFacilities.class)
                     .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Returns facilities that have no overlapping CONFIRMED/PENDING/CHECKED_IN bookings
+     * in the given date range. Excludes CANCELLED bookings.
+     */
+    public List<TblFacilities> findAvailableBetween(Date checkin, Date checkout) {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            return em.createQuery(
+                "SELECT f FROM TblFacilities f WHERE f.deleted = false AND f.status != 'MAINTENANCE' " +
+                "AND f.serviceCode NOT IN (" +
+                "  SELECT b.facilityId.serviceCode FROM TblBookings b " +
+                "  WHERE b.status NOT IN ('CANCELLED') " +
+                "  AND b.startDate < :checkout AND b.endDate > :checkin" +
+                ")", TblFacilities.class)
+                .setParameter("checkin", checkin)
+                .setParameter("checkout", checkout)
+                .getResultList();
         } finally {
             em.close();
         }

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+﻿<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ page import="model.TblPersons, model.TblEmployees" %>
@@ -42,6 +42,12 @@
         .btn-logout-nav{width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.4);text-decoration:none;transition:all 0.2s;font-size:16px}
         .nav-links a.btn-dash{padding:7px 18px;border:1.5px solid rgba(201,168,76,0.35);border-radius:50px;color:var(--gold)}
         .nav-links a.btn-dash:hover{background:var(--gold);color:var(--dark)}
+        .hamburger{display:none;background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:4px 8px;line-height:1}
+        .mobile-nav{display:none;position:fixed;top:72px;left:0;right:0;background:rgba(10,10,15,0.97);backdrop-filter:blur(20px);border-bottom:1px solid rgba(201,168,76,0.15);z-index:999;padding:12px 20px 16px;flex-direction:column;gap:2px}
+        .mobile-nav.open{display:flex}
+        .mobile-nav a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:14px;font-weight:500;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+        .mobile-nav a:last-child{border-bottom:none}
+        .mobile-nav a:hover,.mobile-nav a.active{color:var(--gold)}
 
         /* Main */
         main{max-width:860px;margin:0 auto;padding:120px 24px 80px}
@@ -70,6 +76,21 @@
         .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:28px}
         .form-grid.single{grid-template-columns:1fr}
         @media(max-width:640px){.form-grid{grid-template-columns:1fr}}
+        @media(max-width:1024px){
+            main{max-width:100%}
+            .profile-card{padding:36px 28px}
+        }
+        @media(max-width:768px){
+            nav{padding:0 16px}
+            .nav-links{display:none}
+            main{padding:90px 16px 60px}
+            .profile-card{padding:28px 18px;border-radius:20px}
+            .card-header h1{font-size:32px}
+            .form-grid{grid-template-columns:1fr}
+            .form-grid.single{grid-template-columns:1fr}
+            .nav-user{display:none}
+            .hamburger{display:block}
+        }
         .form-group{display:flex;flex-direction:column;gap:8px}
         .form-label{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.2em;font-weight:700}
         .form-input{width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:14px 18px;color:#fff;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s,background 0.2s}
@@ -109,6 +130,7 @@
             <li><a href="${dashboardUrl}" class="btn-dash">Dashboard</a></li>
         </c:if>
     </ul>
+    <button class="hamburger" id="hamburgerBtn" onclick="document.getElementById('mobileNavPF').classList.toggle('open')" aria-label="Menu">☰</button>
     <div class="nav-user">
         <div class="nav-user-name">
             <span>Authenticated as</span>

@@ -83,6 +83,24 @@ public class RoomsController extends HttpServlet {
         request.setAttribute("cntHouse", cntHouse);
         request.setAttribute("cntRoom", cntRoom);
 
+        // ── Pagination ────────────────────────────────────────────────────────
+        int pageSize = 9;
+        int totalItems = filtered.size();
+        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+        int page = 1;
+        try { page = Integer.parseInt(request.getParameter("page")); } catch (Exception ignored) {}
+        if (page < 1) page = 1;
+        if (page > totalPages && totalPages > 0) page = totalPages;
+
+        int fromIdx = (page - 1) * pageSize;
+        int toIdx   = Math.min(fromIdx + pageSize, totalItems);
+        List<TblFacilities> pagedFacilities = fromIdx < totalItems ? filtered.subList(fromIdx, toIdx) : new ArrayList<>();
+
+        request.setAttribute("pagedFacilities", pagedFacilities);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalItems", totalItems);
+
         request.getRequestDispatcher("/rooms.jsp").forward(request, response);
     }
 }

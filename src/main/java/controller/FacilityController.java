@@ -10,6 +10,8 @@ import model.TblFacilities;
 
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -53,7 +55,22 @@ public class FacilityController extends HttpServlet {
             List<TblFacilities> facilities = null;
             String facilityError = null;
             try {
-                facilities = facilityDAO.findAll();
+                String checkinStr  = request.getParameter("checkin");
+                String checkoutStr = request.getParameter("checkout");
+                if (checkinStr != null && !checkinStr.isEmpty() && checkoutStr != null && !checkoutStr.isEmpty()) {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                    Date checkin  = sdf.parse(checkinStr);
+                    Date checkout = sdf.parse(checkoutStr);
+                    if (checkout.after(checkin)) {
+                        facilities = facilityDAO.findAvailableBetween(checkin, checkout);
+                        request.setAttribute("filterCheckin",  checkinStr);
+                        request.setAttribute("filterCheckout", checkoutStr);
+                    } else {
+                        facilities = facilityDAO.findAll();
+                    }
+                } else {
+                    facilities = facilityDAO.findAll();
+                }
                 System.out.println("[DEBUG] facilities loaded: " + (facilities != null ? facilities.size() : "null"));
             } catch (Throwable ex) {
                 facilityError = ex.getClass().getSimpleName() + ": " + ex.getMessage();

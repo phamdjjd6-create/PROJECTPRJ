@@ -46,6 +46,8 @@
 
     </style>
 </head>
+<body class="bg-dark overflow-x-hidden">
+
 <!-- Custom Background Layer (Night Serenity) -->
 <div class="fixed inset-0 z-0 overflow-hidden bg-dark">
     <div class="absolute inset-0 bg-cover bg-center animate-slow-zoom opacity-60" 

@@ -51,6 +51,41 @@ public class ProfileController extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
+        String action = request.getParameter("action");
+
+        // ── Change Password ──────────────────────────────────────────────────
+        if ("change_password".equals(action)) {
+            String currentPassword = request.getParameter("currentPassword");
+            String newPassword     = request.getParameter("newPassword");
+            String confirmPassword = request.getParameter("confirmPassword");
+            try {
+                if (newPassword == null || newPassword.length() < 6) {
+                    request.setAttribute("errorMessage", "Mật khẩu mới phải có ít nhất 6 ký tự.");
+                } else if (!newPassword.equals(confirmPassword)) {
+                    request.setAttribute("errorMessage", "Mật khẩu xác nhận không khớp.");
+                } else {
+                    // Verify current password
+                    boolean verified = at.favre.lib.crypto.bcrypt.BCrypt.verifyer()
+                        .verify(currentPassword.toCharArray(), currentUser.getPassword()).verified;
+                    if (!verified) {
+                        request.setAttribute("errorMessage", "Mật khẩu hiện tại không đúng.");
+                    } else {
+                        String hashed = at.favre.lib.crypto.bcrypt.BCrypt.withDefaults()
+                            .hashToString(12, newPassword.toCharArray());
+                        currentUser.setPassword(hashed);
+                        accountDAO.updatePerson(currentUser);
+                        session.setAttribute("account", currentUser);
+                        request.setAttribute("successMessage", "Đổi mật khẩu thành công!");
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                request.setAttribute("errorMessage", "Lỗi đổi mật khẩu: " + e.getMessage());
+            }
+            request.getRequestDispatcher("profile.jsp").forward(request, response);
+            return;
+        }
+
         String fullName = request.getParameter("fullName");
         String dateOfBirthStr = request.getParameter("dateOfBirth");
         String gender = request.getParameter("gender");

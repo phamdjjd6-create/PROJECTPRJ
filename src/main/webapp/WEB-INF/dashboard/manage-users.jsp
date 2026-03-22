@@ -77,6 +77,29 @@
         .section-divider{margin:32px 0 20px;display:flex;align-items:center;gap:12px}
         .section-divider span{font-family:'Playfair Display',serif;font-size:17px;color:#fff}
         .section-divider::before,.section-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .actions-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; z-index: 200; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0 !important; }
+            .topbar { padding: 0 16px; }
+            .content { padding: 20px 16px 40px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .actions-grid { grid-template-columns: 1fr; }
+            .stats-row { flex-direction: column; }
+            .table-card { overflow-x: auto; }
+            table { min-width: 600px; }
+            .facility-grid { grid-template-columns: 1fr; }
+            .section-title { font-size: 18px; }
+            .topbar-title { font-size: 15px; }
+            #menuToggle { display: block !important; }
+            .filter-tabs { overflow-x: auto; flex-wrap: nowrap; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .search-box { max-width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -117,13 +140,14 @@
         </a>
     </nav>
     <div class="sidebar-footer">
-        <a href="${pageContext.request.contextPath}/" class="btn-logout" style="color:rgba(201,168,76,0.7);margin-bottom:6px">🏖️ Trang Chủ</a>
+        <a href="${pageContext.request.contextPath}/" class="btn-logout" style="color:rgba(201,168,76,0.7);margin-bottom:6px">Trang Chủ</a>
         <a href="${pageContext.request.contextPath}/logout" class="btn-logout">Đăng Xuất</a>
     </div>
 </aside>
 
 <div class="main">
     <div class="topbar">
+        <button id="menuToggle" style="display:none;background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:4px 8px">☰</button>
         <div class="topbar-title">Quản Lý Người Dùng</div>
         <span style="font-size:12px;color:var(--muted)" id="topbarDate"></span>
     </div>
@@ -143,7 +167,7 @@
         <form method="get" action="${pageContext.request.contextPath}/dashboard/users">
             <div class="toolbar">
                 <div class="search-box">
-                    <input type="text" name="q" placeholder="Tìm tên, email, tài khoản..." value="${search}">
+                    <input type="text" name="q" placeholder="Tìm tên, email, tài khoản..." value="<c:out value='${search}'/>">
                 </div>
                 <div class="filter-tabs">
                     <a href="?filter=ALL${not empty search ? '&q='.concat(search) : ''}" class="tab ${filter == 'ALL' ? 'active' : ''}">Tất Cả</a>
@@ -174,7 +198,14 @@
                                 <td>${c.fullName}</td>
                                 <td style="color:rgba(255,255,255,0.6)">${c.email}</td>
                                 <td>${c.phoneNumber}</td>
-                                <td><span class="badge ${c.typeCustomer == 'Diamond' ? 'badge-diamond' : 'badge-normal'}">${c.typeCustomer}</span></td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${c.typeCustomer == 'Diamond'}"><span class="badge badge-diamond">Kim Cương</span></c:when>
+                                        <c:when test="${c.typeCustomer == 'Gold'}"><span class="badge" style="background:rgba(234,179,8,0.12);color:#eab308">Vàng</span></c:when>
+                                        <c:when test="${c.typeCustomer == 'Silver'}"><span class="badge" style="background:rgba(148,163,184,0.12);color:#94a3b8">Bạc</span></c:when>
+                                        <c:otherwise><span class="badge badge-normal">Thường</span></c:otherwise>
+                                    </c:choose>
+                                </td>
                                 <td style="color:var(--gold)">${c.loyaltyPoints}</td>
                                 <td style="color:#4ade80;font-weight:600;"><fmt:formatNumber value="${c.totalSpent}" pattern="#,###"/> đ</td>
                                 <td><span class="badge badge-active">Hoạt động</span></td>
@@ -182,6 +213,8 @@
                                 <td>
                                     <button class="btn-sm" style="background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.3);"
                                         onclick="openVoucherModal('${c.id}', '${c.fullName}', '${c.typeCustomer}')">Tặng Voucher</button>
+                                    <a href="${pageContext.request.contextPath}/dashboard/bookings?q=${c.fullName}" class="btn-sm" style="background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.3);text-decoration:none">Booking</a>
+
                                     <form method="post" action="${pageContext.request.contextPath}/dashboard/action" style="display:inline;margin-left:4px;">
                                         <input type="hidden" name="action" value="lock_user">
                                         <input type="hidden" name="userId" value="${c.id}">
@@ -262,16 +295,16 @@
             <div style="margin-bottom:20px;">
                 <label style="display:block;font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">Quyền (Role)</label>
                 <select name="role" id="empRoleInput" style="width:100%;background:rgba(13,21,38,0.98);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;outline:none;">
-                    <option value="STAFF">🧑‍💼 STAFF</option>
-                    <option value="ADMIN">⚡ ADMIN</option>
+                    <option value="STAFF">STAFF</option>
+                    <option value="ADMIN">ADMIN</option>
                 </select>
-                <div id="empRoleHint" style="font-size:11px;color:#fbbf24;margin-top:6px;">⚠️ Đổi lên ADMIN sẽ cấp toàn quyền hệ thống</div>
+                <div id="empRoleHint" style="font-size:11px;color:#fbbf24;margin-top:6px;">Đổi lên ADMIN sẽ cấp toàn quyền hệ thống</div>
             </div>
             <div style="display:flex;gap:10px;">
                 <button type="button" onclick="document.getElementById('empModal').style.display='none'"
                     style="flex:1;padding:12px;border-radius:50px;background:transparent;border:1.5px solid rgba(255,255,255,0.15);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;">Hủy</button>
                 <button type="submit"
-                    style="flex:2;padding:12px;border-radius:50px;background:linear-gradient(135deg,var(--gold),#e8cc82);color:#0a0a0f;font-size:13px;font-weight:700;border:none;cursor:pointer;">🔖 Lưu Thay Đổi</button>
+                    style="flex:2;padding:12px;border-radius:50px;background:linear-gradient(135deg,var(--gold),#e8cc82);color:#0a0a0f;font-size:13px;font-weight:700;border:none;cursor:pointer;">Lưu Thay Đổi</button>
             </div>
         </form>
     </div>
@@ -317,7 +350,7 @@
                 <button type="button" onclick="document.getElementById('voucherModal').style.display='none'"
                     style="flex:1;padding:12px;border-radius:50px;background:transparent;border:1.5px solid rgba(255,255,255,0.15);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;">Hủy</button>
                 <button type="submit" id="voucherSubmitBtn" disabled
-                    style="flex:2;padding:12px;border-radius:50px;background:#4ade80;color:#000;font-size:13px;font-weight:700;border:none;cursor:pointer;opacity:0.5;">🎁 Tặng Voucher</button>
+                    style="flex:2;padding:12px;border-radius:50px;background:#4ade80;color:#000;font-size:13px;font-weight:700;border:none;cursor:pointer;opacity:0.5;">Tặng Voucher</button>
             </div>
         </form>
     </div>
@@ -371,10 +404,10 @@
                 <select name="role" id="addEmpRole"
                     style="width:100%;background:rgba(13,21,38,0.98);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;outline:none;"
                     onchange="document.getElementById('addRoleHint').style.display=this.value=='ADMIN'?'block':'none'">
-                    <option value="STAFF">🧑‍💼 STAFF</option>
-                    <option value="ADMIN">⚡ ADMIN</option>
+                    <option value="STAFF">STAFF</option>
+                    <option value="ADMIN">ADMIN</option>
                 </select>
-                <div id="addRoleHint" style="display:none;font-size:11px;color:#fbbf24;margin-top:6px;">⚠️ ADMIN có toàn quyền hệ thống</div>
+                <div id="addRoleHint" style="display:none;font-size:11px;color:#fbbf24;margin-top:6px;">ADMIN có toàn quyền hệ thống</div>
             </div>
             <div style="display:flex;gap:10px;">
                 <button type="button" onclick="document.getElementById('addEmpModal').style.display='none'"
@@ -386,9 +419,20 @@
     </div>
 </div>
 
+<div id="sidebarOverlay" onclick="document.querySelector('.sidebar').classList.remove('open');this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:199"></div>
 <script>
     document.getElementById('topbarDate').textContent =
         new Date().toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+    const menuBtn = document.getElementById('menuToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (menuBtn) {
+        menuBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+            overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+        });
+    }
 
     function openEmpModal(id, salary, pos, role, name) {
         document.getElementById('empIdInput').value = id;

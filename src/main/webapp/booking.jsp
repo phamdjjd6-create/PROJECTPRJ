@@ -47,6 +47,19 @@
         .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .form-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 16px; color: white; outline: none; transition: border-color 0.2s; }
         .form-input:focus { border-color: var(--gold); }
+        @media (max-width: 1024px) {
+            .lg\\:col-span-7 { grid-column: span 12 / span 12 !important; }
+            .lg\\:col-span-5 { grid-column: span 12 / span 12 !important; }
+        }
+        @media (max-width: 768px) {
+            nav.fixed { padding: 0 16px !important; }
+            nav.fixed ul { display: none !important; }
+            .form-input { border-radius: 10px; padding: 10px 14px; }
+            .sticky { position: static !important; }
+            .lg\\:col-span-7, .lg\\:col-span-5 { grid-column: span 12 / span 12 !important; }
+            .lg\\:grid-cols-12 { grid-template-columns: 1fr !important; }
+            .fixed.inset-0 .w-full { max-width: 100% !important; margin: 0 !important; border-radius: 16px !important; }
+        }
     </style>
     <style type="text/tailwindcss">
         @layer base {
@@ -151,8 +164,10 @@
                     <label for="voucherId" class="form-label">Mã Giảm Giá (Nếu có)</label>
                     <div class="relative">
                         <input type="text" name="voucherId" id="voucherId" class="form-input pr-24" placeholder="Ví dụ: WELCOME2026">
-                        <button type="button" class="absolute right-2 top-2 bottom-2 px-4 bg-white/10 rounded-xl text-[10px] font-bold text-gold uppercase tracking-widest hover:bg-gold hover:text-dark transition-all">Áp dụng</button>
+                        <button type="button" id="btnApplyVoucher" onclick="applyVoucher()"
+                                class="absolute right-2 top-2 bottom-2 px-4 bg-white/10 rounded-xl text-[10px] font-bold text-gold uppercase tracking-widest hover:bg-gold hover:text-dark transition-all">Áp dụng</button>
                     </div>
+                    <p id="voucherMsg" class="text-[11px] mt-1 hidden"></p>
                 </div>
 
                 <div class="space-y-2">
@@ -258,6 +273,10 @@
                     <div class="summary-item">
                         <span class="text-white/40 text-xs uppercase tracking-widest">Đơn giá</span>
                         <span class="text-xs font-semibold" id="summaryRate">0 đ</span>
+                    </div>
+                    <div class="summary-item" id="summaryDiscountRow" style="display:none">
+                        <span class="text-green-400 text-xs uppercase tracking-widest">Giảm giá</span>
+                        <span class="text-xs font-semibold text-green-400" id="summaryDiscount">-0 đ</span>
                     </div>
                     
                     <!-- Total -->
@@ -414,6 +433,113 @@
     document.getElementById('adults').addEventListener('input', validateGuests);
     document.getElementById('children').addEventListener('input', validateGuests);
 
+    updateSummary();
+
+    // ── Voucher AJAX ──────────────────────────────────────────────────────────
+    let _appliedVoucher = null; // { type, value }
+
+    window.applyVoucher = function() {
+        const code = document.getElementById('voucherId').value.trim();
+        const msgEl = document.getElementById('voucherMsg');
+        const nights = parseInt(document.getElementById('summaryNights').textContent) || 0;
+        if (!code) {
+            msgEl.textContent = 'Vui lòng nhập mã giảm giá.';
+            msgEl.className = 'text-[11px] mt-1 text-red-400';
+            msgEl.classList.remove('hidden');
+            return;
+        }
+        const btn = document.getElementById('btnApplyVoucher');
+        btn.textContent = '...';
+        btn.disabled = true;
+        fetch('${pageContext.request.contextPath}/booking?action=validateVoucher&code=' + encodeURIComponent(code) + '&nights=' + nights)
+            .then(r => r.json())
+            .then(data => {
+                btn.textContent = 'Áp dụng';
+                btn.disabled = false;
+                msgEl.textContent = data.msg;
+                msgEl.classList.remove('hidden');
+                if (data.valid) {
+                    _appliedVoucher = { type: data.type, value: data.value };
+                    msgEl.className = 'text-[11px] mt-1 text-green-400';
+                } else {
+                    _appliedVoucher = null;
+                    msgEl.className = 'text-[11px] mt-1 text-red-400';
+                }
+                updateSummary();
+            })
+            .catch(() => {
+                btn.textContent = 'Áp dụng';
+                btn.disabled = false;
+                msgEl.textContent = 'Lỗi kết nối. Thử lại sau.';
+                msgEl.className = 'text-[11px] mt-1 text-red-400';
+                msgEl.classList.remove('hidden');
+            });
+    };
+
+    // Reset voucher when facility/dates change
+    const _origUpdateSummary = updateSummary;
+    document.getElementById('voucherId').addEventListener('input', function() {
+        _appliedVoucher = null;
+        document.getElementById('summaryDiscountRow').style.display = 'none';
+        document.getElementById('voucherMsg').classList.add('hidden');
+    });
+
+    // ── Override updateSummary to include discount ────────────────────────────
+    function updateSummaryWithDiscount() {
+        const opt    = selEl.options[selEl.selectedIndex];
+        const start  = startEl.value;
+        const end    = endEl.value;
+        const preview = document.getElementById('pricePreview');
+        const empty   = document.getElementById('summaryEmpty');
+
+        if (!opt || !opt.value || !start || !end) {
+            preview.style.display = 'none';
+            empty.style.display   = 'block';
+            document.getElementById('depositBox').classList.add('hidden');
+            return;
+        }
+
+        const price  = parseFloat(opt.getAttribute('data-price'));
+        const nights = Math.round((new Date(end) - new Date(start)) / 86400000);
+
+        if (!price || nights <= 0) {
+            preview.style.display = 'none';
+            empty.style.display   = 'block';
+            document.getElementById('depositBox').classList.add('hidden');
+            return;
+        }
+
+        const base = price * nights;
+        let total = base;
+        const discRow = document.getElementById('summaryDiscountRow');
+
+        if (_appliedVoucher) {
+            let discAmt = 0;
+            if (_appliedVoucher.type === 'PERCENT') {
+                discAmt = Math.round(base * _appliedVoucher.value / 100);
+            } else {
+                discAmt = Math.min(parseFloat(_appliedVoucher.value), base);
+            }
+            total = Math.max(0, base - discAmt);
+            document.getElementById('summaryDiscount').textContent = '-' + fmtVND(discAmt);
+            discRow.style.display = '';
+        } else {
+            discRow.style.display = 'none';
+        }
+
+        document.getElementById('summaryFacilityName').textContent = opt.text.trim();
+        document.getElementById('summaryRate').textContent         = fmtVND(price);
+        document.getElementById('summaryNights').textContent       = nights + ' đêm';
+        document.getElementById('summaryTotal').textContent        = fmtVND(total);
+        preview.style.display = 'block';
+        empty.style.display   = 'none';
+
+        document.getElementById('depositAmt').textContent = fmtVND(Math.round(total * 0.1));
+        document.getElementById('depositBox').classList.remove('hidden');
+    }
+
+    // Replace updateSummary with the discount-aware version
+    updateSummary = updateSummaryWithDiscount;
     updateSummary();
 
     // ── Submit handler ────────────────────────────────────────────────────────

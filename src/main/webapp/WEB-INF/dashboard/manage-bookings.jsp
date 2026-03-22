@@ -87,6 +87,29 @@
         .flash{padding:14px 20px;border-radius:10px;margin-bottom:20px;font-size:13.5px;font-weight:500}
         .flash-success{background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);color:#4ade80}
         .flash-error{background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);color:#f87171}
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .actions-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; z-index: 200; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0 !important; }
+            .topbar { padding: 0 16px; }
+            .content { padding: 20px 16px 40px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .actions-grid { grid-template-columns: 1fr; }
+            .stats-row { flex-direction: column; }
+            .table-card { overflow-x: auto; }
+            table { min-width: 600px; }
+            .facility-grid { grid-template-columns: 1fr; }
+            .section-title { font-size: 18px; }
+            .topbar-title { font-size: 15px; }
+            #menuToggle { display: block !important; }
+            .filter-tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .search-box { max-width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -127,13 +150,14 @@
         </a>
     </nav>
     <div class="sidebar-footer">
-        <a href="${pageContext.request.contextPath}/" class="btn-logout" style="color:rgba(201,168,76,0.7);margin-bottom:6px">🏖️ Trang Chủ</a>
+        <a href="${pageContext.request.contextPath}/" class="btn-logout" style="color:rgba(201,168,76,0.7);margin-bottom:6px">Trang Chủ</a>
         <a href="${pageContext.request.contextPath}/logout" class="btn-logout">Đăng Xuất</a>
     </div>
 </aside>
 
 <div class="main">
     <div class="topbar">
+        <button id="menuToggle" style="display:none;background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:4px 8px">☰</button>
         <div class="topbar-title">Quản Lý Booking</div>
         <span style="font-size:12px;color:var(--muted)" id="topbarDate"></span>
     </div>
@@ -163,16 +187,22 @@
         <form method="get" action="${pageContext.request.contextPath}/dashboard/bookings">
             <div class="toolbar">
                 <div class="search-box">
-                    <input type="text" name="q" placeholder="Tìm booking ID, khách hàng, phòng..." value="${search}">
+                    <input type="text" name="q" placeholder="Tìm tên khách, booking ID, phòng..." value="<c:out value='${search}'/>">
                 </div>
-                <div class="filter-tabs">
-                    <a href="?status=ALL" class="tab ${statusFilter == 'ALL' ? 'active' : ''}">Tất Cả</a>
-                    <a href="?status=PENDING" class="tab ${statusFilter == 'PENDING' ? 'active' : ''}">Chờ Duyệt</a>
-                    <a href="?status=CONFIRMED" class="tab ${statusFilter == 'CONFIRMED' ? 'active' : ''}">Đã Xác Nhận</a>
-                    <a href="?status=CHECKED_IN" class="tab ${statusFilter == 'CHECKED_IN' ? 'active' : ''}">Đang Ở</a>
-                    <a href="?status=CHECKED_OUT" class="tab ${statusFilter == 'CHECKED_OUT' ? 'active' : ''}">Đã Trả</a>
-                    <a href="?status=CANCELLED" class="tab ${statusFilter == 'CANCELLED' ? 'active' : ''}">Đã Hủy</a>
-                </div>
+                <input type="date" name="dateFrom" value="${dateFrom}" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:#fff;font-size:12.5px;outline:none;[color-scheme:dark]" title="Từ ngày">
+                <input type="date" name="dateTo" value="${dateTo}" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:#fff;font-size:12.5px;outline:none;[color-scheme:dark]" title="Đến ngày">
+                <button type="submit" style="padding:8px 18px;background:var(--gold);color:var(--dark);border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;">Tìm</button>
+                <c:if test="${not empty search or not empty dateFrom or not empty dateTo}">
+                    <a href="${pageContext.request.contextPath}/dashboard/bookings?status=${statusFilter}" style="padding:8px 14px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.25);border-radius:8px;font-size:12px;color:#f87171;text-decoration:none;font-weight:600;">Xóa lọc</a>
+                </c:if>
+            </div>
+            <div class="filter-tabs" style="margin-bottom:16px">
+                <a href="?status=ALL" class="tab ${statusFilter == 'ALL' ? 'active' : ''}">Tất Cả</a>
+                <a href="?status=PENDING" class="tab ${statusFilter == 'PENDING' ? 'active' : ''}">Chờ Duyệt</a>
+                <a href="?status=CONFIRMED" class="tab ${statusFilter == 'CONFIRMED' ? 'active' : ''}">Đã Xác Nhận</a>
+                <a href="?status=CHECKED_IN" class="tab ${statusFilter == 'CHECKED_IN' ? 'active' : ''}">Đang Ở</a>
+                <a href="?status=CHECKED_OUT" class="tab ${statusFilter == 'CHECKED_OUT' ? 'active' : ''}">Đã Trả</a>
+                <a href="?status=CANCELLED" class="tab ${statusFilter == 'CANCELLED' ? 'active' : ''}">Đã Hủy</a>
             </div>
         </form>
 
@@ -253,9 +283,19 @@
         </div>
     </div>
 </div>
+<div id="sidebarOverlay" onclick="document.querySelector('.sidebar').classList.remove('open');this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:199"></div>
 <script>
     document.getElementById('topbarDate').textContent =
         new Date().toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    const menuBtn = document.getElementById('menuToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (menuBtn) {
+        menuBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+            overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+        });
+    }
 </script>
 </body>
 </html>

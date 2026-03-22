@@ -118,7 +118,34 @@
         .modal-close:hover { color: #fff; }
 
         @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2,1fr); } .actions-grid { grid-template-columns: repeat(2,1fr); } }
-        @media (max-width: 900px) { .sidebar { display: none; } .main { margin-left: 0; } }
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .actions-grid { grid-template-columns: repeat(2, 1fr); }
+            .revenue-top { flex-direction: column; gap: 16px; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; z-index: 200; display: flex !important; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0 !important; }
+            .topbar { padding: 0 16px; }
+            .topbar-right { gap: 8px; }
+            .topbar-right .topbar-date { display: none; }
+            .content { padding: 20px 16px 40px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .actions-grid { grid-template-columns: 1fr; }
+            .table-card { overflow-x: auto; }
+            table { min-width: 600px; }
+            .section-title { font-size: 18px; }
+            .topbar-title { font-size: 15px; }
+            #menuToggle { display: block !important; }
+            .revenue-num { font-size: 28px; }
+            .modal-content { padding: 20px 16px; }
+            /* Report modal responsive */
+            #reportModal > div { padding: 24px 16px !important; }
+            #reportModal [style*="grid-template-columns:repeat(4"] { grid-template-columns: repeat(2,1fr) !important; }
+            #reportModal [style*="grid-template-columns:repeat(2"] { grid-template-columns: 1fr !important; }
+            #reportModal [style*="display:flex;justify-content:space-between"] { flex-direction: column !important; gap: 12px !important; }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -160,16 +187,34 @@
         </a>
     </nav>
     <div class="sidebar-footer">
-        <a href="${pageContext.request.contextPath}/" class="btn-logout" style="color:rgba(201,168,76,0.7);margin-bottom:6px">🏖️ Trang Chủ</a>
+        <a href="${pageContext.request.contextPath}/" class="btn-logout" style="color:rgba(201,168,76,0.7);margin-bottom:6px">Trang Chủ</a>
         <a href="${pageContext.request.contextPath}/logout" class="btn-logout">Đăng Xuất</a>
     </div>
 </aside>
 
 <div class="main">
     <div class="topbar">
+        <button id="menuToggle" style="display:none;background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:4px 8px">☰</button>
         <div class="topbar-title">Admin Dashboard</div>
         <div class="topbar-right">
             <span class="topbar-date" id="topbarDate"></span>
+            <div style="display:flex;gap:8px">
+                <a href="${pageContext.request.contextPath}/dashboard/export?type=bookings"
+                   style="padding:6px 14px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:8px;color:var(--gold);font-size:11.5px;font-weight:600;text-decoration:none;transition:all 0.2s"
+                   onmouseover="this.style.background='rgba(201,168,76,0.2)'" onmouseout="this.style.background='rgba(201,168,76,0.1)'">
+                    Xuất Booking
+                </a>
+                <a href="${pageContext.request.contextPath}/dashboard/export?type=contracts"
+                   style="padding:6px 14px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:8px;color:#4ade80;font-size:11.5px;font-weight:600;text-decoration:none;transition:all 0.2s"
+                   onmouseover="this.style.background='rgba(74,222,128,0.15)'" onmouseout="this.style.background='rgba(74,222,128,0.08)'">
+                    Xuất HĐ
+                </a>
+                <a href="${pageContext.request.contextPath}/dashboard/export?type=facilities"
+                   style="padding:6px 14px;background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.25);border-radius:8px;color:#60a5fa;font-size:11.5px;font-weight:600;text-decoration:none;transition:all 0.2s"
+                   onmouseover="this.style.background='rgba(96,165,250,0.15)'" onmouseout="this.style.background='rgba(96,165,250,0.08)'">
+                    Xuất Phòng
+                </a>
+            </div>
             <span class="role-badge">Admin</span>
         </div>
     </div>
@@ -220,7 +265,7 @@
                     <div class="revenue-label">Tổng doanh thu · Azure Resort &amp; Spa</div>
                 </div>
                 <div style="display:flex;flex-direction:column;align-items:flex-end;gap:12px">
-                    <a href="javascript:void(0)" onclick="document.getElementById('reportModal').classList.add('active')" class="link-more">Xem báo cáo đầy đủ →</a>
+                    <a href="javascript:void(0)" onclick="openReport()" class="link-more">Xem báo cáo đầy đủ →</a>
                     <div style="display:flex;gap:20px;text-align:center">
                         <div><div style="font-family:'Playfair Display',serif;font-size:22px;color:#fff">${totalBookings != null ? totalBookings : '0'}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Booking</div></div>
                         <div><div style="font-family:'Playfair Display',serif;font-size:22px;color:#fff">${totalCustomers != null ? totalCustomers : '0'}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Khách hàng</div></div>
@@ -356,45 +401,178 @@
     </div><!-- end .content -->
 </div><!-- end .main -->
 
-<!-- Modal Report -->
-<div class="modal-overlay" id="reportModal">
-    <div class="modal-content">
-        <button class="modal-close" onclick="document.getElementById('reportModal').classList.remove('active')">&times;</button>
-        <div class="section-title" style="margin-bottom:24px;color:var(--gold);border-bottom:1px solid var(--border);padding-bottom:12px;">Báo Cáo Lợi Nhuận (Tháng 1-12)</div>
-        <canvas id="profitChart" width="100%" height="45"></canvas>
+<!-- REPORT MODAL -->
+<div class="modal-overlay" id="reportModal" onclick="if(event.target===this)closeReport()">
+<div style="background:#0a0e1a;border:1px solid rgba(201,168,76,0.2);border-radius:24px;width:95%;max-width:960px;max-height:90vh;overflow-y:auto;position:relative;padding:36px 40px;">
+
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.07)">
+        <div>
+            <div style="font-size:10px;color:var(--gold);letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-bottom:6px">Báo Cáo Tài Chính</div>
+            <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff">Doanh Thu &amp; Lợi Nhuận — Azure Resort &amp; Spa</div>
+        </div>
+        <button onclick="closeReport()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0" onmouseover="this.style.background='rgba(248,113,113,0.15)';this.style.color='#f87171'" onmouseout="this.style.background='rgba(255,255,255,0.06)';this.style.color='rgba(255,255,255,0.6)'">✕</button>
     </div>
+
+    <!-- KPI Row -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px">
+        <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);border-radius:14px;padding:18px 20px">
+            <div style="font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">Tổng Doanh Thu</div>
+            <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--gold)">103 tỷ</div>
+            <div style="font-size:11px;color:#4ade80;margin-top:4px">▲ +145.6% YoY</div>
+        </div>
+        <div style="background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.15);border-radius:14px;padding:18px 20px">
+            <div style="font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">Lợi Nhuận Sau Thuế</div>
+            <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#60a5fa">68.5 tỷ</div>
+            <div style="font-size:11px;color:#4ade80;margin-top:4px">▲ +112.3% YoY</div>
+        </div>
+        <div style="background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.15);border-radius:14px;padding:18px 20px">
+            <div style="font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">Lợi Nhuận Trước Thuế</div>
+            <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#f87171">82.1 tỷ</div>
+            <div style="font-size:11px;color:#f87171;margin-top:4px">▼ −8.4% vs Q3</div>
+        </div>
+        <div style="background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.15);border-radius:14px;padding:18px 20px">
+            <div style="font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">Lợi Nhuận 2026</div>
+            <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#4ade80">24.7 tỷ</div>
+            <div style="font-size:11px;color:#4ade80;margin-top:4px">▲ +22.6% vs Q1/2025</div>
+        </div>
+    </div>
+
+    <!-- Main Line Chart -->
+    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:24px;margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div>
+                <div style="font-size:10px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;font-weight:600;margin-bottom:3px">Xu Hướng</div>
+                <div style="font-family:'Playfair Display',serif;font-size:16px;color:#fff">Doanh Thu Theo Tháng — 2025</div>
+            </div>
+            <div style="display:flex;gap:16px;font-size:11px;color:rgba(255,255,255,0.4)">
+                <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:2px;background:var(--gold);display:inline-block;border-radius:2px"></span>Doanh thu</span>
+                <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:2px;background:#60a5fa;display:inline-block;border-radius:2px"></span>Lợi nhuận</span>
+            </div>
+        </div>
+        <canvas id="mainLineChart" height="80"></canvas>
+    </div>
+
+    <!-- 2 Bar Charts -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px">
+            <div style="font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px">Theo Quý — 2025</div>
+            <div style="font-family:'Playfair Display',serif;font-size:16px;color:#fff;margin-bottom:14px">Doanh Thu Quý</div>
+            <canvas id="quarterChart" height="100"></canvas>
+        </div>
+        <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px">
+            <div style="font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px">Năm Hiện Tại — 2026</div>
+            <div style="font-family:'Playfair Display',serif;font-size:16px;color:#fff;margin-bottom:14px">Lợi Nhuận T1–T3/2026</div>
+            <canvas id="current2026Chart" height="100"></canvas>
+        </div>
+    </div>
+
+</div>
 </div>
 
+<div id="sidebarOverlay" onclick="document.querySelector('.sidebar').classList.remove('open');this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:199"></div>
 <script>
-    document.getElementById('topbarDate').textContent =
         new Date().toLocaleDateString('vi-VN', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
 
-    const ctx = document.getElementById('profitChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'],
-            datasets: [{
-                label: 'Lợi Nhuận (Triệu VNĐ)',
-                data: [350,390,420,380,500,520,590,680,610,680,690,700],
-                borderColor: '#c9a84c',
-                backgroundColor: 'rgba(201,168,76,0.1)',
-                borderWidth: 3,
-                pointBackgroundColor: '#fff',
-                pointBorderColor: '#c9a84c',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { labels: { color: '#e8e8e8', font: { family: 'Inter', size: 13 } } } },
-            scales: {
-                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.6)' } },
-                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.6)' } }
+    // Hamburger menu
+    const menuBtn = document.getElementById('menuToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (menuBtn) {
+        menuBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+            overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+        });
+    }
+
+    function openReport() {
+        document.getElementById('reportModal').classList.add('active');
+        if (!window._chartsBuilt) { buildCharts(); window._chartsBuilt = true; }
+    }
+    function closeReport() {
+        document.getElementById('reportModal').classList.remove('active');
+    }
+
+    function buildCharts() {
+        const gold = '#c9a84c', blue = '#60a5fa', green = '#4ade80', red = '#f87171';
+        const gridColor = 'rgba(255,255,255,0.05)';
+        const tickColor = 'rgba(255,255,255,0.4)';
+        const months = ['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'];
+
+        // Main line chart
+        new Chart(document.getElementById('mainLineChart'), {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [
+                    {
+                        label: 'Doanh thu (tỷ)',
+                        data: [6.2,5.8,7.1,6.8,8.2,7.9,9.1,10.3,8.8,9.2,9.6,10.0],
+                        borderColor: gold, backgroundColor: 'rgba(201,168,76,0.08)',
+                        borderWidth: 2.5, fill: true, tension: 0.4,
+                        pointBackgroundColor: gold, pointRadius: 3, pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Lợi nhuận (tỷ)',
+                        data: [3.5,3.9,4.2,3.8,5.0,5.2,5.9,6.8,6.1,6.8,6.9,7.0],
+                        borderColor: blue, backgroundColor: 'rgba(96,165,250,0.06)',
+                        borderWidth: 2, fill: true, tension: 0.4,
+                        pointBackgroundColor: blue, pointRadius: 3, pointHoverRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 } }, border: { display: false } },
+                    y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 }, callback: v => v + ' tỷ' }, border: { display: false } }
+                }
             }
-        }
-    });
+        });
+
+        // Quarter bar chart
+        new Chart(document.getElementById('quarterChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                datasets: [{
+                    data: [19.1, 22.9, 28.2, 28.8],
+                    backgroundColor: ['rgba(201,168,76,0.15)','rgba(201,168,76,0.15)','rgba(201,168,76,0.15)',gold],
+                    borderRadius: 6, borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + c.parsed.y + ' tỷ' } } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: tickColor }, border: { display: false } },
+                    y: { grid: { color: gridColor }, ticks: { color: tickColor, callback: v => v + ' tỷ' }, border: { display: false } }
+                }
+            }
+        });
+
+        // 2026 bar chart
+        new Chart(document.getElementById('current2026Chart'), {
+            type: 'bar',
+            data: {
+                labels: ['Tháng 1', 'Tháng 2', 'Tháng 3'],
+                datasets: [{
+                    data: [8.4, 7.2, 9.1],
+                    backgroundColor: ['rgba(74,222,128,0.15)','rgba(74,222,128,0.15)',green],
+                    borderRadius: 6, borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + c.parsed.y + ' tỷ' } } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: tickColor }, border: { display: false } },
+                    y: { grid: { color: gridColor }, ticks: { color: tickColor, callback: v => v + ' tỷ' }, border: { display: false } }
+                }
+            }
+        });
+    }
 </script>
 </body>
 </html>

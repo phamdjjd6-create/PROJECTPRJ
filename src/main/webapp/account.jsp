@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+﻿<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ page import="model.TblPersons, model.TblEmployees" %>
@@ -46,6 +46,12 @@
         .nav-user-info .name{font-size:13px;font-weight:700;color:var(--gold)}
         .btn-logout-nav{width:34px;height:34px;border-radius:9px;border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.35);text-decoration:none;transition:all 0.2s;font-size:15px}
         .btn-logout-nav:hover{color:#f87171;border-color:rgba(248,113,113,0.3);background:rgba(248,113,113,0.06)}
+        .hamburger{display:none;background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:4px 8px;line-height:1}
+        .mobile-nav{display:none;position:fixed;top:70px;left:0;right:0;background:rgba(10,10,15,0.97);backdrop-filter:blur(20px);border-bottom:1px solid rgba(201,168,76,0.15);z-index:999;padding:12px 20px 16px;flex-direction:column;gap:2px}
+        .mobile-nav.open{display:flex}
+        .mobile-nav a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:14px;font-weight:500;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+        .mobile-nav a:last-child{border-bottom:none}
+        .mobile-nav a:hover,.mobile-nav a.active{color:var(--gold)}
 
         /* ── Layout ── */
         main{max-width:1100px;margin:0 auto;padding:110px 28px 80px}
@@ -78,6 +84,22 @@
         .cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
         @media(max-width:900px){.cards-grid{grid-template-columns:repeat(2,1fr)}}
         @media(max-width:560px){.cards-grid{grid-template-columns:1fr}}
+        @media(max-width:1024px){
+            main{padding:100px 20px 60px}
+        }
+        @media(max-width:768px){
+            .navbar{padding:0 16px}
+            .nav-links{display:none}
+            .nav-right{gap:8px}
+            .nav-user-info{display:none}
+            main{padding:86px 14px 48px}
+            .hero-banner{padding:24px 20px;flex-direction:column;align-items:flex-start;gap:16px}
+            .avatar{width:64px;height:64px;font-size:26px;border-radius:14px}
+            .hero-name{font-size:22px}
+            .btn-edit-profile{width:100%}
+            .cards-grid{grid-template-columns:1fr}
+            footer{padding:24px 16px;flex-direction:column;gap:8px;text-align:center}
+        }
 
         .card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:28px;text-decoration:none;display:block;transition:all 0.25s;position:relative;overflow:hidden}
         .card:hover{border-color:rgba(201,168,76,0.28);transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,0.3),0 0 0 1px rgba(201,168,76,0.08)}
@@ -120,6 +142,7 @@
             <li><a href="${dashboardUrl}" class="btn-dash">Dashboard</a></li>
         </c:if>
     </ul>
+    <button class="hamburger" id="hamburgerBtn" onclick="document.getElementById('mobileNavAC').classList.toggle('open')" aria-label="Menu">☰</button>
     <div class="nav-right">
         <div class="nav-user-info">
             <span class="label">Logged in as</span>
@@ -128,6 +151,15 @@
         <a href="${pageContext.request.contextPath}/logout" class="btn-logout-nav" title="Đăng xuất">⎋</a>
     </div>
 </nav>
+
+<div class="mobile-nav" id="mobileNavAC">
+    <a href="${pageContext.request.contextPath}/">Trang Chủ</a>
+    <a href="${pageContext.request.contextPath}/rooms">Phòng &amp; Villa</a>
+    <a href="${pageContext.request.contextPath}/booking?view=my">Booking Của Tôi</a>
+    <a href="${pageContext.request.contextPath}/account.jsp" class="active">Tài Khoản</a>
+    <c:if test="${isEmployee}"><a href="${dashboardUrl}">Dashboard</a></c:if>
+    <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
+</div>
 
 <main>
     <nav class="breadcrumb">

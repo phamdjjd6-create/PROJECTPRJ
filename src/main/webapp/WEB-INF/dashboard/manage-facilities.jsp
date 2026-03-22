@@ -104,6 +104,30 @@
         .notice-blue{background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.18);color:#60a5fa}
         .notice-yellow{background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.18);color:#fbbf24}
         .empty{padding:60px;text-align:center;color:var(--muted)}
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .actions-grid { grid-template-columns: repeat(2, 1fr); }
+            .facility-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; z-index: 200; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0 !important; }
+            .topbar { padding: 0 16px; }
+            .content { padding: 20px 16px 40px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .actions-grid { grid-template-columns: 1fr; }
+            .stats-row { flex-direction: column; }
+            .table-card { overflow-x: auto; }
+            table { min-width: 600px; }
+            .facility-grid { grid-template-columns: 1fr; }
+            .section-title { font-size: 18px; }
+            .topbar-title { font-size: 15px; }
+            #menuToggle { display: block !important; }
+            .filter-tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .search-box { max-width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -144,13 +168,14 @@
         </a>
     </nav>
     <div class="sidebar-footer">
-        <a href="${pageContext.request.contextPath}/" class="btn-logout" style="color:rgba(201,168,76,0.7);margin-bottom:6px">🏖️ Trang Chủ</a>
+        <a href="${pageContext.request.contextPath}/" class="btn-logout" style="color:rgba(201,168,76,0.7);margin-bottom:6px">Trang Chủ</a>
         <a href="${pageContext.request.contextPath}/logout" class="btn-logout">Đăng Xuất</a>
     </div>
 </aside>
 
 <div class="main">
     <div class="topbar">
+        <button id="menuToggle" style="display:none;background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:4px 8px">☰</button>
         <div class="topbar-title">Quản Lý Phòng &amp; Villa</div>
         <span style="font-size:12px;color:var(--muted)" id="topbarDate"></span>
     </div>
@@ -287,9 +312,19 @@
     </div>
 </div>
 
+<div id="sidebarOverlay" onclick="document.querySelector('.sidebar').classList.remove('open');this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:199"></div>
 <script>
     const d = new Date();
     document.getElementById('topbarDate').textContent = d.toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    const menuBtn = document.getElementById('menuToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (menuBtn) {
+        menuBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+            overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+        });
+    }
 </script>
 </body>
 </html>

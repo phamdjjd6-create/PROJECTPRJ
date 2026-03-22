@@ -73,12 +73,51 @@
         .section-title { font-family: 'Playfair Display', serif; font-size: clamp(28px,4vw,44px); color: #fff; line-height: 1.2; margin-bottom: 16px; }
         .section-title em { color: var(--gold); font-style: italic; }
         .section-desc { color: var(--text-muted); font-size: 15px; line-height: 1.8; max-width: 560px; }
-        .stats-bar { background: linear-gradient(90deg, rgba(201,168,76,0.06) 0%, rgba(201,168,76,0.02) 100%); border-top: 1px solid rgba(201,168,76,0.1); border-bottom: 1px solid rgba(201,168,76,0.1); padding: 36px 60px; }
-        .stats-inner { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 24px; }
-        .stat-item { text-align: center; }
-        .stat-num { font-family: 'Playfair Display', serif; font-size: 42px; color: var(--gold); font-weight: 700; line-height: 1; }
-        .stat-label { color: var(--text-muted); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 6px; }
-        .features { background: var(--dark); }
+        .stats-bar {
+            background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(201,168,76,0.04) 50%, rgba(0,0,0,0) 100%);
+            border-top: 1px solid rgba(201,168,76,0.12);
+            border-bottom: 1px solid rgba(201,168,76,0.12);
+            padding: 52px 60px;
+            position: relative;
+            overflow: hidden;
+        }
+        .stats-bar::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 50%, rgba(201,168,76,0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .stats-inner { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 32px; position: relative; z-index: 1; }
+        .stat-item { text-align: center; position: relative; padding: 0 40px; }
+        .stat-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 50%;
+            transform: translateY(-50%);
+            width: 1px; height: 40px;
+            background: linear-gradient(180deg, transparent, rgba(201,168,76,0.25), transparent);
+        }
+        .stat-num {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            color: var(--gold);
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -1px;
+            text-shadow: 0 0 40px rgba(201,168,76,0.3);
+        }
+        .stat-label {
+            color: rgba(255,255,255,0.35);
+            font-size: 10px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        .features { background: var(--dark); position: relative; overflow: hidden; }
+        .features::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 100%, rgba(201,168,76,0.05) 0%, transparent 65%); pointer-events: none; }
+        .features .section-inner { position: relative; z-index: 1; }
         .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 52px; }
         .feature-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; padding: 36px 28px; text-align: center; cursor: pointer; transition: all 0.3s; text-decoration: none; display: block; }
         .feature-card:hover { background: rgba(201,168,76,0.06); border-color: rgba(201,168,76,0.25); transform: translateY(-6px); box-shadow: 0 20px 48px rgba(0,0,0,0.3); }
@@ -113,7 +152,10 @@
         .status-tag.maintenance { background: rgba(251,191,36,0.15);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
         .no-rooms { grid-column: 1 / -1; text-align: center; padding: 64px 24px; color: var(--text-muted); }
         .no-rooms p { font-size: 15px; margin-top: 12px; }
-        .promotions { background: var(--dark); }
+        .promotions { background: var(--dark); position: relative; overflow: hidden; }
+        .promotions::before { content: ''; position: absolute; inset: 0; background-image: url('https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1920&q=60'); background-size: cover; background-position: center; opacity: 0.07; z-index: 0; }
+        .promotions::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 70%); z-index: 0; pointer-events: none; }
+        .promotions .section-inner { position: relative; z-index: 1; }
         .promo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 52px; }
         .promo-card { background: linear-gradient(135deg, rgba(201,168,76,0.08), rgba(201,168,76,0.02)); border: 1px solid rgba(201,168,76,0.2); border-radius: 20px; padding: 32px; position: relative; overflow: hidden; transition: all 0.3s; }
         .promo-card::before { content: ''; position: absolute; right: -30px; top: -30px; width: 120px; height: 120px; border-radius: 50%; background: rgba(201,168,76,0.08); }
@@ -142,14 +184,69 @@
         .footer-col a:hover { color: var(--gold); }
         .footer-bottom { max-width: 1200px; margin: 40px auto 0; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; color: rgba(255,255,255,0.25); font-size: 12.5px; }
         .footer-bottom span { color: var(--gold); }
-        @media (max-width: 768px) { .navbar { padding: 0 24px; } section { padding: 64px 24px; } .booking-bar { padding: 24px; } .footer-inner { grid-template-columns: 1fr; } .hero h1 { font-size: 38px; } }
+        /* ── Hamburger ── */
+        .hamburger { display: none; background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; padding: 4px 8px; line-height: 1; }
+        .mobile-nav { display: none; position: fixed; top: 80px; left: 0; right: 0; background: rgba(10,10,15,0.97); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(201,168,76,0.15); z-index: 999; padding: 16px 24px 20px; flex-direction: column; gap: 4px; }
+        .mobile-nav.open { display: flex; }
+        .mobile-nav a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 14px; font-weight: 500; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .mobile-nav a:last-child { border-bottom: none; }
+        .mobile-nav a:hover { color: var(--gold); }
+
+        @media (max-width: 1024px) {
+            .stats-inner { gap: 20px; }
+            .rooms-grid { grid-template-columns: repeat(2, 1fr); }
+            .promo-grid { grid-template-columns: repeat(2, 1fr); }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-inner { grid-template-columns: 1fr 1fr; gap: 32px; }
+        }
+        @media (max-width: 768px) {
+            .navbar { padding: 0 20px; }
+            .nav-links { display: none; }
+            .hamburger { display: block; }
+            section { padding: 48px 20px; }
+            .stats-bar { padding: 36px 20px; }
+            .stats-inner { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; justify-items: center; }
+            .stat-item { padding: 0 16px; }
+            .stat-item:not(:last-child)::after { display: none; }
+            .stat-num { font-size: 36px; }
+            .rooms-grid { grid-template-columns: 1fr; }
+            .promo-grid { grid-template-columns: 1fr; }
+            .features-grid { grid-template-columns: 1fr; }
+            .footer-inner { grid-template-columns: 1fr; gap: 28px; }
+            footer { padding: 40px 20px; }
+            .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+            .nav-right { gap: 8px; }
+            .nav-greeting { display: none; }
+            .btn-nav-login, .btn-nav-register { padding: 7px 14px; font-size: 12px; }
+        }
     </style>
 </head>
 <body>
 
+<!-- MOBILE NAV -->
+<div class="mobile-nav" id="mobileNav">
+    <a href="${pageContext.request.contextPath}/rooms">Phòng &amp; Villa</a>
+    <a href="#promotions">Khuyến Mãi</a>
+    <a href="${pageContext.request.contextPath}/booking?view=my">Booking Của Tôi</a>
+    <a href="${pageContext.request.contextPath}/account.jsp">Tài Khoản</a>
+    <c:if test="${sessionScope.account.personType == 'EMPLOYEE'}">
+        <a href="${pageContext.request.contextPath}/dashboard/admin">Bảng điều khiển</a>
+    </c:if>
+    <c:choose>
+        <c:when test="${not empty sessionScope.account}">
+            <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
+        </c:when>
+        <c:otherwise>
+            <a href="${pageContext.request.contextPath}/login.jsp">Đăng nhập</a>
+            <a href="${pageContext.request.contextPath}/register.jsp">Đăng ký</a>
+        </c:otherwise>
+    </c:choose>
+</div>
+
 <!-- NAVBAR -->
 <nav class="navbar" id="navbar">
     <a href="${pageContext.request.contextPath}/" class="nav-brand">Azure <span>Resort</span></a>
+    <button class="hamburger" id="hamburgerBtn" onclick="document.getElementById('mobileNav').classList.toggle('open')" aria-label="Menu">☰</button>
     <ul class="nav-links">
         <li><a href="${pageContext.request.contextPath}/rooms">Phòng &amp; Villa</a></li>
         <li><a href="#promotions">Khuyến Mãi</a></li>
@@ -213,51 +310,24 @@
 <!-- STATS -->
 <div class="stats-bar reveal">
     <div class="stats-inner">
-        <div class="stat-item reveal delay-100"><div class="stat-num">50+</div><div class="stat-label">Villa &amp; Phòng Sang Trọng</div></div>
-        <div class="stat-item reveal delay-200"><div class="stat-num">5★</div><div class="stat-label">Xếp Hạng Resort</div></div>
-        <div class="stat-item reveal delay-300"><div class="stat-num">15K+</div><div class="stat-label">Khách Hàng Hài Lòng</div></div>
-        <div class="stat-item reveal delay-300"><div class="stat-num">10+</div><div class="stat-label">Năm Kinh Nghiệm</div></div>
-    </div>
-</div>
-
-<!-- FEATURES -->
-<section class="features">
-    <div class="section-inner reveal">
-        <span class="section-label">Dịch Vụ Của Chúng Tôi</span>
-        <h2 class="section-title">Mọi Thứ Bạn <em>Cần</em></h2>
-        <p class="section-desc">Từ đặt phòng đến quản lý hợp đồng, tất cả trong một nơi.</p>
-        <div class="features-grid">
-            <a href="${pageContext.request.contextPath}/booking" class="feature-card reveal delay-100 group">
-                <div class="flex flex-col items-center">
-                    <h3 class="group-hover:text-gold transition-colors">Đặt Phòng</h3>
-                    <p>Chọn villa hoặc phòng yêu thích và đặt ngay trong vài bước đơn giản.</p>
-                    <span class="feature-arrow group-hover:translate-x-2 transition-transform">Đặt ngay →</span>
-                </div>
-            </a>
-            <a href="${pageContext.request.contextPath}/booking?view=my" class="feature-card reveal delay-200 group">
-                <div class="flex flex-col items-center">
-                    <h3 class="group-hover:text-gold transition-colors">Booking Của Tôi</h3>
-                    <p>Xem lịch sử đặt phòng, trạng thái và chi tiết các booking của bạn.</p>
-                    <span class="feature-arrow group-hover:translate-x-2 transition-transform">Xem ngay →</span>
-                </div>
-            </a>
-            <a href="${pageContext.request.contextPath}/contracts" class="feature-card reveal delay-300 group">
-                <div class="flex flex-col items-center">
-                    <h3 class="group-hover:text-gold transition-colors">Hợp Đồng</h3>
-                    <p>Tra cứu và quản lý hợp đồng, theo dõi tình trạng thanh toán.</p>
-                    <span class="feature-arrow group-hover:translate-x-2 transition-transform">Xem ngay →</span>
-                </div>
-            </a>
-            <a href="#promotions" class="feature-card reveal delay-300 group">
-                <div class="flex flex-col items-center">
-                    <h3 class="group-hover:text-gold transition-colors">Khuyến Mãi</h3>
-                    <p>Khám phá ưu đãi đặc biệt và mã giảm giá dành riêng cho bạn.</p>
-                    <span class="feature-arrow group-hover:translate-x-2 transition-transform">Xem ưu đãi →</span>
-                </div>
-            </a>
+        <div class="stat-item reveal delay-100">
+            <div class="stat-num">50+</div>
+            <div class="stat-label">Villa &amp; Phòng Sang Trọng</div>
+        </div>
+        <div class="stat-item reveal delay-200">
+            <div class="stat-num">5★</div>
+            <div class="stat-label">Xếp Hạng Resort</div>
+        </div>
+        <div class="stat-item reveal delay-300">
+            <div class="stat-num">15K+</div>
+            <div class="stat-label">Khách Hàng Hài Lòng</div>
+        </div>
+        <div class="stat-item reveal delay-400">
+            <div class="stat-num">10+</div>
+            <div class="stat-label">Năm Kinh Nghiệm</div>
         </div>
     </div>
-</section>
+</div>
 
 <!-- PROMOTIONS -->
 <section class="promotions reveal" id="promotions">
@@ -291,7 +361,45 @@
     </div>
 </section>
 
-<!-- MY ACCOUNT -->
+<!-- FEATURES -->
+<section class="features reveal">
+    <div class="section-inner">
+        <span class="section-label">Dịch Vụ Của Chúng Tôi</span>
+        <h2 class="section-title">Mọi Thứ Bạn <em>Cần</em></h2>
+        <p class="section-desc">Từ đặt phòng đến quản lý hợp đồng, tất cả trong một nơi.</p>
+        <div class="features-grid">
+            <a href="${pageContext.request.contextPath}/rooms" class="feature-card reveal delay-100 group">
+                <div class="flex flex-col items-center">
+                    <h3 class="group-hover:text-gold transition-colors">Đặt Phòng</h3>
+                    <p>Chọn villa hoặc phòng yêu thích và đặt ngay trong vài bước đơn giản.</p>
+                    <span class="feature-arrow group-hover:translate-x-2 transition-transform">Đặt ngay →</span>
+                </div>
+            </a>
+            <a href="${pageContext.request.contextPath}/booking?view=my" class="feature-card reveal delay-200 group">
+                <div class="flex flex-col items-center">
+                    <h3 class="group-hover:text-gold transition-colors">Booking Của Tôi</h3>
+                    <p>Xem lịch sử đặt phòng, trạng thái và chi tiết các booking của bạn.</p>
+                    <span class="feature-arrow group-hover:translate-x-2 transition-transform">Xem ngay →</span>
+                </div>
+            </a>
+            <a href="${pageContext.request.contextPath}/contracts" class="feature-card reveal delay-300 group">
+                <div class="flex flex-col items-center">
+                    <h3 class="group-hover:text-gold transition-colors">Hợp Đồng</h3>
+                    <p>Tra cứu và quản lý hợp đồng, theo dõi tình trạng thanh toán.</p>
+                    <span class="feature-arrow group-hover:translate-x-2 transition-transform">Xem ngay →</span>
+                </div>
+            </a>
+            <a href="#promotions" class="feature-card reveal delay-400 group">
+                <div class="flex flex-col items-center">
+                    <h3 class="group-hover:text-gold transition-colors">Khuyến Mãi</h3>
+                    <p>Khám phá ưu đãi đặc biệt và mã giảm giá dành riêng cho bạn.</p>
+                    <span class="feature-arrow group-hover:translate-x-2 transition-transform">Xem ưu đãi →</span>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
 <!-- FOOTER -->
 <footer>
     <div class="footer-inner">

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+﻿<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <c:set var="account" value="${sessionScope.account.fullName}"/>
@@ -50,6 +50,19 @@
         }
         body { background-color: var(--dark); color: white; font-family: 'Inter', sans-serif; margin: 0; }
         .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        @media (max-width: 1024px) {
+            .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3 { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 768px) {
+            nav.fixed { padding: 0 16px !important; }
+            nav.fixed ul { display: none !important; }
+            .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3 { grid-template-columns: 1fr !important; }
+            .sticky.top-20 { position: static !important; margin-top: 0 !important; }
+            .sticky.top-20 .glass-panel { border-radius: 16px !important; padding: 16px !important; }
+            .sticky.top-20 form { flex-direction: column !important; gap: 12px !important; }
+            .sticky.top-20 form > div { min-width: unset !important; }
+            .flex.items-center.gap-3.overflow-x-auto { gap: 8px !important; }
+        }
     </style>
     <style type="text/tailwindcss">
         @layer base {
@@ -158,16 +171,17 @@
 
 <!-- FILTER TABS (Pills) -->
 <div class="max-w-7xl mx-auto px-6 md:px-12 mt-12 flex items-center gap-3 overflow-x-auto pb-4 custom-scrollbar">
-    <a href="${pageContext.request.contextPath}/rooms" class="flex-shrink-0 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${empty filterType ? 'bg-gold text-dark' : 'bg-white/5 border border-white/10 text-white/60 hover:border-gold/50'}">
+    <c:set var="dateParams" value="${not empty checkin ? '&checkin='.concat(checkin) : ''}${not empty checkout ? '&checkout='.concat(checkout) : ''}"/>
+    <a href="${pageContext.request.contextPath}/rooms${not empty dateParams ? '?'.concat(dateParams.substring(1)) : ''}" class="flex-shrink-0 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${empty filterType ? 'bg-gold text-dark' : 'bg-white/5 border border-white/10 text-white/60 hover:border-gold/50'}">
         Tất Cả <span class="ml-2 opacity-60 font-normal">${cntAll}</span>
     </a>
-    <a href="${pageContext.request.contextPath}/rooms?type=VILLA" class="flex-shrink-0 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${filterType == 'VILLA' ? 'bg-gold text-dark' : 'bg-white/5 border border-white/10 text-white/60 hover:border-gold/50'}">
+    <a href="${pageContext.request.contextPath}/rooms?type=VILLA${dateParams}" class="flex-shrink-0 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${filterType == 'VILLA' ? 'bg-gold text-dark' : 'bg-white/5 border border-white/10 text-white/60 hover:border-gold/50'}">
         Villa <span class="ml-2 opacity-60 font-normal">${cntVilla}</span>
     </a>
-    <a href="${pageContext.request.contextPath}/rooms?type=HOUSE" class="flex-shrink-0 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${filterType == 'HOUSE' ? 'bg-gold text-dark' : 'bg-white/5 border border-white/10 text-white/60 hover:border-gold/50'}">
+    <a href="${pageContext.request.contextPath}/rooms?type=HOUSE${dateParams}" class="flex-shrink-0 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${filterType == 'HOUSE' ? 'bg-gold text-dark' : 'bg-white/5 border border-white/10 text-white/60 hover:border-gold/50'}">
         House <span class="ml-2 opacity-60 font-normal">${cntHouse}</span>
     </a>
-    <a href="${pageContext.request.contextPath}/rooms?type=ROOM" class="flex-shrink-0 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${filterType == 'ROOM' ? 'bg-gold text-dark' : 'bg-white/5 border border-white/10 text-white/60 hover:border-gold/50'}">
+    <a href="${pageContext.request.contextPath}/rooms?type=ROOM${dateParams}" class="flex-shrink-0 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${filterType == 'ROOM' ? 'bg-gold text-dark' : 'bg-white/5 border border-white/10 text-white/60 hover:border-gold/50'}">
         Phòng <span class="ml-2 opacity-60 font-normal">${cntRoom}</span>
     </a>
 </div>
@@ -197,13 +211,13 @@
         </c:when>
         <c:otherwise>
             <div class="flex items-center justify-between mb-10">
-                <h2 class="text-sm text-white/40 uppercase tracking-[0.3em]">Kết quả: <span class="text-gold font-bold">${filteredFacilities.size()}</span> phòng khả dụng</h2>
+                <h2 class="text-sm text-white/40 uppercase tracking-[0.3em]">Kết quả: <span class="text-gold font-bold">${totalItems}</span> phòng khả dụng</h2>
                 <div class="h-px flex-1 bg-white/5 mx-8"></div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                 <c:choose>
-                    <c:when test="${empty filteredFacilities}">
+                    <c:when test="${empty pagedFacilities}">
                         <div class="col-span-full py-32 text-center animate-reveal">
                             <div class="text-6xl mb-8 opacity-20">📭</div>
                             <h3 class="text-3xl font-serif font-bold text-white mb-4">Không tìm thấy phòng phù hợp</h3>
@@ -212,7 +226,7 @@
                         </div>
                     </c:when>
                     <c:otherwise>
-                        <c:forEach var="f" items="${filteredFacilities}" varStatus="loop">
+                        <c:forEach var="f" items="${pagedFacilities}" varStatus="loop">
                             <c:set var="defaultImg" value="${f.facilityType == 'VILLA' ? 'assets/img/villa-ocean.png' : 'assets/img/hero-bg.png'}"/>
                             <c:set var="imgSrc" value="${not empty f.imageUrl ? f.imageUrl : defaultImg}"/>
                             <c:set var="isAvailable" value="${f.status == 'AVAILABLE'}"/>
@@ -268,6 +282,28 @@
         </c:otherwise>
     </c:choose>
 </main>
+
+<!-- PAGINATION -->
+<c:if test="${totalPages > 1}">
+<div class="max-w-7xl mx-auto px-6 md:px-12 pb-16 flex items-center justify-center gap-3 flex-wrap">
+    <c:set var="baseUrl" value="${pageContext.request.contextPath}/rooms?"/>
+    <c:if test="${not empty filterType}"><c:set var="baseUrl" value="${baseUrl}type=${filterType}&"/></c:if>
+    <c:if test="${not empty checkin}"><c:set var="baseUrl" value="${baseUrl}checkin=${checkin}&"/></c:if>
+    <c:if test="${not empty checkout}"><c:set var="baseUrl" value="${baseUrl}checkout=${checkout}&"/></c:if>
+
+    <c:if test="${currentPage > 1}">
+        <a href="${baseUrl}page=${currentPage - 1}" class="px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white/60 hover:border-gold/50 hover:text-gold transition-all">← Trước</a>
+    </c:if>
+
+    <c:forEach begin="1" end="${totalPages}" var="p">
+        <a href="${baseUrl}page=${p}" class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${p == currentPage ? 'bg-gold text-dark' : 'bg-white/5 border border-white/10 text-white/60 hover:border-gold/50 hover:text-gold'}">${p}</a>
+    </c:forEach>
+
+    <c:if test="${currentPage < totalPages}">
+        <a href="${baseUrl}page=${currentPage + 1}" class="px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white/60 hover:border-gold/50 hover:text-gold transition-all">Tiếp →</a>
+    </c:if>
+</div>
+</c:if>
 
 <!-- FOOTER -->
 <footer class="bg-[#060608] border-t border-white/5 py-12 px-6 md:px-12 text-center md:text-left">

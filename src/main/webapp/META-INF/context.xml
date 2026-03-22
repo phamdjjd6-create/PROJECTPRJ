@@ -10,4 +10,10 @@
             type="javax.sql.DataSource"
             url="jdbc:sqlserver://MSI:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true"
             username="sa"/>
+
+  <!-- API Keys — không commit file này lên public repo -->
+  <Environment name="groq.api.key"
+               value="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"
+               type="java.lang.String"
+               override="false"/>
 </Context>

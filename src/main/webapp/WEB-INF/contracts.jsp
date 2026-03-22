@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+﻿<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="model.TblPersons" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -59,6 +59,15 @@
         body { background-color: var(--dark); color: white; font-family: 'Inter', sans-serif; margin: 0; }
         .contract-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 40px; overflow: hidden; }
         .stat-pill { background: rgba(201, 168, 76, 0.05); border: 1px solid rgba(201, 168, 76, 0.2); border-radius: 16px; padding: 16px 24px; display: flex; flex-direction: column; align-items: center; }
+        @media (max-width: 1024px) {
+            .stat-pill { min-width: 90px; padding: 12px 16px; }
+        }
+        @media (max-width: 768px) {
+            .stat-pill { min-width: 70px; padding: 10px 12px; }
+            .flex.gap-4 { flex-wrap: wrap; gap: 8px !important; }
+            .pt-48 { padding-top: 8rem !important; }
+            .text-5xl { font-size: 2rem !important; }
+        }
     </style>
     <style type="text/tailwindcss">
         @layer base {

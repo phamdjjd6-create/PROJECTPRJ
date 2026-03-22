@@ -1,293 +1,389 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-<c:if test="${empty facility}">
-    <c:redirect url="/"/>
-</c:if>
+<%@ page import="model.TblPersons, model.TblEmployees" %>
+<%
+    if (request.getAttribute("facility") == null) {
+        response.sendRedirect(request.getContextPath() + "/");
+        return;
+    }
+    TblPersons acc = (TblPersons) session.getAttribute("account");
+    boolean isEmp = acc instanceof TblEmployees;
+    String dashUrl = "";
+    if (isEmp) {
+        String role = ((TblEmployees) acc).getRole();
+        dashUrl = "ADMIN".equals(role) ? request.getContextPath() + "/dashboard/admin" : request.getContextPath() + "/dashboard/staff";
+    }
+    pageContext.setAttribute("isEmp", isEmp);
+    pageContext.setAttribute("dashUrl", dashUrl);
+%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${facility.serviceName} — Azure Resort &amp; Spa</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        gold: '#c9a84c',
-                        'gold-light': '#e8cc82',
-                        dark: '#0a0a0f',
-                        navy: '#0d1526',
-                    },
-                    fontFamily: {
-                        serif: ['Playfair Display', 'serif'],
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    animation: {
-                        'reveal': 'reveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
-                    },
-                    keyframes: {
-                        reveal: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        :root {
-            --gold: #c9a84c; --gold-light: #e8cc82;
-            --dark: #0a0a0f; --navy: #0d1526;
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{--gold:#c9a84c;--gold-light:#e8cc82;--dark:#0a0a0f;--navy:#0d1526;--text:#e8e8e8;--muted:rgba(255,255,255,0.35);--border:rgba(255,255,255,0.07)}
+        body{background:var(--dark);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
+        /* Navbar */
+        .navbar{position:fixed;top:0;left:0;right:0;z-index:1000;padding:0 48px;height:72px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,10,15,0.0);backdrop-filter:blur(0px);border-bottom:1px solid transparent;transition:all 0.4s}
+        .navbar.scrolled{background:rgba(10,10,15,0.95);backdrop-filter:blur(20px);border-bottom-color:rgba(201,168,76,0.1)}
+        .nav-brand{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;text-decoration:none}
+        .nav-brand span{color:var(--gold)}
+        .nav-links{display:flex;align-items:center;gap:28px;list-style:none}
+        .nav-links a{color:rgba(255,255,255,0.6);text-decoration:none;font-size:13px;font-weight:500;transition:color 0.2s}
+        .nav-links a:hover,.nav-links a.active{color:var(--gold)}
+        .nav-links a.btn-dash{padding:6px 16px;border:1.5px solid rgba(201,168,76,0.35);border-radius:50px;color:var(--gold)}
+        .nav-links a.btn-dash:hover{background:var(--gold);color:var(--dark)}
+        .nav-right{display:flex;align-items:center;gap:14px}
+        .nav-user{font-size:13px;color:rgba(255,255,255,0.4)}
+        .nav-user strong{color:var(--gold)}
+        .btn-nav-out{padding:7px 18px;border:1px solid rgba(201,168,76,0.3);border-radius:50px;color:var(--gold);font-size:12px;font-weight:600;text-decoration:none;transition:all 0.2s}
+        .btn-nav-out:hover{background:var(--gold);color:var(--dark)}
+        .btn-nav-login{padding:7px 18px;border:1px solid rgba(255,255,255,0.15);border-radius:50px;color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;text-decoration:none;transition:all 0.2s}
+        .btn-nav-login:hover{border-color:var(--gold);color:var(--gold)}
+        /* Hero */
+        .hero{position:relative;height:75vh;min-height:520px;overflow:hidden}
+        .hero-img{width:100%;height:100%;object-fit:cover;transition:transform 8s ease;transform:scale(1.05)}
+        .hero:hover .hero-img{transform:scale(1.1)}
+        .hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,10,15,0.15) 0%,rgba(10,10,15,0.5) 60%,var(--dark) 100%)}
+        .hero-content{position:absolute;bottom:0;left:0;right:0;padding:0 60px 60px;max-width:1200px;margin:0 auto}
+        .hero-breadcrumb{display:flex;align-items:center;gap:8px;font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.2em;margin-bottom:16px}
+        .hero-breadcrumb a{color:rgba(255,255,255,0.4);text-decoration:none;transition:color 0.2s}
+        .hero-breadcrumb a:hover{color:var(--gold)}
+        .hero-badge{display:inline-block;padding:5px 16px;background:rgba(201,168,76,0.2);border:1px solid rgba(201,168,76,0.35);border-radius:50px;font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.2em;margin-bottom:14px}
+        .hero-title{font-family:'Playfair Display',serif;font-size:56px;font-weight:700;color:#fff;line-height:1.1;margin-bottom:16px}
+        .hero-meta{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+        .hero-status{display:flex;align-items:center;gap:8px;padding:6px 14px;background:rgba(255,255,255,0.06);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);border-radius:50px;font-size:12px;font-weight:500}
+        .status-dot{width:7px;height:7px;border-radius:50%}
+        .dot-available{background:#4ade80;box-shadow:0 0 8px rgba(74,222,128,0.6)}
+        .dot-occupied{background:#f87171;box-shadow:0 0 8px rgba(248,113,113,0.6)}
+        .hero-code{font-size:11px;color:rgba(255,255,255,0.3);font-family:monospace;letter-spacing:0.1em}
+        /* Main layout */
+        .main-wrap{max-width:1200px;margin:0 auto;padding:0 60px 80px;display:grid;grid-template-columns:1fr 380px;gap:48px;align-items:start}
+        @media(max-width:1100px){.main-wrap{grid-template-columns:1fr;padding:0 24px 60px}}
+        /* Left column */
+        .left-col{padding-top:48px}
+        .back-link{display:inline-flex;align-items:center;gap:10px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.3);text-decoration:none;text-transform:uppercase;letter-spacing:0.15em;transition:color 0.2s;margin-bottom:40px}
+        .back-link:hover{color:var(--gold)}
+        .back-link .arrow{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+        .back-link:hover .arrow{border-color:var(--gold);background:var(--gold);color:var(--dark)}
+        /* Section */
+        .sec-label{font-size:9px;color:var(--gold);letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-bottom:6px}
+        .sec-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#fff;margin-bottom:20px}
+        .sec-divider{height:1px;background:rgba(255,255,255,0.05);margin:40px 0}
+        /* Description */
+        .description{font-size:15px;color:rgba(255,255,255,0.55);line-height:1.9;font-weight:300}
+        /* Specs grid */
+        .specs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:8px}
+        @media(max-width:600px){.specs-grid{grid-template-columns:repeat(2,1fr)}}
+        .spec-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px;transition:all 0.2s}
+        .spec-card:hover{border-color:rgba(201,168,76,0.2);background:rgba(201,168,76,0.03)}
+        .spec-lbl{font-size:9px;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.2em;font-weight:700;margin-bottom:8px}
+        .spec-val{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff}
+        .spec-unit{font-size:12px;font-family:'Inter',sans-serif;font-weight:400;color:rgba(255,255,255,0.3);margin-left:4px}
+        /* Amenities */
+        .amenities-grid{display:flex;flex-wrap:wrap;gap:10px}
+        .amenity{display:flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);border-radius:50px;font-size:12px;color:rgba(255,255,255,0.7);font-weight:500;transition:all 0.2s}
+        .amenity:hover{background:rgba(201,168,76,0.12);border-color:rgba(201,168,76,0.3);color:#fff}
+        .amenity-icon{font-size:14px}
+        /* Gallery */
+        .gallery-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+        .gallery-img{width:100%;height:180px;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,0.06);transition:all 0.3s;cursor:pointer}
+        .gallery-img:hover{transform:scale(1.02);border-color:rgba(201,168,76,0.3)}
+        .gallery-placeholder{width:100%;height:180px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.1);font-size:32px}
+        /* Booking widget */
+        .booking-widget{position:sticky;top:100px;background:rgba(13,21,38,0.8);border:1px solid rgba(201,168,76,0.15);border-radius:28px;padding:32px;backdrop-filter:blur(20px);box-shadow:0 24px 60px rgba(0,0,0,0.4)}
+        .widget-price-label{font-size:9px;color:var(--gold);letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-bottom:6px}
+        .widget-price{display:flex;align-items:baseline;gap:6px;margin-bottom:24px}
+        .widget-price .amount{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:#fff}
+        .widget-price .unit{font-size:12px;color:rgba(255,255,255,0.3)}
+        .form-group{margin-bottom:16px}
+        .form-label{display:block;font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.2em;font-weight:700;margin-bottom:8px}
+        .form-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px 16px;color:#fff;font-size:13px;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s;color-scheme:dark}
+        .form-input:focus{border-color:rgba(201,168,76,0.4)}
+        select.form-input{appearance:none;cursor:pointer}
+        select.form-input option{background:#0d1526}
+        .btn-book{width:100%;padding:16px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--dark);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.25em;border:none;border-radius:14px;cursor:pointer;transition:all 0.25s;font-family:'Inter',sans-serif;margin-top:8px}
+        .btn-book:hover{transform:scale(1.02);box-shadow:0 8px 28px rgba(201,168,76,0.3)}
+        .btn-unavailable{width:100%;padding:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.25);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.25em;border-radius:14px;cursor:not-allowed;font-family:'Inter',sans-serif;margin-top:8px}
+        .widget-footer{margin-top:20px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.05);text-align:center;font-size:11px;color:rgba(255,255,255,0.25);line-height:1.7}
+        .widget-footer strong{color:var(--gold)}
+        /* Night calc */
+        .nights-preview{padding:12px 16px;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);border-radius:10px;margin-bottom:16px;font-size:12px;color:rgba(255,255,255,0.5);display:none}
+        .nights-preview strong{color:var(--gold)}
+        footer{background:#060608;border-top:1px solid rgba(255,255,255,0.05);padding:28px 60px}
+        .footer-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+        .footer-brand{font-family:'Playfair Display',serif;font-size:16px;color:#fff}
+        .footer-brand span{color:var(--gold)}
+        .footer-copy{font-size:11px;color:rgba(255,255,255,0.18)}
+        @media(max-width:1024px){
+            .main-wrap{grid-template-columns:1fr;padding:0 32px 60px}
+            .hero-title{font-size:42px}
+            .booking-widget{position:static;margin-top:0}
         }
-        body { background-color: var(--dark); color: white; font-family: 'Inter', sans-serif; margin: 0; }
-        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .spec-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 24px; }
-    </style>
-    <style type="text/tailwindcss">
-        @layer base {
-            body { @apply bg-dark text-white font-sans antialiased selection:bg-gold/30; }
+        @media(max-width:768px){
+            .navbar{padding:0 16px}
+            .nav-links{display:none}
+            .hero{height:55vh;min-height:380px}
+            .hero-title{font-size:28px}
+            .hero-content{padding:0 20px 32px}
+            .main-wrap{grid-template-columns:1fr;padding:0 16px 48px;gap:28px}
+            .booking-widget{position:static;border-radius:20px;padding:24px}
+            .specs-grid{grid-template-columns:repeat(2,1fr)}
+            .gallery-grid{grid-template-columns:1fr}
+            .gallery-img,.gallery-placeholder{height:200px}
+            .left-col{padding-top:28px}
         }
-        @layer components {
-            .nav-link { @apply text-white/60 hover:text-gold transition-colors text-sm font-medium relative py-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-gold after:transition-all hover:after:w-full; }
-            .nav-link.active { @apply text-gold after:w-full; }
-            .glass-panel { @apply bg-white/5 backdrop-blur-2xl border border-white/10; }
-            .spec-card { @apply bg-white/5 border border-white/10 rounded-2xl p-6 transition-all hover:bg-white/10 hover:border-gold/30; }
-            .amenity-tag { @apply px-4 py-2 bg-gold/10 border border-gold/20 rounded-full text-xs text-gold-light font-medium; }
-        }
-        [color-scheme="dark"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     </style>
 </head>
 <body>
-
-<!-- NAVBAR (Premium Design) -->
-<nav id="navbar" class="fixed top-0 left-0 right-0 z-[1000] px-6 md:px-12 h-20 flex items-center justify-between transition-all duration-500 bg-dark/80 backdrop-blur-md border-b border-gold/10">
-    <a href="${pageContext.request.contextPath}/" class="text-2xl font-serif font-bold tracking-tight text-white group">
-        Azure <span class="text-gold group-hover:text-gold-light transition-colors">Resort</span>
-    </a>
-    
-    <ul class="hidden md:flex items-center gap-10">
-        <li><a href="${pageContext.request.contextPath}/" class="nav-link">Trang Chủ</a></li>
-        <li><a href="${pageContext.request.contextPath}/rooms" class="nav-link active">Phòng &amp; Villa</a></li>
-        <li><a href="${pageContext.request.contextPath}/booking?view=my" class="nav-link">Booking Của Tôi</a></li>
-        <li><a href="${pageContext.request.contextPath}/account.jsp" class="nav-link">Tài Khoản</a></li>
-        <c:if test="${sessionScope.account.personType == 'EMPLOYEE'}">
-            <li><a href="${pageContext.request.contextPath}/dashboard/admin" class="nav-link text-gold font-bold border border-gold/20 px-4 py-1.5 rounded-full hover:bg-gold hover:text-dark transition-all">Bảng điều khiển</a></li>
-        </c:if>
+<nav class="navbar" id="navbar">
+    <a href="${pageContext.request.contextPath}/" class="nav-brand">Azure <span>Resort</span></a>
+    <ul class="nav-links">
+        <li><a href="${pageContext.request.contextPath}/">Trang Chủ</a></li>
+        <li><a href="${pageContext.request.contextPath}/rooms" class="active">Phòng &amp; Villa</a></li>
+        <li><a href="${pageContext.request.contextPath}/booking?view=my">Booking Của Tôi</a></li>
+        <li><a href="${pageContext.request.contextPath}/account.jsp">Tài Khoản</a></li>
+        <c:if test="${isEmp}"><li><a href="${dashUrl}" class="btn-dash">Dashboard</a></li></c:if>
     </ul>
-
-    <div class="flex items-center gap-6">
+    <div class="nav-right">
         <c:choose>
             <c:when test="${not empty sessionScope.account}">
-                <div class="hidden sm:flex flex-col items-end">
-                    <span class="text-[10px] text-white/40 uppercase tracking-[0.2em]">Khách hàng</span>
-                    <span class="text-sm font-medium text-gold">${sessionScope.account.fullName}</span>
-                </div>
-                <a href="${pageContext.request.contextPath}/logout" class="px-5 py-2 border border-gold/30 rounded-full text-xs font-bold text-gold uppercase tracking-widest hover:bg-gold hover:text-dark transition-all">Đăng xuất</a>
+                <span class="nav-user">Xin chào, <strong>${sessionScope.account.fullName}</strong></span>
+                <a href="${pageContext.request.contextPath}/logout" class="btn-nav-out">Đăng xuất</a>
             </c:when>
             <c:otherwise>
-                <div class="flex items-center gap-4">
-                    <a href="${pageContext.request.contextPath}/login.jsp" class="text-xs font-bold text-gold uppercase tracking-widest hover:text-white transition-colors">Đăng nhập</a>
-                    <a href="${pageContext.request.contextPath}/register.jsp" class="px-6 py-2 bg-gold text-dark text-xs font-bold rounded-full uppercase tracking-widest hover:bg-gold-light transition-all">Đăng ký</a>
-                </div>
+                <a href="${pageContext.request.contextPath}/login.jsp" class="btn-nav-login">Đăng nhập</a>
+                <a href="${pageContext.request.contextPath}/register.jsp" class="btn-nav-out">Đăng ký</a>
             </c:otherwise>
         </c:choose>
     </div>
 </nav>
 
-<!-- IMMERSIVE HERO -->
-<div class="relative h-[70vh] min-h-[500px] overflow-hidden group">
-    <img src="${imgSrc.startsWith('http') ? imgSrc : pageContext.request.contextPath.concat('/').concat(imgSrc)}" alt="${facility.serviceName}" class="w-full h-full object-cover transition-transform duration-[2000ms] scale-105 group-hover:scale-110">
-    <div class="absolute inset-0 bg-gradient-to-b from-dark/20 via-dark/40 to-dark"></div>
-    
-    <div class="absolute inset-0 flex flex-col justify-end px-6 md:px-12 pb-24">
-        <div class="max-w-7xl mx-auto w-full animate-reveal">
-            <!-- Breadcrumbs -->
-            <nav class="flex items-center gap-2 text-[10px] text-white/50 uppercase tracking-[0.2em] mb-8">
-                <a href="${pageContext.request.contextPath}/" class="hover:text-gold transition-colors">Trang Chủ</a>
-                <span>/</span>
-                <a href="${pageContext.request.contextPath}/rooms" class="hover:text-gold transition-colors">Phòng &amp; Villa</a>
-                <span>/</span>
-                <span class="text-gold">${facility.serviceName}</span>
-            </nav>
+<!-- Hero -->
+<div class="hero">
+    <img src="${imgSrc.startsWith('http') ? imgSrc : pageContext.request.contextPath.concat('/').concat(imgSrc)}"
+         alt="${facility.serviceName}" class="hero-img" id="heroImg">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <nav class="hero-breadcrumb">
+            <a href="${pageContext.request.contextPath}/">Trang Chủ</a><span>/</span>
+            <a href="${pageContext.request.contextPath}/rooms">Phòng &amp; Villa</a><span>/</span>
+            <span style="color:var(--gold)">${facility.serviceName}</span>
+        </nav>
+        <div class="hero-badge">${facilityTypeLabel} — Azure Collection</div>
+        <h1 class="hero-title">${facility.serviceName}</h1>
+        <div class="hero-meta">
+            <div class="hero-status">
+                <span class="status-dot ${isAvailable ? 'dot-available' : 'dot-occupied'}"></span>
+                <span>${statusLabel}</span>
+            </div>
+            <span class="hero-code">Mã: ${facility.serviceCode}</span>
+        </div>
+    </div>
+</div>
 
-            <span class="inline-block px-5 py-1.5 bg-gold/20 border border-gold/30 rounded-full text-[10px] font-bold text-gold uppercase tracking-[0.2em] mb-6">
-                ${facilityTypeLabel} - Azure Collection
-            </span>
+<!-- Main -->
+<div class="main-wrap">
+    <!-- Left -->
+    <div class="left-col">
+        <a href="${pageContext.request.contextPath}/rooms" class="back-link">
+            <span class="arrow">←</span> Trở lại danh sách
+        </a>
 
-            <h1 class="text-5xl md:text-7xl font-serif font-bold text-white mb-6 leading-tight max-w-4xl">
-                ${facility.serviceName}
-            </h1>
+        <!-- Description -->
+        <div class="sec-label">Tổng quan</div>
+        <div class="sec-title">Trải nghiệm nghỉ dưỡng <em style="color:var(--gold);font-style:italic">đẳng cấp</em></div>
+        <p class="description">
+            <c:choose>
+                <c:when test="${not empty facility.description}">${facility.description}</c:when>
+                <c:otherwise>Được bao quanh bởi cảnh quan thiên nhiên tuyệt mỹ, không gian nghỉ dưỡng tại Azure là sự giao thoa hoàn hảo giữa kiến trúc hiện đại và vẻ đẹp nguyên bản của biển cả. Mỗi chi tiết đều được chăm chút tỉ mỉ để tôn vinh sự riêng tư và sang trọng tuyệt đối của quý khách.</c:otherwise>
+            </c:choose>
+        </p>
 
-            <div class="flex items-center gap-4">
-                <div class="flex items-center gap-3 px-4 py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 text-xs font-medium">
-                    <span class="w-2 h-2 rounded-full ${facility.status == 'AVAILABLE' ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'}"></span>
-                    ${statusLabel}
-                </div>
-                <div class="h-px w-12 bg-gold/30"></div>
-                <span class="text-white/40 text-xs uppercase tracking-widest">Mã định danh: ${facility.serviceCode}</span>
+        <div class="sec-divider"></div>
+
+        <!-- Specs -->
+        <div class="sec-label">Thông số</div>
+        <div class="sec-title" style="margin-bottom:16px">Chi tiết không gian</div>
+        <div class="specs-grid">
+            <div class="spec-card">
+                <div class="spec-lbl">Diện tích</div>
+                <div class="spec-val">${facility.usableArea}<span class="spec-unit">m²</span></div>
+            </div>
+            <div class="spec-card">
+                <div class="spec-lbl">Sức chứa</div>
+                <div class="spec-val">${facility.maxPeople}<span class="spec-unit">người</span></div>
+            </div>
+            <div class="spec-card">
+                <div class="spec-lbl">Loại hình</div>
+                <div class="spec-val" style="font-size:16px">${facilityTypeLabel}</div>
+            </div>
+            <div class="spec-card">
+                <div class="spec-lbl">Hình thức</div>
+                <div class="spec-val" style="font-size:16px">${rentalTypeLabel}</div>
+            </div>
+            <div class="spec-card">
+                <div class="spec-lbl">Tầm nhìn</div>
+                <div class="spec-val" style="font-size:16px">Panorama</div>
+            </div>
+            <div class="spec-card">
+                <div class="spec-lbl">Mã định danh</div>
+                <div class="spec-val" style="font-size:14px;font-family:monospace">${facility.serviceCode}</div>
+            </div>
+        </div>
+
+        <div class="sec-divider"></div>
+
+        <!-- Amenities -->
+        <div class="sec-label">Tiện nghi</div>
+        <div class="sec-title" style="margin-bottom:16px">Đặc quyền dành riêng</div>
+        <div class="amenities-grid">
+            <span class="amenity"><span class="amenity-icon">Wifi</span> Wifi tốc độ cao</span>
+            <span class="amenity"><span class="amenity-icon">AC</span> Điều hòa trung tâm</span>
+            <span class="amenity"><span class="amenity-icon">TV</span> TV 4K OLED</span>
+            <span class="amenity"><span class="amenity-icon">24/7</span> Dọn phòng 24/7</span>
+            <span class="amenity"><span class="amenity-icon">Safe</span> Két sắt an toàn</span>
+            <span class="amenity"><span class="amenity-icon">Bar</span> Minibar cao cấp</span>
+            <c:choose>
+                <c:when test="${facility.facilityType == 'VILLA'}">
+                    <span class="amenity"><span class="amenity-icon">Pool</span> Hồ bơi riêng</span>
+                    <span class="amenity"><span class="amenity-icon">BBQ</span> Khu BBQ ngoài trời</span>
+                    <span class="amenity"><span class="amenity-icon">Butler</span> Butler riêng 24/7</span>
+                    <span class="amenity"><span class="amenity-icon">Spa</span> Spa tại phòng</span>
+                    <span class="amenity"><span class="amenity-icon">Car</span> Xe đưa đón sân bay</span>
+                    <span class="amenity"><span class="amenity-icon">Chef</span> Đầu bếp riêng theo yêu cầu</span>
+                </c:when>
+                <c:when test="${facility.facilityType == 'HOUSE'}">
+                    <span class="amenity"><span class="amenity-icon">Garden</span> Sân vườn riêng</span>
+                    <span class="amenity"><span class="amenity-icon">Kitchen</span> Bếp đầy đủ tiện nghi</span>
+                    <span class="amenity"><span class="amenity-icon">Laundry</span> Máy giặt riêng</span>
+                    <span class="amenity"><span class="amenity-icon">Parking</span> Bãi đỗ xe riêng</span>
+                </c:when>
+                <c:otherwise>
+                    <span class="amenity"><span class="amenity-icon">Pool</span> Hồ bơi chung</span>
+                    <span class="amenity"><span class="amenity-icon">Gym</span> Phòng gym</span>
+                    <span class="amenity"><span class="amenity-icon">Spa</span> Spa &amp; Wellness</span>
+                    <span class="amenity"><span class="amenity-icon">Dining</span> Nhà hàng Pearl</span>
+                </c:otherwise>
+            </c:choose>
+        </div>
+
+        <div class="sec-divider"></div>
+
+        <!-- Gallery -->
+        <div class="sec-label">Hình ảnh</div>
+        <div class="sec-title" style="margin-bottom:16px">Không gian thực tế</div>
+        <div class="gallery-grid">
+            <img src="${imgSrc.startsWith('http') ? imgSrc : pageContext.request.contextPath.concat('/').concat(imgSrc)}"
+                 alt="${facility.serviceName}" class="gallery-img">
+            <div class="gallery-placeholder">+</div>
+            <div class="gallery-placeholder">+</div>
+            <div class="gallery-placeholder">+</div>
+        </div>
+    </div>
+
+    <!-- Right: Booking Widget -->
+    <div>
+        <div class="booking-widget">
+            <div class="widget-price-label">Giá từ</div>
+            <div class="widget-price">
+                <span class="amount">${formattedCost}</span>
+                <span class="unit">đ / ${rentalTypeLabel}</span>
+            </div>
+
+            <c:choose>
+                <c:when test="${isAvailable}">
+                    <form action="${pageContext.request.contextPath}/booking" method="GET" id="bookingForm">
+                        <input type="hidden" name="facility" value="${facility.serviceCode}">
+                        <div class="form-group">
+                            <label class="form-label">Ngày nhận phòng</label>
+                            <input type="date" name="checkin" id="checkinInput" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Ngày trả phòng</label>
+                            <input type="date" name="checkout" id="checkoutInput" class="form-input" required>
+                        </div>
+                        <div id="nightsPreview" class="nights-preview"></div>
+                        <div class="form-group">
+                            <label class="form-label">Số khách</label>
+                            <select name="adults" class="form-input">
+                                <c:forEach begin="1" end="${facility.maxPeople}" var="i">
+                                    <option value="${i}">${i} người lớn</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-book">Đặt phòng ngay</button>
+                    </form>
+                </c:when>
+                <c:otherwise>
+                    <div style="text-align:center;padding:24px 0">
+                        <div style="font-size:36px;opacity:0.15;margin-bottom:12px">X</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.3);font-weight:600">Tạm hết phòng</div>
+                        <div style="font-size:11px;color:rgba(255,255,255,0.18);margin-top:6px">Vui lòng liên hệ hotline</div>
+                    </div>
+                    <button class="btn-unavailable" disabled>Không thể đặt</button>
+                </c:otherwise>
+            </c:choose>
+
+            <div class="widget-footer">
+                Miễn phí hủy trước 48 giờ<br>
+                Hỗ trợ 24/7: <strong>1800 7777</strong>
             </div>
         </div>
     </div>
 </div>
 
-<!-- MAIN CONTENT -->
-<main class="max-w-7xl mx-auto px-6 md:px-12 -mt-16 relative z-10 pb-32">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        
-        <!-- Left Column (Details) -->
-        <div class="lg:col-span-2 space-y-16">
-            
-            <!-- Quick Back Button -->
-            <a href="${pageContext.request.contextPath}/rooms" class="inline-flex items-center gap-3 text-xs font-bold text-white/40 uppercase tracking-widest hover:text-gold transition-all group">
-                <span class="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-gold group-hover:bg-gold group-hover:text-dark transition-all">←</span>
-                Trở lại danh sách phòng
-            </a>
-
-            <!-- Description -->
-            <section class="animate-reveal" style="animation-delay: 100ms">
-                <span class="block text-gold text-[10px] uppercase tracking-[0.4em] font-bold mb-4">Tổng quan không gian</span>
-                <h2 class="text-4xl font-serif font-bold text-white mb-8">Trải nghiệm nghỉ dưỡng <br> <span class="italic text-gold italic">đẳng cấp tinh hoa</span></h2>
-                <div class="text-white/60 text-lg font-light leading-relaxed prose prose-invert">
-                    <c:choose>
-                        <c:when test="${not empty facility.description}">${facility.description}</c:when>
-                        <c:otherwise>Được bao quanh bởi cảnh quan thiên nhiên tuyệt mỹ, không gian nghỉ dưỡng tại Azure là sự giao thoa hoàn hảo giữa kiến trúc hiện đại và vẻ đẹp nguyên bản của biển cả. Mỗi chi tiết đều được chăm chút tỉ mỉ để tôn vinh sự riêng tư và sang trọng tuyệt đối của quý khách.</c:otherwise>
-                    </c:choose>
-                </div>
-            </section>
-
-            <!-- Specifications Grid -->
-            <section class="animate-reveal" style="animation-delay: 200ms">
-                <h3 class="text-xs font-bold text-white/30 uppercase tracking-[0.3em] mb-10 pb-4 border-b border-white/5">Thông số kỹ thuật</h3>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
-                    <div class="spec-card">
-                        <span class="block text-[10px] text-white/30 uppercase tracking-widest mb-3">Diện tích</span>
-                        <div class="text-2xl font-serif font-bold text-white">${facility.usableArea} <span class="text-sm font-sans font-normal opacity-40 italic">m²</span></div>
-                    </div>
-                    <div class="spec-card">
-                        <span class="block text-[10px] text-white/30 uppercase tracking-widest mb-3">Sức chứa</span>
-                        <div class="text-2xl font-serif font-bold text-white">${facility.maxPeople} <span class="text-sm font-sans font-normal opacity-40 italic">Người</span></div>
-                    </div>
-                    <div class="spec-card">
-                        <span class="block text-[10px] text-white/30 uppercase tracking-widest mb-3">Tầm nhìn</span>
-                        <div class="text-2xl font-serif font-bold text-white">Panorama <span class="text-sm font-sans font-normal opacity-40 italic">View</span></div>
-                    </div>
-                    <div class="spec-card">
-                        <span class="block text-[10px] text-white/30 uppercase tracking-widest mb-3">Loại hình</span>
-                        <div class="text-xl font-serif font-bold text-white">${facilityTypeLabel}</div>
-                    </div>
-                    <div class="spec-card">
-                        <span class="block text-[10px] text-white/30 uppercase tracking-widest mb-3">Hình thức thuê</span>
-                        <div class="text-xl font-serif font-bold text-white">${rentalTypeLabel}</div>
-                    </div>
-                    <div class="spec-card">
-                        <span class="block text-[10px] text-white/30 uppercase tracking-widest mb-3">Định danh</span>
-                        <div class="text-xl font-serif font-bold text-white">${facility.serviceCode}</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Amenities -->
-            <section class="animate-reveal" style="animation-delay: 300ms">
-                <h3 class="text-xs font-bold text-white/30 uppercase tracking-[0.3em] mb-8 pb-4 border-b border-white/5">Tiện nghi đặc quyền</h3>
-                <div class="flex flex-wrap gap-4">
-                    <span class="amenity-tag">✦ Wifi tốc độ cao</span>
-                    <span class="amenity-tag">✦ Điều hòa trung tâm</span>
-                    <span class="amenity-tag">✦ Dọn phòng 24/7</span>
-                    <span class="amenity-tag">✦ TV 4K OLED</span>
-                    <span class="amenity-tag">✦ Két sắt an toàn</span>
-                    <span class="amenity-tag">✦ Minibar cao cấp</span>
-                    <span class="amenity-tag">✦ Hệ thống âm thanh Bang & Olufsen</span>
-                </div>
-            </section>
-        </div>
-
-        <!-- Right Column (Booking Widget) -->
-        <div class="lg:block">
-            <div class="sticky top-32 glass-panel rounded-[40px] p-10 shadow-2xl animate-reveal border-white/10 ring-1 ring-gold/10" style="animation-delay: 400ms">
-                <div class="mb-10 text-center lg:text-left">
-                    <span class="block text-[10px] text-gold uppercase tracking-[0.3em] font-bold mb-3">Ưu đãi hôm nay</span>
-                    <div class="flex items-baseline gap-2 justify-center lg:justify-start">
-                        <span class="text-xs text-gold uppercase tracking-widest font-bold">đ</span>
-                        <h2 class="text-5xl font-serif font-bold text-white">${formattedCost}</h2>
-                        <span class="text-xs text-white/30 font-medium">/ ${rentalTypeLabel}</span>
-                    </div>
-                </div>
-
-                <c:choose>
-                    <c:when test="${isAvailable}">
-                        <form action="${pageContext.request.contextPath}/booking" method="GET" class="space-y-6">
-                            <input type="hidden" name="facility" value="${facility.serviceCode}">
-                            
-                            <div class="space-y-2">
-                                <label class="block text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold ml-1">Lịch nhận phòng</label>
-                                <input type="date" name="checkin" id="checkinInput" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-gold/50 transition-all [color-scheme:dark]">
-                            </div>
-
-                            <div class="space-y-2">
-                                <label class="block text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold ml-1">Lịch trả phòng</label>
-                                <input type="date" name="checkout" id="checkoutInput" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-gold/50 transition-all [color-scheme:dark]">
-                            </div>
-
-                            <div class="space-y-2 pb-6">
-                                <label class="block text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold ml-1">Số lượng khách</label>
-                                <select name="adults" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-gold/50 transition-all appearance-none cursor-pointer">
-                                    <c:forEach begin="1" end="${facility.maxPeople}" var="i">
-                                        <option value="${i}" class="bg-navy">${i} người lớn</option>
-                                    </c:forEach>
-                                </select>
-                            </div>
-
-                            <button type="submit" class="w-full py-5 bg-gradient-to-r from-gold to-gold-light text-dark font-bold rounded-2xl uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-gold/20 flex items-center justify-center gap-3 group">
-                                <span>✦</span> Đặt Phòng Ngay
-                            </button>
-                        </form>
-                    </c:when>
-                    <c:otherwise>
-                        <div class="py-12 text-center space-y-4">
-                            <div class="text-4xl opacity-20">🔇</div>
-                            <h3 class="text-xl font-serif font-bold text-white/60">Tạm hết phòng</h3>
-                            <button class="w-full py-5 bg-white/5 border border-white/10 text-white/30 font-bold rounded-2xl uppercase tracking-[0.2em] cursor-not-allowed">
-                                Không thể đặt
-                            </button>
-                        </div>
-                    </c:otherwise>
-                </c:choose>
-
-                <div class="mt-10 pt-10 border-t border-white/5 text-center">
-                    <p class="text-[10px] text-white/30 leading-relaxed tracking-wider uppercase">
-                        Miễn phí hủy phòng trước 48 giờ <br>
-                        Hỗ trợ 24/7: <span class="text-gold font-bold">1800 7777</span>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-</main>
-
-<footer class="bg-[#060608] border-t border-white/5 py-12 px-6 md:px-12 text-center md:text-left">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-        <div class="text-white/20 text-xs tracking-wider">
-            © 2026 <span class="text-gold font-bold">Azure Resort &amp; Spa</span>. Bản quyền được bảo lưu.
-        </div>
-        <div class="flex items-center gap-1">
-            <span class="text-white/20 text-xs tracking-wider font-light">Tuyệt phẩm nghỉ dưỡng bởi</span>
-            <span class="text-gold font-serif italic ml-1">Azure Team</span>
-        </div>
+<footer>
+    <div class="footer-inner">
+        <div class="footer-brand">Azure <span>Resort</span> &amp; Spa</div>
+        <div class="footer-copy">© 2026 Azure Resort &amp; Spa. All rights reserved.</div>
     </div>
 </footer>
 
 <script>
+    // Navbar scroll effect
+    window.addEventListener('scroll', function() {
+        document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    // Date logic
     var today = new Date().toISOString().split('T')[0];
     var ci = document.getElementById('checkinInput');
     var co = document.getElementById('checkoutInput');
-    if (ci) { ci.min = today; ci.addEventListener('change', function() { if (this.value) { var n = new Date(this.value); n.setDate(n.getDate()+1); if(co) co.min = n.toISOString().split('T')[0]; } }); }
-    if (co) co.min = today;
+    var preview = document.getElementById('nightsPreview');
+    var cost = <c:out value="${facility.cost != null ? facility.cost : 0}"/>;
+
+    if (ci) {
+        ci.min = today;
+        ci.addEventListener('change', function() {
+            if (this.value) {
+                var next = new Date(this.value);
+                next.setDate(next.getDate() + 1);
+                if (co) { co.min = next.toISOString().split('T')[0]; }
+            }
+            updateNightsPreview();
+        });
+    }
+    if (co) {
+        co.min = today;
+        co.addEventListener('change', updateNightsPreview);
+    }
+
+    function updateNightsPreview() {
+        if (!ci || !co || !ci.value || !co.value) { preview.style.display = 'none'; return; }
+        var d1 = new Date(ci.value), d2 = new Date(co.value);
+        var nights = Math.round((d2 - d1) / 86400000);
+        if (nights <= 0) { preview.style.display = 'none'; return; }
+        var total = nights * cost;
+        preview.style.display = 'block';
+        preview.innerHTML = '<strong>' + nights + ' đêm</strong> &nbsp;·&nbsp; Ước tính: <strong>' +
+            new Intl.NumberFormat('vi-VN').format(total) + ' đ</strong>';
+    }
 </script>
 </body>
 </html>
