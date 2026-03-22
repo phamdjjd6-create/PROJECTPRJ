@@ -114,7 +114,7 @@
     <ul class="nav-links">
         <li><a href="${pageContext.request.contextPath}/">Trang Chủ</a></li>
         <li><a href="${pageContext.request.contextPath}/rooms">Phòng &amp; Villa</a></li>
-        <li><a href="${pageContext.request.contextPath}/booking">Đặt Phòng</a></li>
+        <li><a href="${pageContext.request.contextPath}/booking?view=my">Booking Của Tôi</a></li>
         <li><a href="${pageContext.request.contextPath}/account.jsp" class="active">Tài Khoản</a></li>
         <c:if test="${isEmployee}">
             <li><a href="${dashboardUrl}" class="btn-dash">Dashboard</a></li>

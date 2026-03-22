@@ -153,8 +153,7 @@
     <ul class="nav-links">
         <li><a href="${pageContext.request.contextPath}/rooms">Phòng &amp; Villa</a></li>
         <li><a href="#promotions">Khuyến Mãi</a></li>
-        <li><a href="${pageContext.request.contextPath}/booking">Đặt Phòng</a></li>
-        <li><a href="${pageContext.request.contextPath}/contracts">Hợp Đồng</a></li>
+        <li><a href="${pageContext.request.contextPath}/booking?view=my">Booking Của Tôi</a></li>
         <li><a href="${pageContext.request.contextPath}/account.jsp">Tài Khoản</a></li>
         <c:if test="${sessionScope.account.personType == 'EMPLOYEE'}">
             <li><a href="${pageContext.request.contextPath}/dashboard/admin" class="text-gold font-bold hover:text-white transition-colors">Bảng điều khiển</a></li>
@@ -309,7 +308,6 @@
         <div class="footer-col">
             <h4>Tài Khoản</h4>
             <a href="${pageContext.request.contextPath}/booking?view=my">Booking Của Tôi</a>
-            <a href="${pageContext.request.contextPath}/contracts">Hợp Đồng</a>
             <a href="${pageContext.request.contextPath}/profile">Hồ Sơ</a>
         </div>
         <div class="footer-col">

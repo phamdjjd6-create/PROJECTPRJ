@@ -179,36 +179,34 @@
             <div class="stat-card">
                 <div class="stat-top">
                     <span class="stat-indicator ind-gold"></span>
-                    <span class="stat-trend trend-up">Doanh thu</span>
+                    <span class="stat-trend trend-up">Chờ xử lý</span>
                 </div>
-                <div class="stat-num">
-                    <fmt:formatNumber value="${totalRevenue != null ? totalRevenue : 0}" pattern="#,###"/>
-                </div>
-                <div class="stat-label">Tổng Doanh Thu (đ)</div>
+                <div class="stat-num">${cntPending != null ? cntPending : '0'}</div>
+                <div class="stat-label">Booking Chờ Duyệt</div>
             </div>
             <div class="stat-card">
                 <div class="stat-top">
                     <span class="stat-indicator ind-blue"></span>
-                    <span class="stat-trend trend-up">Tổng</span>
+                    <span class="stat-trend trend-up">Đang ở</span>
                 </div>
-                <div class="stat-num">${totalBookings != null ? totalBookings : '—'}</div>
-                <div class="stat-label">Tổng Booking</div>
+                <div class="stat-num">${cntCheckedIn != null ? cntCheckedIn : '0'}</div>
+                <div class="stat-label">Khách Đang Check-in</div>
             </div>
             <div class="stat-card">
                 <div class="stat-top">
                     <span class="stat-indicator ind-green"></span>
-                    <span class="stat-trend trend-up">Hoạt động</span>
+                    <span class="stat-trend trend-up">Sẵn sàng</span>
                 </div>
-                <div class="stat-num">${totalCustomers != null ? totalCustomers : '—'}</div>
-                <div class="stat-label">Khách Hàng</div>
+                <div class="stat-num">${cntAvailable != null ? cntAvailable : '0'}</div>
+                <div class="stat-label">Phòng Khả Dụng</div>
             </div>
             <div class="stat-card">
                 <div class="stat-top">
                     <span class="stat-indicator ind-red"></span>
-                    <span class="stat-trend trend-up">Đang làm</span>
+                    <span class="stat-trend trend-up">Hiệu lực</span>
                 </div>
-                <div class="stat-num">${totalEmployees != null ? totalEmployees : '—'}</div>
-                <div class="stat-label">Nhân Viên</div>
+                <div class="stat-num">${cntActiveContracts != null ? cntActiveContracts : '0'}</div>
+                <div class="stat-label">Hợp Đồng Active</div>
             </div>
         </div>
 
@@ -221,7 +219,14 @@
                     </div>
                     <div class="revenue-label">Tổng doanh thu · Azure Resort &amp; Spa</div>
                 </div>
-                <a href="javascript:void(0)" onclick="document.getElementById('reportModal').classList.add('active')" class="link-more">Xem báo cáo đầy đủ →</a>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:12px">
+                    <a href="javascript:void(0)" onclick="document.getElementById('reportModal').classList.add('active')" class="link-more">Xem báo cáo đầy đủ →</a>
+                    <div style="display:flex;gap:20px;text-align:center">
+                        <div><div style="font-family:'Playfair Display',serif;font-size:22px;color:#fff">${totalBookings != null ? totalBookings : '0'}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Booking</div></div>
+                        <div><div style="font-family:'Playfair Display',serif;font-size:22px;color:#fff">${totalCustomers != null ? totalCustomers : '0'}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Khách hàng</div></div>
+                        <div><div style="font-family:'Playfair Display',serif;font-size:22px;color:#fff">${totalEmployees != null ? totalEmployees : '0'}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Nhân viên</div></div>
+                    </div>
+                </div>
             </div>
             <div class="revenue-bars">
                 <div class="rev-bar" style="height:30%"></div>
@@ -299,9 +304,56 @@
                     <div style="padding:48px;text-align:center;color:var(--muted);font-size:13px;">Chưa có dữ liệu nhân viên</div>
                 </c:otherwise>
             </c:choose>
-        </div>
+        </div><!-- end recent bookings table-card -->
     </div>
 </div>
+
+        <!-- RECENT BOOKINGS -->
+        <div class="section-header" style="margin-top:28px">
+            <div>
+                <div class="section-label">Hoạt Động</div>
+                <div class="section-title">Booking Gần Đây</div>
+            </div>
+            <a href="${pageContext.request.contextPath}/dashboard/bookings" class="link-more">Xem tất cả →</a>
+        </div>
+        <div class="table-card">
+            <c:choose>
+                <c:when test="${not empty recentBookings}">
+                    <table>
+                        <thead><tr>
+                            <th>Mã Booking</th><th>Khách Hàng</th><th>Phòng / Villa</th><th>Ngày Nhận</th><th>Ngày Trả</th><th>Trạng Thái</th>
+                        </tr></thead>
+                        <tbody>
+                        <c:forEach var="b" items="${recentBookings}">
+                            <tr>
+                                <td style="color:var(--gold);font-weight:600;font-family:monospace">#${b.bookingId}</td>
+                                <td>${b.customerName}</td>
+                                <td>
+                                    <div style="font-size:13px;color:#fff">${b.facilityName}</div>
+                                    <div style="font-size:10px;color:rgba(201,168,76,0.6);text-transform:uppercase;letter-spacing:1px;margin-top:2px">${b.facilityType}</div>
+                                </td>
+                                <td><fmt:formatDate value="${b.startDate}" pattern="dd/MM/yyyy"/></td>
+                                <td><fmt:formatDate value="${b.endDate}" pattern="dd/MM/yyyy"/></td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${b.status == 'PENDING'}"><span class="badge" style="background:rgba(245,158,11,0.1);color:#f59e0b">Chờ Duyệt</span></c:when>
+                                        <c:when test="${b.status == 'CONFIRMED'}"><span class="badge" style="background:rgba(16,185,129,0.1);color:#10b981">Xác Nhận</span></c:when>
+                                        <c:when test="${b.status == 'CHECKED_IN'}"><span class="badge" style="background:rgba(96,165,250,0.1);color:#60a5fa">Đang Ở</span></c:when>
+                                        <c:when test="${b.status == 'CHECKED_OUT'}"><span class="badge" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.4)">Trả Phòng</span></c:when>
+                                        <c:when test="${b.status == 'CANCELLED'}"><span class="badge" style="background:rgba(248,113,113,0.1);color:#f87171">Đã Hủy</span></c:when>
+                                        <c:otherwise><span class="badge badge-active">${b.status}</span></c:otherwise>
+                                    </c:choose>
+                                </td>
+                            </tr>
+                        </c:forEach>
+                        </tbody>
+                    </table>
+                </c:when>
+                <c:otherwise>
+                    <div style="padding:40px;text-align:center;color:var(--muted);font-size:13px;">Chưa có booking nào</div>
+                </c:otherwise>
+            </c:choose>
+        </div>
 
 <!-- Modal Report -->
 <div class="modal-overlay" id="reportModal">

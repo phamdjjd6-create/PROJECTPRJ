@@ -74,7 +74,7 @@
     <ul class="hidden md:flex items-center gap-10">
         <li><a href="${pageContext.request.contextPath}/" class="nav-link">Trang Chủ</a></li>
         <li><a href="${pageContext.request.contextPath}/rooms" class="nav-link active">Phòng &amp; Villa</a></li>
-        <li><a href="${pageContext.request.contextPath}/booking" class="nav-link">Đặt Phòng</a></li>
+        <li><a href="${pageContext.request.contextPath}/booking?view=my" class="nav-link">Booking Của Tôi</a></li>
         <li><a href="${pageContext.request.contextPath}/account.jsp" class="nav-link">Tài Khoản</a></li>
         <c:if test="${sessionScope.account.personType == 'EMPLOYEE'}">
             <li><a href="${pageContext.request.contextPath}/dashboard/admin" class="nav-link text-gold font-bold border border-gold/20 px-4 py-1.5 rounded-full hover:bg-gold hover:text-dark transition-all">Bảng điều khiển</a></li>

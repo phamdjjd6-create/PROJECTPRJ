@@ -71,9 +71,14 @@
     </a>
     
     <ul class="hidden md:flex items-center gap-10">
+        <li>
+            <button onclick="history.back()" class="nav-link flex items-center gap-2 text-white/50 hover:text-gold transition-colors text-sm font-medium">
+                ← Quay lại
+            </button>
+        </li>
         <li><a href="${pageContext.request.contextPath}/" class="nav-link">Trang Chủ</a></li>
         <li><a href="${pageContext.request.contextPath}/rooms" class="nav-link">Phòng &amp; Villa</a></li>
-        <li><a href="${pageContext.request.contextPath}/booking" class="nav-link active">Đặt Phòng</a></li>
+        <li><a href="${pageContext.request.contextPath}/booking?view=my" class="nav-link">Booking Của Tôi</a></li>
         <li><a href="${pageContext.request.contextPath}/account.jsp" class="nav-link">Tài Khoản</a></li>
     </ul>
 

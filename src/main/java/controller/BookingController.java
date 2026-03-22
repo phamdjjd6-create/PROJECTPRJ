@@ -5,6 +5,8 @@ import DAO.ContractDAO;
 import DAO.FacilityDAO;
 import DAO.PromotionDAO;
 import model.*;
+import java.util.HashMap;
+import java.util.Map;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -41,6 +43,15 @@ public class BookingController extends HttpServlet {
             TblPersons account = (TblPersons) session.getAttribute("account");
             List<TblBookings> myBookings = bookingDAO.findByCustomerId(account.getId());
             request.setAttribute("myBookings", myBookings);
+
+            // Build bookingId → VwContracts map for inline display
+            List<model.VwContracts> myContracts = contractDAO.findByCustomerId(account.getId());
+            Map<String, model.VwContracts> contractMap = new HashMap<>();
+            for (model.VwContracts c : myContracts) {
+                contractMap.put(c.getBookingId(), c);
+            }
+            request.setAttribute("contractMap", contractMap);
+
             request.getRequestDispatcher("/WEB-INF/my_bookings.jsp").forward(request, response);
             return;
         }
