@@ -70,6 +70,8 @@ public class TblCustomers implements Serializable {
     @OneToOne(optional = false)
     private TblPersons tblPersons;
 
+   
+
     public TblCustomers() {
     }
 
@@ -182,5 +184,5 @@ public class TblCustomers implements Serializable {
     public String toString() {
         return "model.TblCustomers[ id=" + id + " ]";
     }
-    
+
 }

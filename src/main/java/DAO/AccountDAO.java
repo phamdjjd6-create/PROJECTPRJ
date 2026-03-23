@@ -88,11 +88,13 @@ public class AccountDAO {
 
             String newId = generateCustomerId(em);
             person.setId(newId);
+            person.setPersonType("CUSTOMER");
 
             em.persist(person);
             em.flush();
 
             TblCustomers customer = new TblCustomers();
+            customer.setTblPersons(person);
             customer.setId(newId);
             customer.setTypeCustomer("Normal");
             customer.setLoyaltyPoints(0);

@@ -166,9 +166,8 @@
         <span style="font-size:12px;color:var(--muted)" id="topbarDate"></span>
     </div>
     <div class="content">
-        <c:if test="${not empty sessionScope.flashMsg}">
-            <div class="flash flash-success">${sessionScope.flashMsg}</div>
-            <c:remove var="flashMsg" scope="session"/>
+        <c:if test="${not empty flashMsg}">
+            <div class="flash ${flashMsg.startsWith('❌') || flashMsg.startsWith('🚫') ? 'flash-error' : 'flash-success'}">${flashMsg}</div>
         </c:if>
 
         <div class="stats-row">
