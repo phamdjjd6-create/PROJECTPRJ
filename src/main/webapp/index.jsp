@@ -751,12 +751,29 @@
         msg.className = 'p-3.5 text-sm leading-relaxed max-w-[85%] ' + 
                      (role === 'user' ? 'bg-gold/20 text-white rounded-2xl rounded-tr-none' : 'bg-white/5 border border-white/10 text-white/80 rounded-2xl rounded-tl-none');
         
-        // Advanced Markdown Parser (Images, Bold, Italic, Lists)
+        // Advanced Markdown Parser (Tables, Images, Bold, Italic, Lists)
         let parsedText = text.replace(/\n/g, '<br>')
                              .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<div class="my-3 overflow-hidden rounded-xl border border-white/10 shadow-lg"><img src="$2" alt="$1" class="w-full h-auto object-cover hover:scale-105 transition-transform duration-500"></div>')
                              .replace(/\*\*([^*]+)\*\*/g, '<b class="text-gold">$1</b>')
                              .replace(/\*([^*]+)\*/g, '<i class="text-white/60">$1</i>')
                              .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc marker:text-gold">$1</li>');
+
+        // Simple Table Parser
+        const tableRegex = /((?:\|.+\|(?:\n|<br>)?)+)/g;
+        parsedText = parsedText.replace(tableRegex, (match) => {
+            const rows = match.split(/<br>|\n/).filter(r => r.trim().startsWith('|'));
+            let html = '<div class="overflow-x-auto my-3"><table class="w-full border-collapse border border-white/10 text-[11px] backdrop-blur-md rounded-lg overflow-hidden">';
+            rows.forEach((row, i) => {
+                const cols = row.split('|').filter(c => c.trim() !== '' || row.indexOf('|') !== row.lastIndexOf('|'));
+                html += `<tr class="${i === 0 ? 'bg-white/10' : 'border-t border-white/5'}">`;
+                cols.forEach(col => {
+                    html += `<td class="p-2 border-x border-white/5">${col.trim()}</td>`;
+                });
+                html += '</tr>';
+            });
+            return html + '</table></div>';
+        });
+        
         msg.innerHTML = parsedText;
         
         div.appendChild(avatar);
