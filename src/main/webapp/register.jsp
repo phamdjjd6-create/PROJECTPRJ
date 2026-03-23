@@ -194,7 +194,7 @@
             </div>
 
             <div class="text-center text-white/40 text-sm">
-                Đã có tài khoản? <a href="${pageContext.request.contextPath}/login.jsp" class="text-gold font-bold hover:underline">Đăng nhập ngay</a>
+                Đã có tài khoản? <a href="${pageContext.request.contextPath}/login" class="text-gold font-bold hover:underline">Đăng nhập ngay</a>
             </div>
         </div>
     </div>

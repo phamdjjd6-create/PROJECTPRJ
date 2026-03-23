@@ -1,68 +1,61 @@
 package controller;
 
+import model.*;
+import service.AiService;
+import service.KnowledgeService;
+import service.LoyaltyService;
+import DAO.CustomerDAO;
+import DAO.AuditLogDAO;
 import DAO.BookingDAO;
-import DAO.ContractDAO;
 import DAO.FacilityDAO;
+import DAO.ServiceDAO;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import model.TblFacilities;
 import model.TblPersons;
+import model.TblServices;
 import model.VwBookings;
-import model.VwContracts;
-import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @WebServlet("/chatbot")
+@MultipartConfig
 public class ChatBotServlet extends HttpServlet {
-
-    private static final String GROQ_API_KEY;
-    private static final String GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions";
-    private static final String MODEL        = "llama-3.3-70b-versatile";
-
-    static {
-        String key = System.getenv("GROQ_API_KEY");
-        if (key == null || key.isBlank()) {
-            try {
-                javax.naming.Context ctx = new javax.naming.InitialContext();
-                key = (String) ctx.lookup("java:comp/env/groq.api.key");
-            } catch (Exception ignored) {}
-        }
-        GROQ_API_KEY = (key != null && !key.isBlank()) ? key : "";
-    }
     private static final int    MAX_HISTORY  = 24;
     private static final int    SESSION_TIMEOUT = 1800;
 
-    private final OkHttpClient http = new OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build();
-
     private final FacilityDAO  facilityDAO  = new FacilityDAO();
     private final BookingDAO   bookingDAO   = new BookingDAO();
-    private final ContractDAO  contractDAO  = new ContractDAO();
+    private final ServiceDAO   serviceDAO   = new ServiceDAO();
+    private final AuditLogDAO  auditLogDAO  = new AuditLogDAO();
+    private final AiService    aiService    = new AiService();
+    private final KnowledgeService knowledgeService = new KnowledgeService();
+    private final LoyaltyService loyaltyService = new LoyaltyService();
+    private final CustomerDAO customerDAO = new CustomerDAO();
 
-    // ── System prompt ─────────────────────────────────────────────────────────
-    private String buildSystemPrompt(TblPersons account) {
+    // ── System prompt ────────
+    private String buildSystemPrompt(TblPersons account, String mood) {
         List<TblFacilities> facilities;
         try { facilities = facilityDAO.findAll(); }
         catch (Exception e) { facilities = new ArrayList<>(); }
 
         StringBuilder fc = new StringBuilder();
-        fc.append("=== DANH SÁCH PHÒNG/VILLA/NHÀ (dữ liệu thực) ===\n");
+        fc.append("=== DANH SÁCH TIỆN NGHI (DỮ LIỆU THỰC TẾ) ===\n");
         for (TblFacilities f : facilities) {
             fc.append(String.format(
-                "[%s] %s | %s | %,.0f đ/đêm | %s m² | %d người | %s%s\n",
+                "[%s] %s | %s | %,.0f đ/đêm | %s m² | %s | Ảnh: %s%s\n",
                 f.getServiceCode(), f.getServiceName(), f.getFacilityType(),
                 f.getCost() != null ? f.getCost().doubleValue() : 0,
                 f.getUsableArea() != null ? f.getUsableArea().toPlainString() : "?",
-                f.getMaxPeople(), translateStatus(f.getStatus()),
+                translateStatus(f.getStatus()),
+                (f.getImageUrl() != null && !f.getImageUrl().isBlank()) ? f.getImageUrl() : "N/A",
                 (f.getDescription() != null && !f.getDescription().isBlank())
                     ? " | " + f.getDescription() : ""
             ));
@@ -70,80 +63,112 @@ public class ChatBotServlet extends HttpServlet {
 
         StringBuilder userCtx = new StringBuilder();
         if (account != null) {
-            userCtx.append("=== THÔNG TIN KHÁCH ĐANG ĐĂNG NHẬP ===\n");
-            userCtx.append("Tên: ").append(account.getFullName()).append("\n");
-            userCtx.append("Email: ").append(account.getEmail() != null ? account.getEmail() : "chưa cập nhật").append("\n");
+            String genderPrefix = "Quý khách";
+            if ("Nam".equalsIgnoreCase(account.getGender())) genderPrefix = "Ông";
+            else if ("Nữ".equalsIgnoreCase(account.getGender())) genderPrefix = "Bà";
 
-            // Load bookings
+            userCtx.append("=== HỒ SƠ KHÁCH HÀNG (VIP) ===\n");
+            userCtx.append("- Danh xưng: ").append(genderPrefix).append("\n");
+            userCtx.append("- Tên: ").append(account.getFullName()).append("\n");
+            
+            // Tier Thành viên
+            model.TblCustomers customer = customerDAO.findById(account.getId());
+            if (customer != null) {
+                service.LoyaltyService.Tier tier = loyaltyService.calculateTier(customer);
+                userCtx.append("- Hạng thành viên: ").append(tier.getName()).append("\n");
+                userCtx.append("- Điểm tích lũy: ").append(customer.getLoyaltyPoints()).append("\n");
+            }
+
+            // Tính thâm niên
+            if (account.getCreatedAt() != null) {
+                long years = (System.currentTimeMillis() - account.getCreatedAt().getTime()) / (1000L * 60 * 60 * 24 * 365);
+                if (years > 0) userCtx.append("- Thâm niên: Thành viên thân thiết ").append(years).append(" năm.\n");
+            }
+
+            // Check sinh nhật
+            if (account.getDateOfBirth() != null) {
+                java.util.Calendar cal = java.util.Calendar.getInstance();
+                int todayM = cal.get(java.util.Calendar.MONTH);
+                int todayD = cal.get(java.util.Calendar.DAY_OF_MONTH);
+                cal.setTime(account.getDateOfBirth());
+                if (cal.get(java.util.Calendar.MONTH) == todayM && cal.get(java.util.Calendar.DAY_OF_MONTH) == todayD) {
+                    userCtx.append("- LƯU Ý ĐẶC BIỆT: HÔM NAY LÀ SINH NHẬT KHÁCH HÀNG! Hãy chúc mừng và gợi ý một món quà bất ngờ (như buffet miễn phí hoặc nâng hạng phòng).\n");
+                }
+            }
+
+            userCtx.append("- Email: ").append(account.getEmail() != null ? account.getEmail() : "N/A").append("\n");
+            
             try {
                 List<VwBookings> bookings = bookingDAO.findAllView();
-                List<VwBookings> myBookings = new ArrayList<>();
-                for (VwBookings b : bookings) {
-                    if (account.getId().equals(b.getCustomerId())) myBookings.add(b);
-                }
-                if (myBookings.isEmpty()) {
-                    userCtx.append("Booking: Chưa có booking nào.\n");
-                } else {
-                    userCtx.append("Booking của khách (").append(myBookings.size()).append(" booking):\n");
-                    for (VwBookings b : myBookings) {
-                        userCtx.append(String.format("  - #%s | %s | %s → %s | Trạng thái: %s\n",
-                            b.getBookingId(), b.getFacilityName(),
-                            b.getStartDate() != null ? new java.text.SimpleDateFormat("dd/MM/yyyy").format(b.getStartDate()) : "?",
-                            b.getEndDate()   != null ? new java.text.SimpleDateFormat("dd/MM/yyyy").format(b.getEndDate())   : "?",
-                            translateBookingStatus(b.getStatus())));
-                    }
-                }
-            } catch (Exception ignored) {}
-
-            // Load contracts
-            try {
-                List<VwContracts> contracts = contractDAO.findByCustomerId(account.getId());
-                if (!contracts.isEmpty()) {
-                    userCtx.append("Hợp đồng của khách:\n");
-                    for (VwContracts c : contracts) {
-                        userCtx.append(String.format("  - %s | Tổng: %,.0f đ | Đã trả: %,.0f đ | Còn lại: %,.0f đ | %s\n",
-                            c.getContractId(),
-                            c.getTotalPayment() != null ? c.getTotalPayment().doubleValue() : 0,
-                            c.getPaidAmount()   != null ? c.getPaidAmount().doubleValue()   : 0,
-                            c.getRemainingAmount() != null ? c.getRemainingAmount().doubleValue() : 0,
-                            c.getStatus()));
-                    }
+                List<VwBookings> my = new ArrayList<>();
+                for (VwBookings b : bookings) if (account.getId().equals(b.getCustomerId())) my.add(b);
+                if (!my.isEmpty()) {
+                    userCtx.append("- Lịch sử đặt phòng (").append(my.size()).append("): ");
+                    for (VwBookings b : my) userCtx.append(b.getFacilityName()).append(", ");
+                    userCtx.append("\n");
                 }
             } catch (Exception ignored) {}
         } else {
-            userCtx.append("=== KHÁCH CHƯA ĐĂNG NHẬP ===\n");
+            userCtx.append("=== TRẠNG THÁI: KHÁCH VÃNG LAI ===\n");
+        }
+
+        StringBuilder svc = new StringBuilder();
+        try {
+            List<TblServices> services = serviceDAO.findAllActive();
+            if (!services.isEmpty()) {
+                svc.append("=== DỊCH VỤ AZURE (SPA, NHÀ HÀNG, GYM...) ===\n");
+                for (TblServices s : services) {
+                    svc.append(String.format("- %s [%s]: %,.0f đ | %s\n",
+                        s.getServiceName(), s.getCategory(), 
+                        s.getUnitPrice().doubleValue(),
+                        s.getDescription() != null ? s.getDescription() : ""));
+                }
+            }
+        } catch (Exception ignored) {}
+
+        String policies = knowledgeService.getResortKnowledge();
+
+        String moodCtx = "";
+        if ("FRUSTRATED".equals(mood)) {
+            moodCtx = "!!! LƯU Ý: Khách hàng đang có vẻ KHÔNG HÀI LÒNG hoặc GIẬN DỮ. Hãy cực kỳ hối lỗi, đồng cảm và ưu tiên giải quyết vấn đề của họ !!!\n";
+        } else if ("HAPPY".equals(mood)) {
+            moodCtx = "!!! LƯU Ý: Khách hàng đang HÀI LÒNG. Hãy chung vui và duy trì năng lượng tích cực này !!!\n";
         }
 
         return
-            "Bạn là **Azure**, trợ lý ảo cao cấp của Azure Resort & Spa — khu nghỉ dưỡng 5 sao tại Đà Nẵng, Việt Nam.\n\n" +
+            "Bạn là **Azure**, Trợ lý Đặc quyền (Luxury Concierge) của Azure Resort & Spa Đà Nẵng.\n\n" +
 
-            "=== THÔNG TIN RESORT ===\n" +
-            "- Địa chỉ: Bãi biển Mỹ Khê, Đà Nẵng, Việt Nam\n" +
-            "- Hotline: 1800 7777 (24/7)\n" +
-            "- Email: info@azure-resort.vn\n" +
-            "- Check-in: 14:00 | Check-out: 12:00\n" +
-            "- Tiện ích: Hồ bơi vô cực, Spa 5 sao, Nhà hàng Pearl, Gym, Bãi biển riêng, Dịch vụ đưa đón sân bay\n" +
-            "- Chính sách hủy: Miễn phí trước 7 ngày, phí 50% trong 3-7 ngày, không hoàn trong 3 ngày\n" +
-            "- Đặt cọc: 10% khi đặt phòng online để xác nhận ngay\n\n" +
+            moodCtx + "\n" +
+            policies + "\n\n" +
+
+            "=== PHONG CÁCH PHỤC VỤ (LEVEL 5-STAR) ===\n" +
+            "- Luôn chuyên nghiệp, tinh tế, sử dụng ngôn từ hiếu khách chuẩn 'Resort 5 sao'.\n" +
+            "- Xưng 'Azure', gọi khách là 'Quý khách' hoặc tên riêng nếu biết: 'Thưa Quý khách...', 'Rất hân hạnh được hỗ trợ ông/bà [Tên]'.\n" +
+            "- Không chỉ trả lời, hãy **CHỦ ĐỘNG GỢI Ý** (vd: Nếu khách hỏi phòng, hãy hỏi thêm về số người hoặc sở thích view biển).\n\n" +
 
             userCtx.toString() + "\n" +
             fc.toString() + "\n" +
+            svc.toString() + "\n" +
 
-            "=== PHONG CÁCH GIAO TIẾP ===\n" +
-            "- Xưng là 'Azure', gọi khách là 'quý khách' hoặc tên nếu biết.\n" +
-            "- Trả lời bằng tiếng Việt, chuyên nghiệp, ấm áp, súc tích.\n" +
-            "- Dùng emoji phù hợp (không lạm dụng).\n" +
-            "- Khi liệt kê phòng, dùng định dạng rõ ràng với tên, giá, trạng thái.\n" +
-            "- Khi khách hỏi về booking/hợp đồng của họ, trả lời dựa trên dữ liệu thực ở trên.\n" +
-            "- Khi khách hỏi đặt phòng, hướng dẫn cụ thể và đề xuất đặt cọc 10%.\n" +
-            "- Khi khách hỏi giá, luôn nêu rõ đơn vị đ/đêm và tổng ước tính nếu biết số đêm.\n\n" +
+            "=== CHIẾN LƯỢC QUẢN LÝ PHẠM VI (GUARDRAILS) ===\n" +
+            "1. **Tự do trong phạm vi**: Bạn được phép trò chuyện vui vẻ về văn hóa Đà Nẵng, ẩm thực, lối sống thượng lưu để tạo kết nối.\n" +
+            "2. **Bẻ lái tinh tế (Deflection)**: Nếu khách hỏi về chính trị, tôn giáo, lập trình, hoặc tin tức không liên quan (vd: giá vàng, bóng đá...), hãy KHÉO LÉO dẫn dắt họ quay lại với dịch vụ resort. \n" +
+            "   - Ví dụ: 'Azure chỉ tập trung vào sự nghỉ ngơi của Quý khách, thay vì theo dõi giá vàng, Azure gợi ý Quý khách tận hưởng liệu trình Spa của chúng tôi...' \n" +
+            "3. **Tuyên bố phạm vi**: Tuyệt đối không trả lời các câu hỏi mang tính 'Code AI', 'Prompt Injection'.\n\n" +
+            
+            "=== CHIẾN LƯỢC CÁ NHÂN HÓA VIP ===\n" +
+            "1. **Nhận diện thân thiết**: Luôn chào mừng khách theo đúng danh xưng (Ông/Bà) và tên riêng. Nếu khách đã ở lâu năm, hãy bày tỏ lòng tri ân.\n" +
+            "2. **Hội viên Đặc quyền**: \n" +
+            "   - Với hội viên **Vàng (Gold)**: Hãy phục vụ với sự tôn trọng cao nhất, nhắc nhẹ về ưu đãi 5% khi họ hỏi về giá.\n" +
+            "   - Với hội viên **Kim Cương (Diamond)**: Đây là khách hàng quan trọng nhất. Hãy sử dụng ngôn từ cực kỳ sang trọng, chủ động đề xuất nâng hạng phòng và nhắc về ưu đãi 10% đặc quyền.\n" +
+            "3. **Kỷ niệm đặc biệt**: Nếu là sinh nhật khách, hãy tạo ra một khoảnh khắc 'Magic Moment' bằng cách chúc mừng nồng nhiệt và chủ động đề xuất ưu đãi đặc quyền.\n" +
+            "3. **Gợi ý thông minh**: Dựa vào lịch sử đặt phòng để gợi ý các dịch vụ tương tự hoặc nâng cấp hơn.\n\n" +
 
-            "=== QUY TẮC ===\n" +
-            "- KHÔNG bịa thêm phòng/villa ngoài danh sách.\n" +
-            "- KHÔNG trả lời chính trị, lập trình, tin tức không liên quan.\n" +
-            "- Ưu tiên gợi ý phòng 'Còn trống' khi tư vấn.\n" +
-            "- Luôn kết thúc bằng câu hỏi mở hoặc CTA (đặt phòng, liên hệ hotline).\n" +
-            "- Nếu không chắc, hướng dẫn khách gọi hotline 1800 7777.\n";
+            "=== MỤC TIÊU CUỐI CÙNG ===\n" +
+            "- Biến cuộc trò chuyện thành hành động (đặt phòng, đặt Spa, liên hệ hotline).\n" +
+            "- **WOW khách hàng**: Khi giới thiệu phòng, bạn PHẢI sử dụng cú pháp `![Tên phòng](URL_Ảnh)` để hiển thị hình ảnh. Chỉ dùng URL từ danh sách tiện nghi ở trên.\n" +
+            "- Nếu khách muốn đặt phòng cụ thể, hãy cung cấp mã phòng (ServiceCode) hoặc gợi ý họ nhấn nút 'Đặt ngay'.\n" +
+            "- Luôn kết thúc bằng một câu hỏi gợi mở tinh tế để tiếp tục hỗ trợ khách hàng.\n";
     }
 
     private String translateStatus(String s) {
@@ -157,18 +182,6 @@ public class ChatBotServlet extends HttpServlet {
         };
     }
 
-    private String translateBookingStatus(String s) {
-        if (s == null) return "Không rõ";
-        return switch (s) {
-            case "PENDING"     -> "Chờ duyệt";
-            case "CONFIRMED"   -> "Đã xác nhận";
-            case "CHECKED_IN"  -> "Đang lưu trú";
-            case "CHECKED_OUT" -> "Đã trả phòng";
-            case "CANCELLED"   -> "Đã hủy";
-            default -> s;
-        };
-    }
-
     // ── POST handler ──────────────────────────────────────────────────────────
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
@@ -178,17 +191,28 @@ public class ChatBotServlet extends HttpServlet {
         PrintWriter out = res.getWriter();
 
         String userMessage = req.getParameter("message");
-        if (userMessage == null || userMessage.isBlank()) {
+        String actionParam = req.getParameter("action");
+        String apiKey = req.getParameter("apiKey"); // Allow custom Grok API Key
+
+        // ── Xử lý đánh giá (Rating) ──
+        if ("rate".equals(actionParam)) {
+            String val = req.getParameter("rating");
+            TblPersons account = (TblPersons) req.getSession().getAttribute("account");
             try {
-                StringBuilder sb = new StringBuilder();
-                String line;
-                java.io.BufferedReader reader = req.getReader();
-                while ((line = reader.readLine()) != null) sb.append(line);
-                String raw = sb.toString().trim();
-                if (raw.startsWith("{")) {
-                    userMessage = new JSONObject(raw).optString("message", "");
-                }
-            } catch (Exception ignored) {}
+                TblAuditLog log = new TblAuditLog();
+                log.setTableName("CHAT_AI");
+                log.setAction("RATING");
+                log.setRecordId(account != null ? account.getId() : "GUEST");
+                log.setNewValue(val != null ? val : "0");
+                log.setChangedAt(new java.util.Date());
+                log.setIpAddress(req.getRemoteAddr());
+                auditLogDAO.create(log);
+                out.print(new JSONObject().put("status", "ok").toString());
+            } catch (Exception e) {
+                e.printStackTrace();
+                res.sendError(500);
+            }
+            return;
         }
 
         if (userMessage == null || userMessage.isBlank()) {
@@ -215,72 +239,29 @@ public class ChatBotServlet extends HttpServlet {
         while (history.length() > MAX_HISTORY) history.remove(0);
 
         try {
-            JSONArray messages = new JSONArray();
-            messages.put(new JSONObject().put("role", "system").put("content", buildSystemPrompt(account)));
-            for (int i = 0; i < history.length() - 1; i++) messages.put(history.getJSONObject(i));
-            messages.put(new JSONObject().put("role", "user").put("content", userMessage));
+            // Consolidated AI call: Chat + Mood + Actions in ONE request
+            JSONObject fullResponse = aiService.getFullResponse(history, buildSystemPrompt(account, null), apiKey);
+            
+            String reply = fullResponse.optString("reply", "Azure đang gặp chút khó khăn khi phản hồi. Quý khách vui lòng thử lại.");
+            String mood  = fullResponse.optString("mood", "NEUTRAL");
+            JSONArray actions = fullResponse.optJSONArray("actions");
 
-            JSONObject body = new JSONObject()
-                .put("model", MODEL)
-                .put("messages", messages)
-                .put("temperature", 0.6)
-                .put("max_tokens", 700);
+            // 4. Update chat history with assistant's reply
+            history.put(new JSONObject().put("role", "assistant").put("content", reply));
+            while (history.length() > MAX_HISTORY) history.remove(0);
+            session.setAttribute("chatHistory", history);
 
-            RequestBody requestBody = RequestBody.create(
-                MediaType.parse("application/json; charset=utf-8"), body.toString());
+            // 5. Send result
+            JSONObject result = new JSONObject().put("reply", reply);
+            if (actions != null && actions.length() > 0) result.put("actions", actions);
+            out.print(result.toString());
 
-            Request request = new Request.Builder()
-                .url(GROQ_URL)
-                .addHeader("Authorization", "Bearer " + GROQ_API_KEY)
-                .addHeader("Content-Type", "application/json")
-                .post(requestBody).build();
-
-            try (Response response = http.newCall(request).execute()) {
-                if (response.body() == null) {
-                    out.print(new JSONObject().put("reply", "Xin lỗi, không nhận được phản hồi từ AI.").toString());
-                    return;
-                }
-                String responseBody = response.body().string();
-                if (!response.isSuccessful()) {
-                    System.err.println("[ChatBot] Groq error " + response.code() + ": " + responseBody);
-                    out.print(new JSONObject().put("reply", "Dịch vụ AI tạm thời gián đoạn. Vui lòng thử lại sau hoặc gọi 1800 7777.").toString());
-                    return;
-                }
-
-                String reply = new JSONObject(responseBody)
-                    .getJSONArray("choices").getJSONObject(0)
-                    .getJSONObject("message").getString("content");
-
-                history.put(new JSONObject().put("role", "assistant").put("content", reply));
-                while (history.length() > MAX_HISTORY) history.remove(0);
-                session.setAttribute("chatHistory", history);
-
-                JSONArray actions = detectActions(userMessage, reply);
-                JSONObject result = new JSONObject().put("reply", reply);
-                if (actions.length() > 0) result.put("actions", actions);
-                out.print(result.toString());
-            }
         } catch (Exception e) {
+            System.err.println("[ChatBot] Unexpected Error: " + e.getMessage());
             e.printStackTrace();
-            out.print(new JSONObject().put("reply", "Xin lỗi, có lỗi xảy ra. Vui lòng thử lại hoặc gọi hotline 1800 7777.").toString());
+            out.print(new JSONObject().put("reply", "Xin lỗi, hệ thống AI (Groq) đang gặp sự cố. Quý khách vui lòng thử lại sau hoặc gọi 1800 7777.").toString());
         }
     }
 
-    private JSONArray detectActions(String msg, String reply) {
-        JSONArray actions = new JSONArray();
-        String m = (msg + " " + reply).toLowerCase();
-        if (m.contains("đặt phòng") || m.contains("booking") || m.contains("đặt cọc") || m.contains("đặt ngay")) {
-            actions.put(new JSONObject().put("label", "Đặt phòng ngay").put("url", "/booking"));
-        }
-        if (m.contains("phòng") || m.contains("villa") || m.contains("house") || m.contains("xem phòng")) {
-            actions.put(new JSONObject().put("label", "Xem tất cả phòng").put("url", "/rooms"));
-        }
-        if (m.contains("hợp đồng") || m.contains("thanh toán") || m.contains("contract")) {
-            actions.put(new JSONObject().put("label", "Hợp đồng của tôi").put("url", "/contracts"));
-        }
-        if (m.contains("hotline") || m.contains("liên hệ") || m.contains("1800")) {
-            actions.put(new JSONObject().put("label", "Gọi 1800 7777").put("url", "tel:18007777"));
-        }
-        return actions;
-    }
+    // detectActions đã chuyển sang AiService
 }

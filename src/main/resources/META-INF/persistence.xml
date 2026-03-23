@@ -6,23 +6,22 @@
                                  https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
   <persistence-unit name="ResortPU" transaction-type="RESOURCE_LOCAL">
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+    <non-jta-data-source>java:comp/env/jdbc/ResortDB</non-jta-data-source>
 
     <!-- ── Core tables ─────────────────────────── -->
     <class>model.TblPersons</class>
     <class>model.TblEmployees</class>
     <class>model.TblCustomers</class>
     <class>model.TblDepartments</class>
-
+    <!-- ... class list remains same ... -->
     <class>model.TblFacilities</class>
     <class>model.TblVillas</class>
     <class>model.TblHouses</class>
     <class>model.TblRooms</class>
-
     <class>model.TblBookings</class>
     <class>model.TblBookingServices</class>
     <class>model.TblContracts</class>
     <class>model.TblPayments</class>
-
     <class>model.TblVouchers</class>
     <class>model.TblPromotions</class>
     <class>model.TblReviews</class>
@@ -42,14 +41,6 @@
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
 
     <properties>
-      <!-- JDBC Connection -->
-      <property name="jakarta.persistence.jdbc.driver"
-                value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
-      <property name="jakarta.persistence.jdbc.url"
-                value="jdbc:sqlserver://MSI:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true"/>
-      <property name="jakarta.persistence.jdbc.user"     value="sa"/>
-      <property name="jakarta.persistence.jdbc.password" value="123"/>
-
       <!-- DDL: không tự tạo/xóa bảng -->
       <property name="eclipselink.ddl-generation" value="none"/>
 
@@ -60,7 +51,7 @@
       <!-- Tắt shared cache (tránh stale data) -->
       <property name="eclipselink.cache.shared.default" value="false"/>
 
-      <!-- Tomcat: không dùng JTA/JNDI, chỉ dùng RESOURCE_LOCAL -->
+      <!-- Tomcat: dùng JNDI qua Resource -->
       <property name="eclipselink.target-server" value="None"/>
       <property name="eclipselink.weaving" value="false"/>
     </properties>

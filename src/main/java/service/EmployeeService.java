@@ -81,4 +81,16 @@ public class EmployeeService implements IService<TblEmployees, String> {
             throw new IllegalArgumentException("Lương phải lớn hơn 0.");
         }
     }
+
+    public void updateSalary(String id, java.math.BigDecimal salary) {
+        employeeDAO.updateSalary(id, salary);
+    }
+
+    public void updatePosition(String id, String position) {
+        employeeDAO.updatePosition(id, position);
+    }
+
+    public void updateRole(String id, String role) {
+        employeeDAO.updateRole(id, role);
+    }
 }

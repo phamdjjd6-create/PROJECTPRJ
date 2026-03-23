@@ -34,18 +34,27 @@ public class RoomsController extends HttpServlet {
         String checkin     = request.getParameter("checkin");
         String checkout    = request.getParameter("checkout");
         String adultsParam = request.getParameter("adults");
+        String minPriceParam = request.getParameter("minPrice");
+        String maxPriceParam = request.getParameter("maxPrice");
 
         int adults = 1;
         boolean adultsSelected = false;
         if (adultsParam != null && !adultsParam.isEmpty()) {
-            try { adults = Integer.parseInt(adultsParam); } catch (NumberFormatException ignored) {}
-            adultsSelected = adults > 1;
+            try { adults = Integer.parseInt(adultsParam); adultsSelected = true; } catch (NumberFormatException ignored) {}
         }
+
+        double minPrice = 0, maxPrice = Double.MAX_VALUE;
+        boolean priceSelected = false;
+        try {
+            if (minPriceParam != null && !minPriceParam.isEmpty()) { minPrice = Double.parseDouble(minPriceParam); priceSelected = true; }
+            if (maxPriceParam != null && !maxPriceParam.isEmpty()) { maxPrice = Double.parseDouble(maxPriceParam); priceSelected = true; }
+        } catch (NumberFormatException ignored) {}
 
         boolean isSearchMode = (checkin != null && !checkin.isEmpty())
                 || (checkout != null && !checkout.isEmpty())
                 || (filterType != null && !filterType.isEmpty())
-                || adultsSelected;
+                || adultsSelected
+                || priceSelected;
 
         // Filter facilities
         List<TblFacilities> filtered = new ArrayList<>();
@@ -53,7 +62,7 @@ public class RoomsController extends HttpServlet {
 
         if (allFacilities != null) {
             for (TblFacilities f : allFacilities) {
-                // Count available by type (for tabs)
+                // Count available by type (for tabs) - ignoring other filters for totals
                 if ("AVAILABLE".equalsIgnoreCase(f.getStatus())) {
                     cntAll++;
                     if ("VILLA".equalsIgnoreCase(f.getFacilityType())) cntVilla++;
@@ -66,6 +75,7 @@ public class RoomsController extends HttpServlet {
                 if (filterType != null && !filterType.isEmpty()
                         && !filterType.equalsIgnoreCase(f.getFacilityType())) continue;
                 if (adultsSelected && f.getMaxPeople() < adults) continue;
+                if (f.getCost().doubleValue() < minPrice || f.getCost().doubleValue() > maxPrice) continue;
 
                 filtered.add(f);
             }
@@ -77,6 +87,8 @@ public class RoomsController extends HttpServlet {
         request.setAttribute("checkin", checkin);
         request.setAttribute("checkout", checkout);
         request.setAttribute("adults", adults);
+        request.setAttribute("minPrice", minPriceParam);
+        request.setAttribute("maxPrice", maxPriceParam);
         request.setAttribute("isSearchMode", isSearchMode);
         request.setAttribute("cntAll", cntAll);
         request.setAttribute("cntVilla", cntVilla);
@@ -100,6 +112,9 @@ public class RoomsController extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalItems", totalItems);
+        request.setAttribute("adults", adults);
+        request.setAttribute("minPrice", minPriceParam);
+        request.setAttribute("maxPrice", maxPriceParam);
 
         request.getRequestDispatcher("/rooms.jsp").forward(request, response);
     }
