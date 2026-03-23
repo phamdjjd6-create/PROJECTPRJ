@@ -147,9 +147,19 @@ public class AiService {
     /**
      * Dùng AI để quyết định các nút bấm (actions) nên hiển thị cho khách.
      */
-    public JSONArray detectActions(String userMsg, String botReply) {
-        return detectActions(userMsg, botReply, null);
-    }
+    public JSONArray detectActions(String userMsg, String botReply, String customApiKey) {
+        try {
+            JSONArray messages = new JSONArray();
+            messages.put(new JSONObject().put("role", "system").put("content",
+                "Phân tích đoạn chat sau và quyết định các nút bấm (actions) gợi ý cho người dùng. " +
+                "Trả về DUY NHẤT một mảng JSON các đối tượng có 'label' và 'url'. " +
+                "QUY TẮC URL:\n" +
+                "- Nếu khách muốn đặt một phòng cụ thể (vd: Villa 1), dùng: 'booking:VIL001' (với VIL001 là Code phòng).\n" +
+                "- Nếu khách muốn xem danh sách phòng chung, dùng: '/rooms'.\n" +
+                "- Nếu khách cần hỗ trợ gấp/gọi điện, dùng: 'tel:18007777'.\n" +
+                "- Nếu khách muốn xem booking của họ, dùng: '/booking?view=my'.\n" +
+                "Ví dụ: [{\"label\": \"Đặt Villa 1 ngay\", \"url\": \"booking:VIL001\"}]"));
+            messages.put(new JSONObject().put("role", "user").put("content", "User: " + userMsg + "\nBot: " + botReply));
 
             String reply = callGrok(messages, 0.1, 200, customApiKey);
             return new JSONArray(reply.substring(reply.indexOf("["), reply.lastIndexOf("]") + 1));
