@@ -189,23 +189,33 @@ public class AdminManageController extends HttpServlet {
                 // ── USER LOCK ─────────────────────────────────────────────
                 case "lock_user" -> {
                     customerDAO.toggleLock(req.getParameter("userId"), true);
-                    redirect = req.getContextPath() + "/dashboard/users";
+                    redirect = req.getContextPath() + "/dashboard/users?tab=customers";
                 }
                 case "unlock_user" -> {
                     customerDAO.toggleLock(req.getParameter("userId"), false);
-                    redirect = req.getContextPath() + "/dashboard/users";
+                    redirect = req.getContextPath() + "/dashboard/users?tab=customers";
                 }
+
+                // ── GIVE VOUCHER — lưu vào session ────────────────────────
                 case "give_voucher" -> {
-                    req.getSession().setAttribute("flashMsg", "🎁 Đã gửi tặng voucher thành công cho khách hàng!");
-                    redirect = req.getParameter("redirect");
-                    if (redirect == null) redirect = req.getContextPath() + "/dashboard/users";
+                    String cusId      = req.getParameter("cusId");
+                    String voucherCode = req.getParameter("voucherCode");
+                    @SuppressWarnings("unchecked")
+                    java.util.Set<String> gifted = (java.util.Set<String>)
+                        req.getSession().getAttribute("giftedVouchers");
+                    if (gifted == null) gifted = new java.util.HashSet<>();
+                    if (cusId != null) gifted.add(cusId);
+                    req.getSession().setAttribute("giftedVouchers", gifted);
+                    req.getSession().setAttribute("flashMsg",
+                        "🎁 Đã tặng voucher " + (voucherCode != null ? voucherCode : "") + " thành công!");
+                    redirect = req.getContextPath() + "/dashboard/users?tab=customers";
                 }
 
                 // ── EDIT EMPLOYEE (ADMIN only) ────────────────────────────
                 case "edit_employee" -> {
                     if (!"ADMIN".equals(emp.getRole())) {
                         req.getSession().setAttribute("flashMsg", "❌ Không có quyền!");
-                        redirect = req.getContextPath() + "/dashboard/users"; break;
+                        redirect = req.getContextPath() + "/dashboard/users?tab=employees"; break;
                     }
                     String empId     = req.getParameter("empId");
                     String fullName  = req.getParameter("fullName");
@@ -226,14 +236,14 @@ public class AdminManageController extends HttpServlet {
                     } catch (Exception ex) {
                         req.getSession().setAttribute("flashMsg", "❌ Lỗi: " + ex.getMessage());
                     }
-                    redirect = req.getContextPath() + "/dashboard/users";
+                    redirect = req.getContextPath() + "/dashboard/users?tab=employees";
                 }
 
                 // ── EDIT CUSTOMER (ADMIN only) ────────────────────────────
                 case "edit_customer" -> {
                     if (!"ADMIN".equals(emp.getRole())) {
                         req.getSession().setAttribute("flashMsg", "❌ Không có quyền!");
-                        redirect = req.getContextPath() + "/dashboard/users"; break;
+                        redirect = req.getContextPath() + "/dashboard/users?tab=customers"; break;
                     }
                     String cusId        = req.getParameter("cusId");
                     String typeCustomer = req.getParameter("typeCustomer");
@@ -252,14 +262,14 @@ public class AdminManageController extends HttpServlet {
                     } catch (Exception ex) {
                         req.getSession().setAttribute("flashMsg", "❌ Lỗi: " + ex.getMessage());
                     }
-                    redirect = req.getContextPath() + "/dashboard/users";
+                    redirect = req.getContextPath() + "/dashboard/users?tab=customers";
                 }
 
                 // ── DELETE CUSTOMER (ADMIN only) ──────────────────────────
                 case "delete_customer" -> {
                     if (!"ADMIN".equals(emp.getRole())) {
                         req.getSession().setAttribute("flashMsg", "❌ Không có quyền!");
-                        redirect = req.getContextPath() + "/dashboard/users"; break;
+                        redirect = req.getContextPath() + "/dashboard/users?tab=customers"; break;
                     }
                     try {
                         customerDAO.toggleLock(req.getParameter("cusId"), true);
@@ -267,14 +277,14 @@ public class AdminManageController extends HttpServlet {
                     } catch (Exception ex) {
                         req.getSession().setAttribute("flashMsg", "❌ Lỗi: " + ex.getMessage());
                     }
-                    redirect = req.getContextPath() + "/dashboard/users";
+                    redirect = req.getContextPath() + "/dashboard/users?tab=customers";
                 }
 
                 // ── DELETE EMPLOYEE (ADMIN only) — hard delete ────────────
                 case "delete_employee" -> {
                     if (!"ADMIN".equals(emp.getRole())) {
                         req.getSession().setAttribute("flashMsg", "❌ Không có quyền!");
-                        redirect = req.getContextPath() + "/dashboard/users"; break;
+                        redirect = req.getContextPath() + "/dashboard/users?tab=employees"; break;
                     }
                     try {
                         employeeDAO.hardDelete(req.getParameter("empId"));
@@ -282,14 +292,14 @@ public class AdminManageController extends HttpServlet {
                     } catch (Exception ex) {
                         req.getSession().setAttribute("flashMsg", "❌ Lỗi: " + ex.getMessage());
                     }
-                    redirect = req.getContextPath() + "/dashboard/users";
+                    redirect = req.getContextPath() + "/dashboard/users?tab=employees";
                 }
 
                 // ── ADD CUSTOMER (ADMIN only) ─────────────────────────────
                 case "add_customer" -> {
                     if (!"ADMIN".equals(emp.getRole())) {
                         req.getSession().setAttribute("flashMsg", "❌ Không có quyền!");
-                        redirect = req.getContextPath() + "/dashboard/users"; break;
+                        redirect = req.getContextPath() + "/dashboard/users?tab=customers"; break;
                     }
                     String username      = req.getParameter("username");
                     String fullName2     = req.getParameter("fullName");
@@ -300,15 +310,15 @@ public class AdminManageController extends HttpServlet {
                     if (username==null||username.isBlank()||fullName2==null||fullName2.isBlank()
                             ||email2==null||email2.isBlank()||password2==null||password2.isBlank()) {
                         req.getSession().setAttribute("flashMsg", "❌ Vui lòng điền đầy đủ thông tin!");
-                        redirect = req.getContextPath() + "/dashboard/users"; break;
+                        redirect = req.getContextPath() + "/dashboard/users?tab=customers"; break;
                     }
                     if (accountDAO.findByUsername(username.trim()) != null) {
                         req.getSession().setAttribute("flashMsg", "❌ Tài khoản \"" + username + "\" đã tồn tại!");
-                        redirect = req.getContextPath() + "/dashboard/users"; break;
+                        redirect = req.getContextPath() + "/dashboard/users?tab=customers"; break;
                     }
                     if (accountDAO.findByEmail(email2.trim()) != null) {
                         req.getSession().setAttribute("flashMsg", "❌ Email \"" + email2 + "\" đã được đăng ký!");
-                        redirect = req.getContextPath() + "/dashboard/users"; break;
+                        redirect = req.getContextPath() + "/dashboard/users?tab=customers"; break;
                     }
                     String hashed = BCrypt.withDefaults().hashToString(12, password2.toCharArray());
                     model.TblPersons person = new model.TblPersons();
@@ -328,14 +338,14 @@ public class AdminManageController extends HttpServlet {
                     req.getSession().setAttribute("flashMsg",
                         ok ? "✅ Thêm khách hàng " + fullName2.trim() + " thành công!"
                            : "❌ Lỗi khi tạo khách hàng!");
-                    redirect = req.getContextPath() + "/dashboard/users";
+                    redirect = req.getContextPath() + "/dashboard/users?tab=customers";
                 }
 
                 // ── ADD EMPLOYEE (ADMIN only) ─────────────────────────────
                 case "add_employee" -> {
                     if (!"ADMIN".equals(emp.getRole())) {
                         req.getSession().setAttribute("flashMsg", "❌ Không có quyền!");
-                        redirect = req.getContextPath() + "/dashboard/users"; break;
+                        redirect = req.getContextPath() + "/dashboard/users?tab=employees"; break;
                     }
                     String username2 = req.getParameter("username");
                     String fullName3 = req.getParameter("fullName");
@@ -350,18 +360,17 @@ public class AdminManageController extends HttpServlet {
                             ||email3==null||email3.isBlank()||password3==null||password3.isBlank()
                             ||position3==null||position3.isBlank()) {
                         req.getSession().setAttribute("flashMsg", "❌ Vui lòng điền đầy đủ thông tin!");
-                        redirect = req.getContextPath() + "/dashboard/users"; break;
+                        redirect = req.getContextPath() + "/dashboard/users?tab=employees"; break;
                     }
                     if (accountDAO.findByUsername(username2.trim()) != null) {
                         req.getSession().setAttribute("flashMsg", "❌ Tài khoản \"" + username2 + "\" đã tồn tại!");
-                        redirect = req.getContextPath() + "/dashboard/users"; break;
+                        redirect = req.getContextPath() + "/dashboard/users?tab=employees"; break;
                     }
                     String hashed3 = BCrypt.withDefaults().hashToString(12, password3.toCharArray());
                     jakarta.persistence.EntityManager em2 =
                         util.JpaUtil.getEntityManagerFactory().createEntityManager();
                     try {
                         em2.getTransaction().begin();
-                        // Generate NV ID
                         java.util.List<String> ids2 = em2.createQuery(
                             "SELECT p.id FROM TblPersons p WHERE p.id LIKE 'NV%'", String.class)
                             .getResultList();
@@ -388,8 +397,7 @@ public class AdminManageController extends HttpServlet {
                         newEmp.setRole(role3!=null&&!role3.isBlank() ? role3 : "STAFF");
                         newEmp.setIsActive(true);
                         newEmp.setHireDate(new java.util.Date());
-                        // Gán phòng ban nếu có
-                        if (deptId3 != null && !deptId3.isBlank()) {
+                        if (deptId3!=null && !deptId3.isBlank()) {
                             model.TblDepartments dept = em2.find(model.TblDepartments.class, deptId3);
                             if (dept != null) newEmp.setDeptId(dept);
                         }
@@ -401,7 +409,7 @@ public class AdminManageController extends HttpServlet {
                         ex.printStackTrace();
                         req.getSession().setAttribute("flashMsg", "❌ Lỗi: " + ex.getMessage());
                     } finally { em2.close(); }
-                    redirect = req.getContextPath() + "/dashboard/users";
+                    redirect = req.getContextPath() + "/dashboard/users?tab=employees";
                 }
             }
         } catch (Exception e) {
@@ -424,12 +432,12 @@ public class AdminManageController extends HttpServlet {
             String q = search.toLowerCase();
             customers = customers.stream()
                 .filter(c -> c.getFullName().toLowerCase().contains(q)
-                    || (c.getEmail() != null && c.getEmail().toLowerCase().contains(q))
-                    || (c.getPhoneNumber() != null && c.getPhoneNumber().toLowerCase().contains(q)))
+                    || (c.getEmail()!=null && c.getEmail().toLowerCase().contains(q))
+                    || (c.getPhoneNumber()!=null && c.getPhoneNumber().toLowerCase().contains(q)))
                 .toList();
             employees = employees.stream()
                 .filter(e -> e.getFullName().toLowerCase().contains(q)
-                    || (e.getEmail() != null && e.getEmail().toLowerCase().contains(q)))
+                    || (e.getEmail()!=null && e.getEmail().toLowerCase().contains(q)))
                 .toList();
         }
         req.setAttribute("customers",         customers);
@@ -439,7 +447,6 @@ public class AdminManageController extends HttpServlet {
         req.setAttribute("filter",            filter != null ? filter : "ALL");
         req.setAttribute("search",            search);
         req.setAttribute("canManageEmployee", "ADMIN".equals(emp.getRole()));
-        // Truyền danh sách phòng ban cho dropdown
         try { req.setAttribute("departments", employeeDAO.findAllDepts()); } catch (Exception e) { e.printStackTrace(); }
         String flash = (String) req.getSession().getAttribute("flashMsg");
         if (flash != null) { req.setAttribute("flashMsg", flash); req.getSession().removeAttribute("flashMsg"); }
@@ -452,32 +459,30 @@ public class AdminManageController extends HttpServlet {
         String search   = req.getParameter("q");
         String dateFrom = req.getParameter("dateFrom");
         String dateTo   = req.getParameter("dateTo");
-        List<VwBookings> bookings = (status != null && !status.equals("ALL"))
+        List<VwBookings> bookings = (status!=null && !status.equals("ALL"))
             ? bookingDAO.findByStatus(status) : bookingDAO.findAllView();
-        if (search != null && !search.isBlank()) {
+        if (search!=null && !search.isBlank()) {
             String q = search.toLowerCase();
             bookings = bookings.stream()
                 .filter(b -> b.getBookingId().toLowerCase().contains(q)
-                    || (b.getCustomerName() != null && b.getCustomerName().toLowerCase().contains(q))
-                    || (b.getFacilityName() != null && b.getFacilityName().toLowerCase().contains(q)))
+                    || (b.getCustomerName()!=null && b.getCustomerName().toLowerCase().contains(q))
+                    || (b.getFacilityName()!=null && b.getFacilityName().toLowerCase().contains(q)))
                 .toList();
         }
-        if (dateFrom != null && !dateFrom.isBlank()) {
+        if (dateFrom!=null && !dateFrom.isBlank()) {
             try {
                 java.util.Date from = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dateFrom);
-                bookings = bookings.stream()
-                    .filter(b -> b.getStartDate() != null && !b.getStartDate().before(from)).toList();
+                bookings = bookings.stream().filter(b -> b.getStartDate()!=null && !b.getStartDate().before(from)).toList();
             } catch (Exception ignored) {}
         }
-        if (dateTo != null && !dateTo.isBlank()) {
+        if (dateTo!=null && !dateTo.isBlank()) {
             try {
                 java.util.Date to = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dateTo);
-                bookings = bookings.stream()
-                    .filter(b -> b.getStartDate() != null && !b.getStartDate().after(to)).toList();
+                bookings = bookings.stream().filter(b -> b.getStartDate()!=null && !b.getStartDate().after(to)).toList();
             } catch (Exception ignored) {}
         }
         req.setAttribute("bookings",     bookings);
-        req.setAttribute("statusFilter", status != null ? status : "ALL");
+        req.setAttribute("statusFilter", status!=null ? status : "ALL");
         req.setAttribute("search",       search);
         req.setAttribute("dateFrom",     dateFrom);
         req.setAttribute("dateTo",       dateTo);
@@ -485,7 +490,7 @@ public class AdminManageController extends HttpServlet {
         req.setAttribute("cntConfirmed", bookingDAO.countByStatus("CONFIRMED"));
         req.setAttribute("cntCheckedIn", bookingDAO.countByStatus("CHECKED_IN"));
         String flash = (String) req.getSession().getAttribute("flashMsg");
-        if (flash != null) { req.setAttribute("flashMsg", flash); req.getSession().removeAttribute("flashMsg"); }
+        if (flash!=null) { req.setAttribute("flashMsg", flash); req.getSession().removeAttribute("flashMsg"); }
         req.getRequestDispatcher("/WEB-INF/dashboard/manage-bookings.jsp").forward(req, res);
     }
 
@@ -495,26 +500,25 @@ public class AdminManageController extends HttpServlet {
         String statusFilter = req.getParameter("status");
         String search       = req.getParameter("q");
         List<TblFacilities> facilities = facilityDAO.findAll();
-        if (typeFilter   != null && !typeFilter.equals("ALL"))
+        if (typeFilter!=null && !typeFilter.equals("ALL"))
             facilities = facilities.stream().filter(f -> f.getFacilityType().equals(typeFilter)).toList();
-        if (statusFilter != null && !statusFilter.equals("ALL"))
+        if (statusFilter!=null && !statusFilter.equals("ALL"))
             facilities = facilities.stream().filter(f -> f.getStatus().equals(statusFilter)).toList();
-        if (search != null && !search.isBlank()) {
+        if (search!=null && !search.isBlank()) {
             String q = search.toLowerCase();
             facilities = facilities.stream()
-                .filter(f -> f.getServiceName().toLowerCase().contains(q)
-                    || f.getServiceCode().toLowerCase().contains(q)).toList();
+                .filter(f -> f.getServiceName().toLowerCase().contains(q) || f.getServiceCode().toLowerCase().contains(q)).toList();
         }
         req.setAttribute("facilities",     facilities);
-        req.setAttribute("typeFilter",     typeFilter   != null ? typeFilter   : "ALL");
-        req.setAttribute("statusFilter",   statusFilter != null ? statusFilter : "ALL");
+        req.setAttribute("typeFilter",     typeFilter!=null   ? typeFilter   : "ALL");
+        req.setAttribute("statusFilter",   statusFilter!=null ? statusFilter : "ALL");
         req.setAttribute("search",         search);
         req.setAttribute("cntAvailable",   facilityDAO.countByStatus("AVAILABLE"));
         req.setAttribute("cntOccupied",    facilityDAO.countByStatus("OCCUPIED"));
         req.setAttribute("cntCleaning",    facilityDAO.countByStatus("CLEANING"));
         req.setAttribute("cntMaintenance", facilityDAO.countByStatus("MAINTENANCE"));
         String flash = (String) req.getSession().getAttribute("flashMsg");
-        if (flash != null) { req.setAttribute("flashMsg", flash); req.getSession().removeAttribute("flashMsg"); }
+        if (flash!=null) { req.setAttribute("flashMsg", flash); req.getSession().removeAttribute("flashMsg"); }
         req.getRequestDispatcher("/WEB-INF/dashboard/manage-facilities.jsp").forward(req, res);
     }
 
@@ -522,29 +526,29 @@ public class AdminManageController extends HttpServlet {
             throws ServletException, IOException {
         String status = req.getParameter("status");
         String search = req.getParameter("q");
-        List<VwContracts> contracts = (status != null && !status.equals("ALL"))
+        List<VwContracts> contracts = (status!=null && !status.equals("ALL"))
             ? contractDAO.findByStatus(status) : contractDAO.findAll_View();
-        if (search != null && !search.isBlank()) {
+        if (search!=null && !search.isBlank()) {
             String q = search.toLowerCase();
             contracts = contracts.stream()
                 .filter(c -> c.getContractId().toLowerCase().contains(q)
-                    || (c.getCustomerName() != null && c.getCustomerName().toLowerCase().contains(q)))
+                    || (c.getCustomerName()!=null && c.getCustomerName().toLowerCase().contains(q)))
                 .toList();
         }
         req.setAttribute("contracts",    contracts);
-        req.setAttribute("statusFilter", status != null ? status : "ALL");
+        req.setAttribute("statusFilter", status!=null ? status : "ALL");
         req.setAttribute("search",       search);
         req.setAttribute("cntDraft",     contractDAO.countByStatus("DRAFT"));
         req.setAttribute("cntActive",    contractDAO.countByStatus("ACTIVE"));
         req.setAttribute("cntCompleted", contractDAO.countByStatus("COMPLETED"));
         String flash = (String) req.getSession().getAttribute("flashMsg");
-        if (flash != null) { req.setAttribute("flashMsg", flash); req.getSession().removeAttribute("flashMsg"); }
+        if (flash!=null) { req.setAttribute("flashMsg", flash); req.getSession().removeAttribute("flashMsg"); }
         req.getRequestDispatcher("/WEB-INF/dashboard/manage-contracts.jsp").forward(req, res);
     }
 
     private boolean checkAuth(HttpServletRequest req, HttpServletResponse res) throws IOException {
         HttpSession session = req.getSession(false);
-        if (session == null || !(session.getAttribute("account") instanceof TblEmployees)) {
+        if (session==null || !(session.getAttribute("account") instanceof TblEmployees)) {
             res.sendRedirect(req.getContextPath() + "/login");
             return false;
         }

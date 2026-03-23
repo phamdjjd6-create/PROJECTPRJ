@@ -63,7 +63,7 @@
         .panel-search:focus-within{border-color:rgba(201,168,76,0.4)}
         .panel-search input{background:none;border:none;outline:none;color:#fff;font-size:13px;width:100%;font-family:'Inter',sans-serif}
         .panel-search input::placeholder{color:var(--muted)}
-        .btn-view-all{padding:7px 16px;background:rgba(201,168,76,0.08);color:var(--gold);border:1px solid rgba(201,168,76,0.25);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;text-decoration:none;white-space:nowrap}
+        .btn-view-all{padding:7px 16px;background:rgba(201,168,76,0.08);color:var(--gold);border:1px solid rgba(201,168,76,0.25);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;white-space:nowrap}
         .btn-view-all:hover{background:rgba(201,168,76,0.15)}
         .btn-add{padding:8px 16px;background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.3);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;white-space:nowrap}
         .btn-add:hover{background:#4ade80;color:#000}
@@ -90,6 +90,7 @@
         .btn-edit:hover{background:var(--gold);color:var(--dark)}
         .btn-voucher{background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.3)}
         .btn-voucher:hover{background:#4ade80;color:#000}
+        .btn-voucher-done{background:rgba(255,255,255,0.04);color:var(--muted);border:1px solid rgba(255,255,255,0.08);cursor:not-allowed}
         .btn-delete{background:rgba(248,113,113,0.1);color:#f87171;border:1px solid rgba(248,113,113,0.3)}
         .btn-delete:hover{background:#f87171;color:#fff}
         .flash{padding:12px 18px;border-radius:8px;margin-bottom:20px;font-size:13px;display:flex;align-items:center;gap:10px}
@@ -104,6 +105,7 @@
         .modal-title{font-family:'Playfair Display',serif;font-size:20px;color:#fff}
         .modal-close{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:14px}
         .form-row{margin-bottom:16px}
+        .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
         .form-lbl{display:block;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
         .form-inp{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:10px 14px;border-radius:8px;outline:none;font-size:14px;font-family:'Inter',sans-serif;transition:border-color 0.2s}
         .form-inp:focus{border-color:rgba(201,168,76,0.5)}
@@ -113,7 +115,6 @@
         .btn-save{padding:10px 24px;background:var(--gold);color:#000;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif}
         .btn-save:hover{background:var(--gold-light)}
         .warn-text{font-size:11px;color:rgba(248,113,113,0.7);margin-top:6px}
-        .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
         .voucher-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
         .voucher-card{border:1.5px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all 0.2s;position:relative;background:rgba(255,255,255,0.02)}
         .voucher-card:hover{border-color:rgba(201,168,76,0.4);background:rgba(201,168,76,0.05)}
@@ -176,7 +177,7 @@
         </div>
 
         <div class="taskbar">
-            <button class="taskbar-btn active" id="taskBtn-customers" onclick="switchTab('customers',this)">
+            <button class="taskbar-btn" id="taskBtn-customers" onclick="switchTab('customers',this)">
                 👥 Khách Hàng <span class="tab-count">${totalCustomers}</span>
             </button>
             <c:if test="${isAdmin}">
@@ -187,7 +188,7 @@
         </div>
 
         <%-- TAB KHÁCH HÀNG --%>
-        <div class="tab-panel active" id="panel-customers">
+        <div class="tab-panel" id="panel-customers">
             <div class="panel-header">
                 <div class="panel-header-left">
                     <div class="panel-title">Danh Sách Khách Hàng</div>
@@ -235,15 +236,23 @@
                                                 onclick="openEditCustomer('${c.id}','${c.fullName}','${c.typeCustomer}','${c.address}','${c.email}','${c.phoneNumber}','${c.totalSpent}')">
                                                 ✏️ Sửa
                                             </button>
-                                            <button class="btn-sm btn-voucher" id="btnVoucher_${c.id}"
-                                                onclick="openVoucher('${c.id}','${c.fullName}','${c.typeCustomer}')">
-                                                🎁 Voucher
-                                            </button>
+                                            <%-- Voucher: kiểm tra session xem đã tặng chưa --%>
+                                            <c:choose>
+                                                <c:when test="${not empty sessionScope.giftedVouchers && sessionScope.giftedVouchers.contains(c.id)}">
+                                                    <button class="btn-sm btn-voucher-done" disabled>✅ Đã tặng</button>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <button class="btn-sm btn-voucher" id="btnVoucher_${c.id}"
+                                                        onclick="openVoucher('${c.id}','${c.fullName}','${c.typeCustomer}')">
+                                                        🎁 Voucher
+                                                    </button>
+                                                </c:otherwise>
+                                            </c:choose>
                                             <form method="post" action="${pageContext.request.contextPath}/dashboard/action"
                                                   style="display:inline" onsubmit="return confirm('Xóa khách hàng ${c.fullName}?')">
                                                 <input type="hidden" name="action" value="delete_customer">
                                                 <input type="hidden" name="cusId" value="${c.id}">
-                                                <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/dashboard/users">
+                                                <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/dashboard/users?tab=customers">
                                                 <button type="submit" class="btn-sm btn-delete">🗑️ Xóa</button>
                                             </form>
                                         </div>
@@ -307,10 +316,10 @@
                                                 ✏️ Sửa
                                             </button>
                                             <form method="post" action="${pageContext.request.contextPath}/dashboard/action"
-                                                  style="display:inline" onsubmit="return confirm('Xóa hẳn nhân viên ${e.fullName}? Hành động này không thể hoàn tác!')">
+                                                  style="display:inline" onsubmit="return confirm('Xóa hẳn nhân viên ${e.fullName}? Không thể hoàn tác!')">
                                                 <input type="hidden" name="action" value="delete_employee">
                                                 <input type="hidden" name="empId" value="${e.id}">
-                                                <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/dashboard/users">
+                                                <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/dashboard/users?tab=employees">
                                                 <button type="submit" class="btn-sm btn-delete">🗑️ Xóa</button>
                                             </form>
                                         </div>
@@ -340,22 +349,13 @@
         <form method="post" action="${pageContext.request.contextPath}/dashboard/action">
             <input type="hidden" name="action" value="edit_employee">
             <input type="hidden" name="empId" id="editEmpId">
-            <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/dashboard/users">
+            <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/dashboard/users?tab=employees">
             <div class="form-row-2">
-                <div>
-                    <label class="form-lbl">Họ Tên *</label>
-                    <input type="text" name="fullName" id="editEmpFullName" class="form-inp" required>
-                </div>
-                <div>
-                    <label class="form-lbl">Email *</label>
-                    <input type="email" name="email" id="editEmpEmail" class="form-inp" required>
-                </div>
+                <div><label class="form-lbl">Họ Tên *</label><input type="text" name="fullName" id="editEmpFullName" class="form-inp" required></div>
+                <div><label class="form-lbl">Email *</label><input type="email" name="email" id="editEmpEmail" class="form-inp" required></div>
             </div>
             <div class="form-row-2">
-                <div>
-                    <label class="form-lbl">Chức Vụ</label>
-                    <input type="text" name="position" id="editEmpPosition" class="form-inp">
-                </div>
+                <div><label class="form-lbl">Chức Vụ</label><input type="text" name="position" id="editEmpPosition" class="form-inp"></div>
                 <div>
                     <label class="form-lbl">Phòng Ban</label>
                     <select name="deptId" id="editEmpDept" class="form-select">
@@ -366,10 +366,7 @@
                     </select>
                 </div>
             </div>
-            <div class="form-row">
-                <label class="form-lbl">Lương (VNĐ)</label>
-                <input type="number" name="salary" id="editEmpSalary" class="form-inp" min="0" step="500000">
-            </div>
+            <div class="form-row"><label class="form-lbl">Lương (VNĐ)</label><input type="number" name="salary" id="editEmpSalary" class="form-inp" min="0" step="500000"></div>
             <div class="form-row-2">
                 <div>
                     <label class="form-lbl">Quyền (Role)</label>
@@ -405,7 +402,7 @@
         <form method="post" action="${pageContext.request.contextPath}/dashboard/action">
             <input type="hidden" name="action" value="edit_customer">
             <input type="hidden" name="cusId" id="editCusId">
-            <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/dashboard/users">
+            <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/dashboard/users?tab=customers">
             <div class="form-row-2">
                 <div><label class="form-lbl">Họ Tên</label><input type="text" name="fullName" id="editCusFullName" class="form-inp" required></div>
                 <div><label class="form-lbl">Email</label><input type="email" name="email" id="editCusEmail" class="form-inp" required></div>
@@ -440,7 +437,7 @@
         </div>
         <form method="post" action="${pageContext.request.contextPath}/dashboard/action">
             <input type="hidden" name="action" value="add_customer">
-            <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/dashboard/users">
+            <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/dashboard/users?tab=customers">
             <div class="form-row-2">
                 <div><label class="form-lbl">Họ Tên *</label><input type="text" name="fullName" class="form-inp" placeholder="Nguyễn Văn A" required></div>
                 <div><label class="form-lbl">Email *</label><input type="email" name="email" class="form-inp" placeholder="email@example.com" required></div>
@@ -478,7 +475,7 @@
         </div>
         <form method="post" action="${pageContext.request.contextPath}/dashboard/action">
             <input type="hidden" name="action" value="add_employee">
-            <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/dashboard/users">
+            <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/dashboard/users?tab=employees">
             <div class="form-row-2">
                 <div><label class="form-lbl">Họ Tên *</label><input type="text" name="fullName" class="form-inp" placeholder="Nguyễn Văn B" required></div>
                 <div><label class="form-lbl">Email *</label><input type="email" name="email" class="form-inp" placeholder="email@resort.com" required></div>
@@ -528,21 +525,21 @@
         <div id="voucherPicker">
             <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Chọn voucher phù hợp:</p>
             <div class="voucher-grid">
-                <div class="voucher-card" id="vc1" onclick="selectVoucher(1)">
+                <div class="voucher-card" id="vc1" onclick="selectVoucher(1,'EARLYBIRD20')">
                     <div class="voucher-check">✓</div>
                     <div class="voucher-pct">20%</div>
                     <div class="voucher-name">Đặt Sớm 30 Ngày</div>
                     <div class="voucher-desc">Giảm 20% mọi phòng & villa</div>
                     <div class="voucher-code">EARLYBIRD20</div>
                 </div>
-                <div class="voucher-card" id="vc2" onclick="selectVoucher(2)">
+                <div class="voucher-card" id="vc2" onclick="selectVoucher(2,'WEEKEND15')">
                     <div class="voucher-check">✓</div>
                     <div class="voucher-pct">15%</div>
                     <div class="voucher-name">Gói Cuối Tuần</div>
                     <div class="voucher-desc">Giảm 15% + bữa sáng miễn phí</div>
                     <div class="voucher-code">WEEKEND15</div>
                 </div>
-                <div class="voucher-card" id="vc3" onclick="selectVoucher(3)">
+                <div class="voucher-card" id="vc3" onclick="selectVoucher(3,'VIP2026')">
                     <div class="voucher-check">✓</div>
                     <div class="voucher-pct">30%</div>
                     <div class="voucher-name">Khách VIP</div>
@@ -565,6 +562,18 @@
 <script>
     document.getElementById('topbarDate').textContent =
         new Date().toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+    // ── Tự động mở đúng tab theo ?tab= trong URL ─────────────────
+    (function(){
+        var params = new URLSearchParams(window.location.search);
+        var tab = params.get('tab') || 'customers';
+        var btn = document.getElementById('taskBtn-' + tab);
+        if (btn) switchTab(tab, btn);
+        else {
+            var defBtn = document.getElementById('taskBtn-customers');
+            if (defBtn) switchTab('customers', defBtn);
+        }
+    })();
 
     function switchTab(tab, btn) {
         document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
@@ -614,64 +623,73 @@
         document.getElementById('editEmpRole').value     = role     || 'STAFF';
         document.getElementById('editEmpDept').value     = deptId   || '';
         document.getElementById('editEmpActive').value   = isActive ? 'true' : 'false';
-        document.getElementById('editEmpName').textContent = name   || 'Sửa Thông Tin';
+        document.getElementById('editEmpName').textContent = name || 'Sửa Thông Tin';
         openModal('modalEmployee');
     }
 
     function openEditCustomer(id, name, type, address, email, phone, totalSpent) {
-        document.getElementById('editCusId').value          = id;
-        document.getElementById('editCusName').textContent  = name || 'Sửa Thông Tin';
-        document.getElementById('editCusFullName').value    = name        || '';
-        document.getElementById('editCusEmail').value       = email       || '';
-        document.getElementById('editCusPhone').value       = phone       || '';
-        document.getElementById('editCusType').value        = type        || 'Normal';
-        document.getElementById('editCusTotalSpent').value  = totalSpent  || 0;
+        document.getElementById('editCusId').value         = id;
+        document.getElementById('editCusName').textContent = name || 'Sửa Thông Tin';
+        document.getElementById('editCusFullName').value   = name       || '';
+        document.getElementById('editCusEmail').value      = email      || '';
+        document.getElementById('editCusPhone').value      = phone      || '';
+        document.getElementById('editCusType').value       = type       || 'Normal';
+        document.getElementById('editCusTotalSpent').value = totalSpent || 0;
         openModal('modalCustomer');
     }
 
     function openAddCustomer() { openModal('modalAddCustomer'); }
     function openAddEmployee() { openModal('modalAddEmployee'); }
 
-    var currentVoucherId = null;
-    var currentCustomerId = null;
-    var giftedCustomers = {};
+    // ── Voucher ───────────────────────────────────────────────────
+    var currentVoucherId   = null;
+    var currentVoucherCode = null;
+    var currentCustomerId  = null;
 
     function openVoucher(id, name, type) {
         currentCustomerId = id;
         document.getElementById('voucherName').textContent = name;
         document.querySelectorAll('.voucher-card').forEach(function(c){ c.classList.remove('selected'); });
         document.getElementById('btnGiveVoucher').disabled = true;
-        currentVoucherId = null;
+        currentVoucherId = null; currentVoucherCode = null;
         var rec = '';
         if (type==='Diamond') { rec='💎 Khách Diamond — Gợi ý <b>VIP2026 (30%)</b>.'; document.getElementById('vc3').classList.remove('disabled'); }
         else if (type==='Gold') { rec='🥇 Khách Gold — Gợi ý <b>EARLYBIRD20 (20%)</b> hoặc <b>VIP2026 (30%)</b>.'; document.getElementById('vc3').classList.remove('disabled'); }
         else if (type==='Silver') { rec='🥈 Khách Silver — Gợi ý <b>WEEKEND15 (15%)</b>.'; document.getElementById('vc3').classList.add('disabled'); }
         else { rec='👤 Khách Normal — Gợi ý <b>WEEKEND15 (15%)</b>.'; document.getElementById('vc3').classList.add('disabled'); }
         document.getElementById('voucherRec').innerHTML = rec;
-        if (giftedCustomers[id]) {
-            document.getElementById('voucherGifted').style.display = 'block';
-            document.getElementById('voucherPicker').style.display = 'none';
-        } else {
-            document.getElementById('voucherGifted').style.display = 'none';
-            document.getElementById('voucherPicker').style.display = 'block';
-        }
+        document.getElementById('voucherGifted').style.display = 'none';
+        document.getElementById('voucherPicker').style.display = 'block';
         openModal('modalVoucher');
     }
 
-    function selectVoucher(num) {
+    function selectVoucher(num, code) {
         document.querySelectorAll('.voucher-card').forEach(function(c){ c.classList.remove('selected'); });
         document.getElementById('vc'+num).classList.add('selected');
-        currentVoucherId = num;
+        currentVoucherId   = num;
+        currentVoucherCode = code;
         document.getElementById('btnGiveVoucher').disabled = false;
     }
 
     function giveVoucher() {
         if (!currentVoucherId || !currentCustomerId) return;
-        giftedCustomers[currentCustomerId] = true;
-        document.getElementById('voucherGifted').style.display = 'block';
-        document.getElementById('voucherPicker').style.display = 'none';
-        var btnV = document.getElementById('btnVoucher_' + currentCustomerId);
-        if (btnV) btnV.style.display = 'none';
+        // Submit form lên server để lưu vào session
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '${pageContext.request.contextPath}/dashboard/action';
+        var fields = {
+            action: 'give_voucher',
+            cusId: currentCustomerId,
+            voucherCode: currentVoucherCode,
+            redirect: '${pageContext.request.contextPath}/dashboard/users?tab=customers'
+        };
+        Object.keys(fields).forEach(function(k){
+            var inp = document.createElement('input');
+            inp.type='hidden'; inp.name=k; inp.value=fields[k];
+            form.appendChild(inp);
+        });
+        document.body.appendChild(form);
+        form.submit();
     }
 </script>
 </body>
