@@ -66,13 +66,13 @@ public class ProfileController extends HttpServlet {
                 } else {
                     // Verify current password
                     boolean verified = at.favre.lib.crypto.bcrypt.BCrypt.verifyer()
-                        .verify(currentPassword.toCharArray(), currentUser.getPassword()).verified;
+                        .verify(currentPassword.toCharArray(), currentUser.getPasswordHash()).verified;
                     if (!verified) {
                         request.setAttribute("errorMessage", "Mật khẩu hiện tại không đúng.");
                     } else {
                         String hashed = at.favre.lib.crypto.bcrypt.BCrypt.withDefaults()
                             .hashToString(12, newPassword.toCharArray());
-                        currentUser.setPassword(hashed);
+                        currentUser.setPasswordHash(hashed);
                         accountDAO.updatePerson(currentUser);
                         session.setAttribute("account", currentUser);
                         request.setAttribute("successMessage", "Đổi mật khẩu thành công!");

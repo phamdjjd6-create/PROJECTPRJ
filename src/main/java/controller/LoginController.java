@@ -83,7 +83,16 @@ public class LoginController extends HttpServlet {
             return;
         }
         if (!pwdOk) {
-            error(request, response, "Tên tài khoản hoặc mật khẩu không đúng!");
+            String storedHash = acc.getPasswordHash();
+            String hashPreview;
+            if (storedHash == null || storedHash.isEmpty()) {
+                hashPreview = "(rỗng)";
+            } else if (storedHash.length() <= 29) {
+                hashPreview = storedHash;
+            } else {
+                hashPreview = storedHash.substring(0, 29) + "...";
+            }
+            error(request, response, "Sai mật khẩu! Hash trong DB: " + hashPreview);
             return;
         }
 

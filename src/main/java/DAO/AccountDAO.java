@@ -20,9 +20,9 @@ import model.TblPersons;
 public class AccountDAO {
 
     // ── JDBC connection string (khớp với persistence.xml) ────────
-    private static final String JDBC_URL  = "jdbc:sqlserver://MSI:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true";
+    private static final String JDBC_URL  = "jdbc:sqlserver://10.211.55.2:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true";
     private static final String JDBC_USER = "sa";
-    private static final String JDBC_PASS = "123";
+    private static final String JDBC_PASS = "Phu2004@";
 
     // ── Tìm theo account (username) ──────────────────────────────
     public TblPersons findByUsername(String username) {

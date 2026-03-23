@@ -7,6 +7,7 @@ package model;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -121,5 +122,120 @@ public class TblDepartments implements Serializable {
     public String toString() {
         return "model.TblDepartments[ deptId=" + deptId + " ]";
     }
-    
+
+    // Cập nhật thông tin cá nhân (tbl_persons)
+    public boolean updatePersonInfo(String id, String fullName, String email) {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            em.getTransaction().begin();
+            model.TblPersons p = em.find(model.TblPersons.class, id);
+            if (p == null) {
+                return false;
+            }
+            if (fullName != null && !fullName.isBlank()) {
+                p.setFullName(fullName.trim());
+            }
+            if (email != null && !email.isBlank()) {
+                p.setEmail(email.trim());
+            }
+            p.setUpdatedAt(new java.util.Date());
+            em.merge(p);
+            em.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
+// Cập nhật phòng ban
+    public boolean updateDept(String id, String deptId) {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            em.getTransaction().begin();
+            TblEmployees e = em.find(TblEmployees.class, id);
+            if (e == null) {
+                return false;
+            }
+            if (deptId != null && !deptId.isBlank()) {
+                model.TblDepartments dept = em.find(model.TblDepartments.class, deptId);
+                e.setDeptId(dept);
+            }
+            em.merge(e);
+            em.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
+// Cập nhật trạng thái active
+    public boolean updateActive(String id, boolean isActive) {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            em.getTransaction().begin();
+            TblEmployees e = em.find(TblEmployees.class, id);
+            if (e == null) {
+                return false;
+            }
+            e.setIsActive(isActive);
+            em.merge(e);
+            em.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
+// Lấy danh sách phòng ban
+    public java.util.List<model.TblDepartments> findAllDepts() {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            return em.createQuery("SELECT d FROM TblDepartments d", model.TblDepartments.class)
+                    .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+// Xóa hẳn nhân viên (hard delete)
+    public boolean hardDelete(String id) {
+        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            em.getTransaction().begin();
+            // Xóa tbl_employees trước (child)
+            TblEmployees e = em.find(TblEmployees.class, id);
+            if (e != null) {
+                em.remove(e);
+            }
+            // Xóa tbl_persons sau (parent)
+            model.TblPersons p = em.find(model.TblPersons.class, id);
+            if (p != null) {
+                em.remove(p);
+            }
+            em.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            return false;
+        } finally {
+            em.close();
+        }
+    }
 }

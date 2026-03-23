@@ -1,3 +1,10 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.jdt.ls.java.home": "C:\\Program Files\\Microsoft\\jdk-17.0.18.8-hotspot",
+    "maven.executable.path": "C:\\Users\\phu\\tools\\apache-maven-3.9.11\\bin\\mvn.cmd",
+    "terminal.integrated.env.windows": {
+        "JAVA_HOME": "C:\\Program Files\\Microsoft\\jdk-17.0.18.8-hotspot",
+        "MAVEN_HOME": "C:\\Users\\phu\\tools\\apache-maven-3.9.11",
+        "CATALINA_HOME": "C:\\Users\\phu\\tools\\apache-tomcat-10.1.31"
+    }
 }

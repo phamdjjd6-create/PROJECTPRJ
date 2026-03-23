@@ -6,9 +6,9 @@ import java.sql.Statement;
 
 public class DBFixer {
     public static void main(String[] args) {
-        String url = "jdbc:sqlserver://MSI:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true";
+        String url = "jdbc:sqlserver://10.211.55.2:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true";
         String user = "sa";
-        String pass = "123";
+        String pass = "Phu2004@";
 
         try (Connection conn = DriverManager.getConnection(url, user, pass);
              Statement stmt = conn.createStatement()) {

@@ -46,9 +46,9 @@
       <property name="jakarta.persistence.jdbc.driver"
                 value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
       <property name="jakarta.persistence.jdbc.url"
-                value="jdbc:sqlserver://MSI:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true"/>
+                value="jdbc:sqlserver://10.211.55.2:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true"/>
       <property name="jakarta.persistence.jdbc.user"     value="sa"/>
-      <property name="jakarta.persistence.jdbc.password" value="123"/>
+      <property name="jakarta.persistence.jdbc.password" value="Phu2004@"/>
 
       <!-- DDL: không tự tạo/xóa bảng -->
       <property name="eclipselink.ddl-generation" value="none"/>

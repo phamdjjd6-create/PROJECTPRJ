@@ -9,9 +9,9 @@ import java.sql.*;
 @WebServlet("/hashgen")
 public class HashGenServlet extends HttpServlet {
 
-    private static final String JDBC_URL  = "jdbc:sqlserver://MSI:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true";
+    private static final String JDBC_URL = "jdbc:sqlserver://10.211.55.2:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true";
     private static final String JDBC_USER = "sa";
-    private static final String JDBC_PASS = "123";
+    private static final String JDBC_PASS = "Phu2004@";
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
@@ -29,8 +29,8 @@ public class HashGenServlet extends HttpServlet {
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             try (Connection conn = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASS);
-                 PreparedStatement ps = conn.prepareStatement(
-                     "UPDATE tbl_persons SET password_hash = ?")) {
+                    PreparedStatement ps = conn.prepareStatement(
+                            "UPDATE tbl_persons SET password_hash = ?")) {
                 ps.setString(1, hash);
                 int rows = ps.executeUpdate();
                 out.println("Updated rows: " + rows);

@@ -1,19 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context path="/ResortManagement77">
-  <Resource auth="Container"
-            driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver"
-            maxTotal="20"
-            maxIdle="10"
-            maxWaitMillis="-1"
-            name="jdbc/ResortDB"
-            password="123"
-            type="javax.sql.DataSource"
-            url="jdbc:sqlserver://MSI:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true"
-            username="sa"/>
-
+  <Resource auth="Container" driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver" maxIdle="10" maxTotal="20" maxWaitMillis="-1" name="jdbc/ResortDB" password="Phu2004@" type="javax.sql.DataSource" url="jdbc:sqlserver://10.211.55.2:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true" username="sa"/>
   <!-- API Keys — không commit file này lên public repo -->
-  <Environment name="groq.api.key"
-               value="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"
-               type="java.lang.String"
-               override="false"/>
+  <Environment name="groq.api.key" override="false" type="java.lang.String" value="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"/>
 </Context>
