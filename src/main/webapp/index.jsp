@@ -591,7 +591,12 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </div>
                 <div>
-                    <h3 class="text-white font-bold text-sm">Azure AI Concierge</h3>
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-white font-bold text-sm">Azure AI Concierge</h3>
+                        <c:if test="${not empty sessionScope.account}">
+                            <span id="vip-badge" class="px-2 py-0.5 rounded-full bg-gold/20 border border-gold/30 text-[9px] text-gold font-black uppercase tracking-tighter shadow-[0_0_10px_rgba(201,138,76,0.2)]">VIP</span>
+                        </c:if>
+                    </div>
                     <div class="flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                         <span class="text-[10px] text-white/40 uppercase tracking-widest font-bold">Trực tuyến</span>
@@ -774,9 +779,16 @@
             btn.href = act.url.startsWith('/') ? '${pageContext.request.contextPath}' + act.url : act.url;
             if (act.url.startsWith('booking:')) {
                 btn.href = '${pageContext.request.contextPath}/booking?id=' + act.url.split(':')[1];
+            } else if (act.url.startsWith('service:')) {
+                // Assuming service booking is handled by a similar route or modal
+                btn.href = '${pageContext.request.contextPath}/services?id=' + act.url.split(':')[1];
+                btn.classList.replace('bg-gold', 'bg-emerald-500');
+                btn.classList.add('text-white');
             }
-            btn.className = 'px-4 py-2 rounded-xl bg-gold text-dark font-bold text-xs hover:scale-105 transition-transform';
-            btn.textContent = act.label;
+            btn.className += ' px-4 py-2 rounded-xl font-bold text-xs hover:scale-105 transition-transform flex items-center gap-1.5';
+            if (act.url.startsWith('booking:')) btn.innerHTML = '🏠 ' + act.label;
+            else if (act.url.startsWith('service:')) btn.innerHTML = '✨ ' + act.label;
+            else btn.textContent = act.label;
             div.appendChild(btn);
         });
         chatMessages.appendChild(div);
@@ -796,6 +808,30 @@
 
 
 <script>
+    // Proactive Greeting System
+    (function() {
+        const nudge = document.createElement('div');
+        nudge.id = 'chat-nudge';
+        nudge.className = 'fixed bottom-24 right-8 px-5 py-3.5 bg-gold text-dark font-bold text-sm rounded-2xl rounded-br-none shadow-2xl opacity-0 translate-y-4 pointer-events-none transition-all duration-700 z-[999] flex items-center gap-3 cursor-pointer hover:-translate-y-1';
+        nudge.innerHTML = `
+            <div class="w-6 h-6 rounded-full bg-dark/10 flex items-center justify-center">✨</div>
+            <span>Xin chào! Tôi có thể giúp gì cho kỳ nghỉ của bạn?</span>
+        `;
+        document.body.appendChild(nudge);
+
+        nudge.addEventListener('click', () => {
+            nudge.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+            chatToggle.click();
+        });
+
+        // Show nudge after 12 seconds if chat wasn't opened
+        setTimeout(() => {
+            if (chatWindow.classList.contains('opacity-0')) {
+                nudge.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            }
+        }, 12000);
+    })();
+
     // Navbar Smart Show/Hide (Headroom style)
     let lastScroll = 0;
     const navbar = document.getElementById('navbar');
