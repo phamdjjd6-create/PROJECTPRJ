@@ -1,6 +1,5 @@
 package controller;
 
-import DAO.AccountDAO;
 import DAO.BookingDAO;
 import DAO.ContractDAO;
 import DAO.CustomerDAO;
@@ -20,6 +19,7 @@ import model.VwContracts;
 import model.VwCustomers;
 import model.VwEmployees;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
 @WebServlet(urlPatterns = {
@@ -31,7 +31,6 @@ import java.util.List;
 })
 public class AdminManageController extends HttpServlet {
 
-    private final AccountDAO  accountDAO  = new AccountDAO();
     private final CustomerDAO customerDAO = new CustomerDAO();
     private final EmployeeDAO employeeDAO = new EmployeeDAO();
     private final BookingDAO  bookingDAO  = new BookingDAO();
@@ -75,15 +74,18 @@ public class AdminManageController extends HttpServlet {
                     VwBookings bk = bookingDAO.findAllView().stream()
                         .filter(b -> b.getBookingId().equals(id)).findFirst().orElse(null);
                     if (bk != null) facilityDAO.updateStatus(bk.getFacilityId(), "OCCUPIED");
-                    try { contractDAO.createForBooking(id, emp.getId()); } catch (Exception e) { e.printStackTrace(); }
+                    // Tạo contract khi admin duyệt
+                    try {
+                        contractDAO.createForBooking(id, emp.getId());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     req.getSession().setAttribute("flashMsg", "✅ Đã duyệt booking " + id + " và tạo hợp đồng.");
-                    redirect = req.getContextPath() + "/dashboard/bookings";
                 }
                 case "reject_booking" -> {
                     String id = req.getParameter("bookingId");
-                    bookingDAO.updateStatus(id, "CANCELLED");
+                    bookingService.rejectBooking(id);
                     req.getSession().setAttribute("flashMsg", "🚫 Đã từ chối booking " + id);
-                    redirect = req.getContextPath() + "/dashboard/bookings";
                 }
                 case "checkin_booking" -> {
                     String id = req.getParameter("bookingId");
@@ -92,10 +94,10 @@ public class AdminManageController extends HttpServlet {
                         .filter(b -> b.getBookingId().equals(id)).findFirst().orElse(null);
                     if (bk != null) {
                         facilityDAO.updateStatus(bk.getFacilityId(), "OCCUPIED");
+                        // Tăng usage_count khi khách nhận phòng
                         facilityDAO.increaseUsage(bk.getFacilityId());
                     }
                     req.getSession().setAttribute("flashMsg", "🔑 Check-in thành công!");
-                    redirect = req.getContextPath() + "/dashboard/bookings";
                 }
                 case "checkout_booking" -> {
                     String id = req.getParameter("bookingId");
@@ -103,6 +105,7 @@ public class AdminManageController extends HttpServlet {
                     VwBookings bk = bookingDAO.findAllView().stream()
                         .filter(b -> b.getBookingId().equals(id)).findFirst().orElse(null);
                     if (bk != null) {
+                        // Sau checkout: nếu usage_count >= 5 → MAINTENANCE, còn lại → CLEANING (chờ nhân viên dọn)
                         TblFacilities fac = facilityDAO.findByCode(bk.getFacilityId());
                         if (fac != null && fac.getUsageCount() >= 5) {
                             facilityDAO.updateStatus(bk.getFacilityId(), "MAINTENANCE");
@@ -126,7 +129,18 @@ public class AdminManageController extends HttpServlet {
                     try {
                         java.math.BigDecimal amount = new java.math.BigDecimal(amtStr.trim());
                         if (amount.compareTo(java.math.BigDecimal.ZERO) <= 0) throw new Exception("Số tiền phải > 0");
-                        String result = contractDAO.addPayment(id, amount, method, note);
+                        String result = contractService.addPayment(id, amount, method, note);
+                        if (isAjax(req)) {
+                            if (result.startsWith("OK:")) {
+                                String[] parts = result.split(":");
+                                String status = parts.length > 2 ? parts[2] : "ACTIVE";
+                                String msg = "COMPLETED".equals(status) ? "Thanh toán đủ! Hợp đồng đã hoàn thành." : "Đã ghi nhận thanh toán.";
+                                sendJson(res, 200, "{\"ok\":true,\"status\":" + jsonStr(status) + ",\"message\":" + jsonStr(msg) + "}");
+                            } else {
+                                sendJson(res, 400, "{\"ok\":false,\"message\":" + jsonStr(result.replace("ERROR:", "")) + "}");
+                            }
+                            return;
+                        }
                         if (result.startsWith("OK:")) {
                             String[] parts = result.split(":");
                             boolean done = "COMPLETED".equals(parts.length > 2 ? parts[2] : "");
@@ -137,16 +151,16 @@ public class AdminManageController extends HttpServlet {
                             req.getSession().setAttribute("flashMsg", "❌ " + result.replace("ERROR:", ""));
                         }
                     } catch (Exception e) {
+                        if (isAjax(req)) { sendJson(res, 400, "{\"ok\":false,\"message\":" + jsonStr(e.getMessage()) + "}"); return; }
                         req.getSession().setAttribute("flashMsg", "❌ Lỗi: " + e.getMessage());
                     }
                     redirect = req.getContextPath() + "/dashboard/contracts";
                 }
-                case "confirm_deposit" -> {
-                    String id     = req.getParameter("contractId");
+                case "confirm_deposit" -> {                    String id = req.getParameter("contractId");
                     String result = contractDAO.confirmDeposit(id, emp.getId());
                     if (result.startsWith("OK:")) {
                         String[] parts = result.split(":");
-                        String amt  = parts.length > 1 ? parts[1] : "?";
+                        String amt = parts.length > 1 ? parts[1] : "?";
                         String type = parts.length > 2 ? parts[2] : "";
                         int pct = "VILLA".equalsIgnoreCase(type) ? 50 : "HOUSE".equalsIgnoreCase(type) ? 40 : 30;
                         req.getSession().setAttribute("flashMsg",
@@ -154,12 +168,13 @@ public class AdminManageController extends HttpServlet {
                     } else {
                         req.getSession().setAttribute("flashMsg", "❌ Lỗi: " + result);
                     }
+                    req.getSession().setAttribute("flashMsg", result.startsWith("OK:") ? "✅ Đã xác nhận đặt cọc." : "❌ Lỗi: " + result);
                     redirect = req.getContextPath() + "/dashboard/contracts";
                 }
 
                 // ── CONTRACT ──────────────────────────────────────────────
                 case "approve_contract" -> {
-                    String id     = req.getParameter("contractId");
+                    String id = req.getParameter("contractId");
                     String result = contractDAO.approve(id, emp.getId());
                     req.getSession().setAttribute("flashMsg",
                         "APPROVED".equals(result)        ? "✅ Hợp đồng đã được duyệt thành công!" :
@@ -168,20 +183,26 @@ public class AdminManageController extends HttpServlet {
                     redirect = req.getContextPath() + "/dashboard/contracts";
                 }
                 case "reject_contract" -> {
-                    contractDAO.updateStatus(req.getParameter("contractId"), "CANCELLED");
+                    String id = req.getParameter("contractId");
+                    contractService.delete(id);
+                    if (isAjax(req)) {
+                        sendJson(res, 200, "{\"ok\":true,\"status\":\"CANCELLED\",\"message\":\"Hợp đồng đã bị từ chối.\"}");
+                        return;
+                    }
                     req.getSession().setAttribute("flashMsg", "🚫 Hợp đồng đã bị từ chối.");
                     redirect = req.getContextPath() + "/dashboard/contracts";
                 }
 
                 // ── FACILITY ──────────────────────────────────────────────
                 case "facility_status" -> {
-                    facilityDAO.updateStatus(req.getParameter("facilityId"), req.getParameter("status"));
+                    facilityService.updateStatus(req.getParameter("facilityId"), req.getParameter("status"));
                     req.getSession().setAttribute("flashMsg", "✅ Đã cập nhật trạng thái phòng.");
                     redirect = req.getContextPath() + "/dashboard/facilities";
                 }
                 case "facility_cleaned" -> {
                     String code = req.getParameter("facilityId");
-                    facilityDAO.resetUsage(code);
+                    facilityService.resetUsage(code);
+                    facilityService.updateStatus(code, "AVAILABLE");
                     req.getSession().setAttribute("flashMsg", "🧹 Phòng " + code + " đã dọn xong — sẵn sàng đón khách mới!");
                     redirect = req.getContextPath() + "/dashboard/facilities";
                 }
@@ -397,19 +418,41 @@ public class AdminManageController extends HttpServlet {
                         newEmp.setRole(role3!=null&&!role3.isBlank() ? role3 : "STAFF");
                         newEmp.setIsActive(true);
                         newEmp.setHireDate(new java.util.Date());
-                        if (deptId3!=null && !deptId3.isBlank()) {
-                            model.TblDepartments dept = em2.find(model.TblDepartments.class, deptId3);
-                            if (dept != null) newEmp.setDeptId(dept);
+                        employeeDAO.save(newEmp);
+                        req.getSession().setAttribute("flashMsg", "✅ Đã thêm nhân viên " + fullName + " (tài khoản: " + account + ")");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        req.getSession().setAttribute("flashMsg", "❌ Lỗi thêm nhân viên: " + e.getMessage());
+                    }
+                    redirect = req.getContextPath() + "/dashboard/users?filter=EMPLOYEE";
+                }
+                case "update_employee" -> {
+                    String id = req.getParameter("empId");
+                    String salaryStr = req.getParameter("salary");
+                    String position = req.getParameter("position");
+                    String role = req.getParameter("role");
+                    if (id != null) {
+                        try {
+                            if (salaryStr != null && !salaryStr.isBlank()) {
+                                employeeDAO.updateSalary(id, new java.math.BigDecimal(salaryStr));
+                            }
+                            if (position != null && !position.isBlank()) employeeDAO.updatePosition(id, position);
+                            if (role != null && !role.isBlank()) employeeDAO.updateRole(id, role);
+                            req.getSession().setAttribute("flashMsg", "✅ Cập nhật thông tin nhân viên " + id + " thành công!");
+                        } catch (Exception e) {
+                            req.getSession().setAttribute("flashMsg", "❌ Lỗi cập nhật nhân viên: " + e.getMessage());
                         }
-                        em2.persist(newEmp);
-                        em2.getTransaction().commit();
-                        req.getSession().setAttribute("flashMsg", "✅ Thêm nhân viên " + fullName3.trim() + " thành công!");
-                    } catch (Exception ex) {
-                        if (em2.getTransaction().isActive()) em2.getTransaction().rollback();
-                        ex.printStackTrace();
-                        req.getSession().setAttribute("flashMsg", "❌ Lỗi: " + ex.getMessage());
-                    } finally { em2.close(); }
-                    redirect = req.getContextPath() + "/dashboard/users?tab=employees";
+                    }
+                    redirect = req.getParameter("redirect");
+                    if (redirect == null) redirect = req.getContextPath() + "/dashboard/users?filter=EMPLOYEE";
+                }
+                case "lock_user" -> {
+                    customerDAO.toggleLock(req.getParameter("userId"), true);
+                    redirect = req.getContextPath() + "/dashboard/users";
+                }
+                case "unlock_user" -> {
+                    customerDAO.toggleLock(req.getParameter("userId"), false);
+                    redirect = req.getContextPath() + "/dashboard/users";
                 }
             }
         } catch (Exception e) {
@@ -426,8 +469,11 @@ public class AdminManageController extends HttpServlet {
             throws ServletException, IOException {
         String filter = req.getParameter("filter");
         String search = req.getParameter("q");
+
         List<VwCustomers> customers = customerDAO.findAll();
         List<VwEmployees> employees = employeeDAO.findAll();
+
+        // Filter search
         if (search != null && !search.isBlank()) {
             String q = search.toLowerCase();
             customers = customers.stream()
@@ -440,14 +486,18 @@ public class AdminManageController extends HttpServlet {
                     || (e.getEmail()!=null && e.getEmail().toLowerCase().contains(q)))
                 .toList();
         }
-        req.setAttribute("customers",         customers);
-        req.setAttribute("employees",         employees);
-        req.setAttribute("totalCustomers",    customers.size());
-        req.setAttribute("totalEmployees",    employees.size());
-        req.setAttribute("filter",            filter != null ? filter : "ALL");
-        req.setAttribute("search",            search);
+
+        req.setAttribute("customers", customers);
+        req.setAttribute("employees", employees);
+        req.setAttribute("totalCustomers", customers.size());
+        req.setAttribute("totalEmployees", employees.size());
+        req.setAttribute("filter", filter != null ? filter : "ALL");
+        req.setAttribute("search", search);
+
+        // STAFF chỉ xem, không sửa employee
         req.setAttribute("canManageEmployee", "ADMIN".equals(emp.getRole()));
-        try { req.setAttribute("departments", employeeDAO.findAllDepts()); } catch (Exception e) { e.printStackTrace(); }
+
+        // Flash message
         String flash = (String) req.getSession().getAttribute("flashMsg");
         if (flash != null) { req.setAttribute("flashMsg", flash); req.getSession().removeAttribute("flashMsg"); }
         req.getRequestDispatcher("/WEB-INF/dashboard/manage-users.jsp").forward(req, res);
@@ -459,9 +509,12 @@ public class AdminManageController extends HttpServlet {
         String search   = req.getParameter("q");
         String dateFrom = req.getParameter("dateFrom");
         String dateTo   = req.getParameter("dateTo");
-        List<VwBookings> bookings = (status!=null && !status.equals("ALL"))
-            ? bookingDAO.findByStatus(status) : bookingDAO.findAllView();
-        if (search!=null && !search.isBlank()) {
+
+        List<VwBookings> bookings = (status != null && !status.equals("ALL"))
+            ? bookingDAO.findByStatus(status)
+            : bookingDAO.findAllView();
+
+        if (search != null && !search.isBlank()) {
             String q = search.toLowerCase();
             bookings = bookings.stream()
                 .filter(b -> b.getBookingId().toLowerCase().contains(q)
@@ -469,7 +522,9 @@ public class AdminManageController extends HttpServlet {
                     || (b.getFacilityName()!=null && b.getFacilityName().toLowerCase().contains(q)))
                 .toList();
         }
-        if (dateFrom!=null && !dateFrom.isBlank()) {
+
+        // Date range filter on startDate
+        if (dateFrom != null && !dateFrom.isBlank()) {
             try {
                 java.util.Date from = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dateFrom);
                 bookings = bookings.stream().filter(b -> b.getStartDate()!=null && !b.getStartDate().before(from)).toList();
@@ -481,14 +536,16 @@ public class AdminManageController extends HttpServlet {
                 bookings = bookings.stream().filter(b -> b.getStartDate()!=null && !b.getStartDate().after(to)).toList();
             } catch (Exception ignored) {}
         }
-        req.setAttribute("bookings",     bookings);
-        req.setAttribute("statusFilter", status!=null ? status : "ALL");
-        req.setAttribute("search",       search);
-        req.setAttribute("dateFrom",     dateFrom);
-        req.setAttribute("dateTo",       dateTo);
+
+        req.setAttribute("bookings", bookings);
+        req.setAttribute("statusFilter", status != null ? status : "ALL");
+        req.setAttribute("search", search);
+        req.setAttribute("dateFrom", dateFrom);
+        req.setAttribute("dateTo", dateTo);
         req.setAttribute("cntPending",   bookingDAO.countByStatus("PENDING"));
         req.setAttribute("cntConfirmed", bookingDAO.countByStatus("CONFIRMED"));
         req.setAttribute("cntCheckedIn", bookingDAO.countByStatus("CHECKED_IN"));
+
         String flash = (String) req.getSession().getAttribute("flashMsg");
         if (flash!=null) { req.setAttribute("flashMsg", flash); req.getSession().removeAttribute("flashMsg"); }
         req.getRequestDispatcher("/WEB-INF/dashboard/manage-bookings.jsp").forward(req, res);
@@ -496,11 +553,14 @@ public class AdminManageController extends HttpServlet {
 
     private void handleFacilities(HttpServletRequest req, HttpServletResponse res)
             throws ServletException, IOException {
-        String typeFilter   = req.getParameter("type");
-        String statusFilter = req.getParameter("status");
+
+        String typeFilter   = req.getParameter("type");   // VILLA, HOUSE, ROOM
+        String statusFilter = req.getParameter("status"); // AVAILABLE, OCCUPIED, MAINTENANCE
         String search       = req.getParameter("q");
+
         List<TblFacilities> facilities = facilityDAO.findAll();
-        if (typeFilter!=null && !typeFilter.equals("ALL"))
+
+        if (typeFilter != null && !typeFilter.equals("ALL"))
             facilities = facilities.stream().filter(f -> f.getFacilityType().equals(typeFilter)).toList();
         if (statusFilter!=null && !statusFilter.equals("ALL"))
             facilities = facilities.stream().filter(f -> f.getStatus().equals(statusFilter)).toList();
@@ -509,14 +569,16 @@ public class AdminManageController extends HttpServlet {
             facilities = facilities.stream()
                 .filter(f -> f.getServiceName().toLowerCase().contains(q) || f.getServiceCode().toLowerCase().contains(q)).toList();
         }
-        req.setAttribute("facilities",     facilities);
-        req.setAttribute("typeFilter",     typeFilter!=null   ? typeFilter   : "ALL");
-        req.setAttribute("statusFilter",   statusFilter!=null ? statusFilter : "ALL");
-        req.setAttribute("search",         search);
+
+        req.setAttribute("facilities", facilities);
+        req.setAttribute("typeFilter",   typeFilter   != null ? typeFilter   : "ALL");
+        req.setAttribute("statusFilter", statusFilter != null ? statusFilter : "ALL");
+        req.setAttribute("search", search);
         req.setAttribute("cntAvailable",   facilityDAO.countByStatus("AVAILABLE"));
         req.setAttribute("cntOccupied",    facilityDAO.countByStatus("OCCUPIED"));
         req.setAttribute("cntCleaning",    facilityDAO.countByStatus("CLEANING"));
         req.setAttribute("cntMaintenance", facilityDAO.countByStatus("MAINTENANCE"));
+
         String flash = (String) req.getSession().getAttribute("flashMsg");
         if (flash!=null) { req.setAttribute("flashMsg", flash); req.getSession().removeAttribute("flashMsg"); }
         req.getRequestDispatcher("/WEB-INF/dashboard/manage-facilities.jsp").forward(req, res);
@@ -526,24 +588,71 @@ public class AdminManageController extends HttpServlet {
             throws ServletException, IOException {
         String status = req.getParameter("status");
         String search = req.getParameter("q");
-        List<VwContracts> contracts = (status!=null && !status.equals("ALL"))
-            ? contractDAO.findByStatus(status) : contractDAO.findAll_View();
-        if (search!=null && !search.isBlank()) {
+
+        List<VwContracts> contracts = (status != null && !status.equals("ALL"))
+            ? contractDAO.findByStatus(status)
+            : contractDAO.findAll_View();
+
+        if (search != null && !search.isBlank()) {
             String q = search.toLowerCase();
             contracts = contracts.stream()
                 .filter(c -> c.getContractId().toLowerCase().contains(q)
                     || (c.getCustomerName()!=null && c.getCustomerName().toLowerCase().contains(q)))
                 .toList();
         }
-        req.setAttribute("contracts",    contracts);
-        req.setAttribute("statusFilter", status!=null ? status : "ALL");
-        req.setAttribute("search",       search);
+
+        req.setAttribute("contracts", contracts);
+        req.setAttribute("statusFilter", status != null ? status : "ALL");
+        req.setAttribute("search", search);
         req.setAttribute("cntDraft",     contractDAO.countByStatus("DRAFT"));
         req.setAttribute("cntActive",    contractDAO.countByStatus("ACTIVE"));
         req.setAttribute("cntCompleted", contractDAO.countByStatus("COMPLETED"));
+
+        // Flash message từ redirect
         String flash = (String) req.getSession().getAttribute("flashMsg");
-        if (flash!=null) { req.setAttribute("flashMsg", flash); req.getSession().removeAttribute("flashMsg"); }
+        if (flash != null) {
+            req.setAttribute("flashMsg", flash);
+            req.getSession().removeAttribute("flashMsg");
+        }
+
         req.getRequestDispatcher("/WEB-INF/dashboard/manage-contracts.jsp").forward(req, res);
+    }
+
+    // ── JSON helpers ─────────────────────────────────────────────
+    private boolean isAjax(HttpServletRequest req) {
+        return "XMLHttpRequest".equals(req.getHeader("X-Requested-With"))
+            || "json".equals(req.getParameter("format"));
+    }
+
+    private void sendJson(HttpServletResponse res, int status, String json) throws IOException {
+        res.setStatus(status);
+        res.setContentType("application/json;charset=UTF-8");
+        PrintWriter out = res.getWriter();
+        out.print(json);
+        out.flush();
+    }
+
+    private String contractToJson(VwContracts ct) {
+        return "{"
+            + "\"contractId\":" + jsonStr(ct.getContractId())
+            + ",\"bookingId\":" + jsonStr(ct.getBookingId())
+            + ",\"facilityId\":" + jsonStr(ct.getFacilityId())
+            + ",\"customerName\":" + jsonStr(ct.getCustomerName())
+            + ",\"status\":" + jsonStr(ct.getStatus())
+            + ",\"deposit\":" + (ct.getDeposit() != null ? ct.getDeposit().toPlainString() : "0")
+            + ",\"totalPayment\":" + (ct.getTotalPayment() != null ? ct.getTotalPayment().toPlainString() : "0")
+            + ",\"paidAmount\":" + (ct.getPaidAmount() != null ? ct.getPaidAmount().toPlainString() : "0")
+            + ",\"remainingAmount\":" + (ct.getRemainingAmount() != null ? ct.getRemainingAmount().toPlainString() : "0")
+            + ",\"startDate\":" + jsonStr(ct.getStartDate())
+            + ",\"endDate\":" + jsonStr(ct.getEndDate())
+            + ",\"employeeName\":" + jsonStr(ct.getEmployeeName())
+            + "}";
+    }
+
+    private String jsonStr(String s) {
+        if (s == null) return "null";
+        return "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"")
+                       .replace("\n", "\\n").replace("\r", "\\r") + "\"";
     }
 
     private boolean checkAuth(HttpServletRequest req, HttpServletResponse res) throws IOException {

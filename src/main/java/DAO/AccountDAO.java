@@ -3,11 +3,9 @@ package DAO;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import model.TblCustomers;
-import model.TblEmployees;
 import model.TblPersons;
 
 /**
@@ -20,34 +18,26 @@ import model.TblPersons;
 public class AccountDAO {
 
     // ── JDBC connection string (khớp với persistence.xml) ────────
-    private static final String JDBC_URL  = "jdbc:sqlserver://10.211.55.2:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true";
+    private static final String JDBC_URL  = "jdbc:sqlserver://MSI:1433;databaseName=ResortDB;encrypt=true;trustServerCertificate=true";
     private static final String JDBC_USER = "sa";
-    private static final String JDBC_PASS = "Phu2004@";
+    private static final String JDBC_PASS = "123";
 
     // ── Tìm theo account (username) ──────────────────────────────
     public TblPersons findByUsername(String username) {
         return findByColumn("account", username);
     }
-
     public TblPersons findByEmail(String email) {
         return findByColumn("email", email);
     }
-
     /**
-     * Bước 1: JDBC thuần → lấy id + person_type
-     * Bước 2: em.find() đúng subclass → entity đầy đủ
+     * Bước 1: JDBC dùng Pool → lấy id + person_type
+     * Bước 2: em.find() đúng subclass
      */
     private TblPersons findByColumn(String column, String value) {
         String id = null;
         String personType = null;
-
         String sql = "SELECT id, person_type FROM tbl_persons WHERE " + column + " = ?";
-        try {
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        try (Connection conn = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASS);
+        try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, value);
             try (ResultSet rs = ps.executeQuery()) {
@@ -57,21 +47,18 @@ public class AccountDAO {
                 }
             }
         } catch (Exception e) {
+            System.err.println("[AccountDAO] Error in findByColumn (" + column + "): " + e.getMessage());
             e.printStackTrace();
             return null;
         }
-
         if (id == null) return null;
-
-        // Bước 2: load entity đúng subclass để tránh EclipseLink JOINED inheritance issue
+        // Bước 2: load entity dùng singleton EntityManagerFactory
         EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             if ("EMPLOYEE".equals(personType)) {
-                // TblEmployees extends TblPersons → find trả về TblPersons (subclass)
-                return em.find(TblEmployees.class, id);
+                return em.find(model.TblEmployees.class, id);
             } else {
-                // TblCustomers KHÔNG extends TblPersons → find TblPersons trực tiếp
-                return em.find(TblPersons.class, id);
+                return em.find(model.TblPersons.class, id);
             }
         } finally {
             em.close();

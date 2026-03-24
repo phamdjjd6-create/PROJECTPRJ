@@ -104,6 +104,43 @@
         .notice-blue{background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.18);color:#60a5fa}
         .notice-yellow{background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.18);color:#fbbf24}
         .empty{padding:60px;text-align:center;color:var(--muted)}
+        .modal-overlay { 
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+            background: rgba(0,0,0,0.7); z-index: 999; backdrop-filter: blur(12px); 
+            justify-content: center; align-items: center; 
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content { 
+            background: rgba(15, 23, 42, 0.8); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 24px; padding: 40px; width: 90%; max-width: 700px; 
+            position: relative; overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        /* Aura Blobs */
+        .aura-blob {
+            position: absolute; width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0) 70%);
+            filter: blur(50px); z-index: -1; pointer-events: none;
+        }
+        .aura-1 { top: -100px; right: -100px; }
+        .aura-2 { bottom: -100px; left: -100px; background: radial-gradient(circle, rgba(96, 165, 250, 0.1) 0%, rgba(96, 165, 250, 0) 70%); }
+
+        .modal-close { position: absolute; top: 20px; right: 24px; color: var(--muted); font-size: 28px; cursor: pointer; border: none; background: none; transition: all 0.2s; z-index: 10; }
+        .modal-close:hover { color: #fff; transform: rotate(90deg); }
+        
+        .ai-title { font-family: 'Playfair Display', serif; font-size: 24px; margin-bottom: 24px; color: #fff; }
+        .ai-zone-header { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--primary-color); margin-bottom: 8px; font-weight: 700; }
+        .ai-description-text { line-height: 1.8; font-size: 15px; color: rgba(255,255,255,0.85); min-height: 100px; }
+        .modal-footer-actions { margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; gap: 12px; justify-content: flex-end; }
+        
+        .btn-ai-copy { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .btn-ai-copy:hover { background: rgba(255,255,255,0.1); border-color: var(--primary-color); }
+        .btn-ai-copy.success { background: #059669; border-color: #059669; }
+
+        .typing-cursor::after { content: "|"; animation: cursor-blink 0.8s infinite; color: var(--primary-color); }
+        @keyframes cursor-blink { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
         @media (max-width: 1024px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .actions-grid { grid-template-columns: repeat(2, 1fr); }
@@ -296,6 +333,8 @@
                                     <button type="submit" class="btn-sm btn-cleaning ${f.status == 'CLEANING' ? 'btn-disabled' : ''}">🧹 Dọn Dẹp</button>
                                 </form>
                                 </c:if>
+                                <button type="button" class="btn-sm" style="background:rgba(201,168,76,0.1); color:var(--gold); border:1px solid rgba(201,168,76,0.2)" 
+                                        onclick="generateDesc('${f.serviceName}', '${f.facilityType}')">✨ Mô tả AI</button>
                                 <c:if test="${f.status == 'OCCUPIED'}">
                                     <span style="font-size:12px;color:var(--muted)">Không thể thay đổi khi đang có khách</span>
                                 </c:if>
@@ -312,7 +351,26 @@
     </div>
 </div>
 
-<div id="sidebarOverlay" onclick="document.querySelector('.sidebar').classList.remove('open');this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:199"></div>
+<!-- AI MODAL -->
+<div id="aiModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="aura-blob aura-1"></div>
+        <div class="aura-blob aura-2"></div>
+        <button class="modal-close" onclick="closeAiModal()">&times;</button>
+        <div class="ai-zone-header">AI Content Engine</div>
+        <h3 class="ai-title" id="aiModalTitle">AI Description</h3>
+        <div id="aiModalContent" class="ai-description-text">
+            Generating magic...
+        </div>
+        <div class="modal-footer-actions">
+            <button class="btn-ai-copy" id="btnCopy" onclick="copyAiDesc()">
+                <i class="far fa-copy"></i> Sao chép
+            </button>
+            <button class="btn" style="background:var(--gold); color:var(--dark); padding: 10px 30px; border-radius: 12px; font-weight:600" onclick="closeAiModal()">Đóng</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const d = new Date();
     document.getElementById('topbarDate').textContent = d.toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
@@ -325,6 +383,67 @@
             overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
         });
     }
+
+    const typeSpeed = 25;
+    function typeEffect(element, text) {
+        element.innerHTML = "";
+        element.classList.add('typing-cursor');
+        let i = 0;
+        function typing() {
+            if (i < text.length) {
+                element.innerHTML += text.charAt(i);
+                i++;
+                setTimeout(typing, typeSpeed);
+            } else {
+                element.classList.remove('typing-cursor');
+            }
+        }
+        typing();
+    }
+
+    async function generateDesc(name, type) {
+        const modal = document.getElementById('aiModal');
+        const content = document.getElementById('aiModalContent');
+        const title = document.getElementById('aiModalTitle');
+        const btnCopy = document.getElementById('btnCopy');
+        
+        title.innerText = "Mô tả cho " + name;
+        content.innerHTML = `<span class="text-muted"><i class="fas fa-circle-notch fa-spin me-2"></i> Đang sáng tạo nội dung...</span>`;
+        btnCopy.innerHTML = `<i class="far fa-copy"></i> Sao chép`;
+        btnCopy.classList.remove('success');
+        modal.classList.add('active');
+        
+        try {
+            const res = await fetch("<%=request.getContextPath()%>" + "/dashboard/ai-insights?type=facility_description&name=" + encodeURIComponent(name) + "&facilityType=" + encodeURIComponent(type));
+            if (!res.ok) {
+                content.innerText = "Lỗi HTTP: " + res.status;
+                return;
+            }
+            const data = await res.json();
+            if (data.error) {
+                content.innerText = "Lỗi: " + data.error;
+                return;
+            }
+            typeEffect(content, data.description || "Không thể tạo mô tả.");
+        } catch (e) {
+            content.innerText = "Lỗi: " + e.message;
+        }
+    }
+
+    function copyAiDesc() {
+        const content = document.getElementById('aiModalContent').innerText;
+        const btn = document.getElementById('btnCopy');
+        navigator.clipboard.writeText(content).then(() => {
+            btn.innerHTML = `<i class="fas fa-check"></i> Đã chép!`;
+            btn.classList.add('success');
+            setTimeout(() => {
+                btn.innerHTML = `<i class="far fa-copy"></i> Sao chép`;
+                btn.classList.remove('success');
+            }, 2000);
+        });
+    }
+
+    function closeAiModal() { document.getElementById('aiModal').classList.remove('active'); }
 </script>
 </body>
 </html>

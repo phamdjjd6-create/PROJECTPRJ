@@ -189,8 +189,8 @@
                 <div class="search-box">
                     <input type="text" name="q" placeholder="Tìm tên khách, booking ID, phòng..." value="<c:out value='${search}'/>">
                 </div>
-                <input type="date" name="dateFrom" value="${dateFrom}" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:#fff;font-size:12.5px;outline:none;[color-scheme:dark]" title="Từ ngày">
-                <input type="date" name="dateTo" value="${dateTo}" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:#fff;font-size:12.5px;outline:none;[color-scheme:dark]" title="Đến ngày">
+                <input type="date" name="dateFrom" value="${dateFrom}" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:#fff;font-size:12.5px;outline:none;color-scheme:dark" title="Từ ngày">
+                <input type="date" name="dateTo" value="${dateTo}" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:#fff;font-size:12.5px;outline:none;color-scheme:dark" title="Đến ngày">
                 <button type="submit" style="padding:8px 18px;background:var(--gold);color:var(--dark);border:none;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;">Tìm</button>
                 <c:if test="${not empty search or not empty dateFrom or not empty dateTo}">
                     <a href="${pageContext.request.contextPath}/dashboard/bookings?status=${statusFilter}" style="padding:8px 14px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.25);border-radius:8px;font-size:12px;color:#f87171;text-decoration:none;font-weight:600;">Xóa lọc</a>

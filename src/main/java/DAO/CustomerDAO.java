@@ -6,51 +6,70 @@ import model.TblCustomers;
 import model.VwCustomers;
 
 public class CustomerDAO {
+    private EntityManager em;
+
+    public CustomerDAO() {}
+
+    public CustomerDAO(EntityManager em) {
+        this.em = em;
+    }
+
+    private EntityManager getEntityManager() {
+        if (em != null) return em;
+        return util.JpaUtil.getEntityManagerFactory().createEntityManager();
+    }
+
+    private void closeEntityManager(EntityManager emLocal) {
+        if (em == null && emLocal != null) emLocal.close();
+    }
+
     public List<VwCustomers> findAll() {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager emLocal = getEntityManager();
         try {
-            // Using the View to get combined Person and Customer data easily
-            return em.createQuery("SELECT c FROM VwCustomers c", VwCustomers.class)
+            return emLocal.createQuery("SELECT c FROM VwCustomers c", VwCustomers.class)
                     .getResultList();
         } finally {
-            em.close();
+            closeEntityManager(emLocal);
         }
     }
 
     public List<TblCustomers> findAllEntities() {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager emLocal = getEntityManager();
         try {
-            return em.createQuery("SELECT c FROM TblCustomers c WHERE c.tblPersons.deleted = false", TblCustomers.class)
+            return emLocal.createQuery("SELECT c FROM TblCustomers c WHERE c.tblPersons.deleted = false", TblCustomers.class)
                     .getResultList();
         } finally {
-            em.close();
+            closeEntityManager(emLocal);
         }
     }
 
     public TblCustomers findById(String id) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager emLocal = getEntityManager();
         try {
-            return em.find(TblCustomers.class, id);
+            return emLocal.find(TblCustomers.class, id);
         } finally {
-            em.close();
+            closeEntityManager(emLocal);
         }
     }
 
     public void save(TblCustomers customer) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager emLocal = getEntityManager();
+        boolean externalTransaction = (em != null);
         try {
-            em.getTransaction().begin();
-            if (em.find(TblCustomers.class, customer.getId()) == null) {
-                em.persist(customer);
+            if (!externalTransaction) emLocal.getTransaction().begin();
+            
+            if (emLocal.find(TblCustomers.class, customer.getId()) == null) {
+                emLocal.persist(customer);
             } else {
-                em.merge(customer);
+                emLocal.merge(customer);
             }
-            em.getTransaction().commit();
+            
+            if (!externalTransaction) emLocal.getTransaction().commit();
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            if (!externalTransaction && emLocal.getTransaction().isActive()) emLocal.getTransaction().rollback();
             throw e;
         } finally {
-            em.close();
+            closeEntityManager(emLocal);
         }
     }
 

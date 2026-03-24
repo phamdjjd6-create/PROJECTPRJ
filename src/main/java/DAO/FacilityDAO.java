@@ -5,16 +5,23 @@ import java.util.Date;
 import java.util.List;
 import model.TblFacilities;
 
-public class FacilityDAO {
+public class FacilityDAO extends BaseDAO {
 
+    public FacilityDAO() {
+        super();
+    }
+
+    public FacilityDAO(EntityManager em) {
+        super(em);
+    }
 
     public List<TblFacilities> findAll() {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             return em.createQuery("SELECT f FROM TblFacilities f WHERE f.deleted = false", TblFacilities.class)
                     .getResultList();
         } finally {
-            em.close();
+            closeIfLocal(em);
         }
     }
 
@@ -23,7 +30,7 @@ public class FacilityDAO {
      * in the given date range. Excludes CANCELLED bookings.
      */
     public List<TblFacilities> findAvailableBetween(Date checkin, Date checkout) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             return em.createQuery(
                 "SELECT f FROM TblFacilities f WHERE f.deleted = false AND f.status != 'MAINTENANCE' " +
@@ -36,113 +43,122 @@ public class FacilityDAO {
                 .setParameter("checkout", checkout)
                 .getResultList();
         } finally {
-            em.close();
+            closeIfLocal(em);
         }
     }
 
     public TblFacilities findByCode(String code) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             return em.find(TblFacilities.class, code);
         } finally {
-            em.close();
+            closeIfLocal(em);
         }
     }
 
     public void save(TblFacilities facility) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
+        boolean isLocal = (this.em == null);
         try {
-            em.getTransaction().begin();
+            if (isLocal) em.getTransaction().begin();
             if (em.find(TblFacilities.class, facility.getServiceCode()) == null) {
                 em.persist(facility);
             } else {
                 em.merge(facility);
             }
-            em.getTransaction().commit();
+            if (isLocal) em.getTransaction().commit();
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            if (isLocal && em.getTransaction().isActive()) em.getTransaction().rollback();
             throw e;
         } finally {
-            em.close();
+            closeIfLocal(em);
         }
     }
 
     public void increaseUsage(String code) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
+        boolean isLocal = (this.em == null);
         try {
-            em.getTransaction().begin();
+            if (isLocal) em.getTransaction().begin();
             TblFacilities facility = em.find(TblFacilities.class, code);
             if (facility != null) {
                 facility.setUsageCount(facility.getUsageCount() + 1);
                 em.merge(facility);
             }
-            em.getTransaction().commit();
+            if (isLocal) em.getTransaction().commit();
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            if (isLocal && em.getTransaction().isActive()) em.getTransaction().rollback();
             throw e;
         } finally {
-            em.close();
+            closeIfLocal(em);
         }
     }
 
     public void resetUsage(String code) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
+        boolean isLocal = (this.em == null);
         try {
-            em.getTransaction().begin();
+            if (isLocal) em.getTransaction().begin();
             TblFacilities facility = em.find(TblFacilities.class, code);
             if (facility != null) {
                 facility.setUsageCount(0);
                 facility.setStatus("AVAILABLE");
                 em.merge(facility);
             }
-            em.getTransaction().commit();
+            if (isLocal) em.getTransaction().commit();
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            if (isLocal && em.getTransaction().isActive()) em.getTransaction().rollback();
             throw e;
         } finally {
-            em.close();
+            closeIfLocal(em);
         }
     }
 
     public void delete(String code) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
+        boolean isLocal = (this.em == null);
         try {
-            em.getTransaction().begin();
+            if (isLocal) em.getTransaction().begin();
             TblFacilities facility = em.find(TblFacilities.class, code);
             if (facility != null) {
                 facility.setDeleted(true);
                 em.merge(facility);
             }
-            em.getTransaction().commit();
+            if (isLocal) em.getTransaction().commit();
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            if (isLocal && em.getTransaction().isActive()) em.getTransaction().rollback();
             throw e;
         } finally {
-            em.close();
+            closeIfLocal(em);
         }
     }
 
     public long countByStatus(String status) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             return (long) em.createQuery("SELECT COUNT(f) FROM TblFacilities f WHERE f.status = :s AND f.deleted = false")
                     .setParameter("s", status).getSingleResult();
-        } finally { em.close(); }
+        } finally {
+            closeIfLocal(em);
+        }
     }
 
     public boolean updateStatus(String code, String newStatus) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
+        boolean isLocal = (this.em == null);
         try {
-            em.getTransaction().begin();
+            if (isLocal) em.getTransaction().begin();
             TblFacilities f = em.find(TblFacilities.class, code);
             if (f == null) return false;
             f.setStatus(newStatus);
             em.merge(f);
-            em.getTransaction().commit();
+            if (isLocal) em.getTransaction().commit();
             return true;
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            if (isLocal && em.getTransaction().isActive()) em.getTransaction().rollback();
             return false;
-        } finally { em.close(); }
+        } finally {
+            closeIfLocal(em);
+        }
     }
 }

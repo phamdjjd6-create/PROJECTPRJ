@@ -7,47 +7,56 @@ import java.util.Calendar;
 import model.TblBookings;
 import model.VwBookings;
 
-public class BookingDAO {
+public class BookingDAO extends BaseDAO {
+
+    public BookingDAO() {
+        super();
+    }
+
+    public BookingDAO(EntityManager em) {
+        super(em);
+    }
 
     public List<TblBookings> findAll() {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             return em.createQuery("SELECT b FROM TblBookings b ORDER BY b.dateBooking DESC", TblBookings.class)
                     .getResultList();
         } finally {
-            em.close();
+            closeIfLocal(em);
         }
     }
 
     public TblBookings findById(String id) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             return em.find(TblBookings.class, id);
         } finally {
-            em.close();
+            closeIfLocal(em);
         }
     }
 
     public void save(TblBookings booking) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
+        boolean isLocal = (this.em == null);
         try {
-            em.getTransaction().begin();
+            if (isLocal) em.getTransaction().begin();
             if (em.find(TblBookings.class, booking.getBookingId()) == null) {
                 em.persist(booking);
             } else {
                 em.merge(booking);
             }
-            em.getTransaction().commit();
+            if (isLocal) em.getTransaction().commit();
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            if (isLocal && em.getTransaction().isActive()) em.getTransaction().rollback();
             throw e;
         } finally {
-            em.close();
+            closeIfLocal(em);
         }
     }
 
     public List<TblBookings> findByCustomerId(String customerId) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             return em.createQuery(
                     "SELECT b FROM TblBookings b WHERE b.customerId.id = :customerId ORDER BY b.dateBooking DESC",
@@ -56,12 +65,12 @@ public class BookingDAO {
                     .setHint("jakarta.persistence.cache.retrieveMode", "BYPASS")
                     .getResultList();
         } finally {
-            em.close();
+            closeIfLocal(em);
         }
     }
 
     public String generateBookingId() {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             List<String> ids = em.createQuery("SELECT b.bookingId FROM TblBookings b WHERE b.bookingId LIKE 'BK%'", String.class)
                     .getResultList();
@@ -76,12 +85,12 @@ public class BookingDAO {
         } catch (Exception e) {
             return "BK001";
         } finally {
-            em.close();
+            closeIfLocal(em);
         }
     }
 
     public List<TblBookings> findByYear(int year) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             Calendar cal = Calendar.getInstance();
             cal.set(year, 0, 1, 0, 0, 0);
@@ -94,62 +103,72 @@ public class BookingDAO {
                     .setParameter("end", end)
                     .getResultList();
         } finally {
-            em.close();
+            closeIfLocal(em);
         }
     }
 
     public List<VwBookings> findRecent(int limit) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             return em.createQuery("SELECT b FROM VwBookings b ORDER BY b.dateBooking DESC", VwBookings.class)
                     .setMaxResults(limit)
                     .getResultList();
         } finally {
-            em.close();
+            closeIfLocal(em);
         }
     }
 
     public List<VwBookings> findByStatus(String status) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             return em.createQuery("SELECT b FROM VwBookings b WHERE b.status = :s ORDER BY b.dateBooking DESC", VwBookings.class)
                     .setParameter("s", status).getResultList();
-        } finally { em.close(); }
+        } finally {
+            closeIfLocal(em);
+        }
     }
 
     public List<VwBookings> findAllView() {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             return em.createQuery("SELECT b FROM VwBookings b ORDER BY b.dateBooking DESC", VwBookings.class)
                     .getResultList();
-        } finally { em.close(); }
+        } finally {
+            closeIfLocal(em);
+        }
     }
 
     public long countByStatus(String status) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             return (long) em.createQuery("SELECT COUNT(b) FROM TblBookings b WHERE b.status = :s")
                     .setParameter("s", status).getSingleResult();
-        } finally { em.close(); }
+        } finally {
+            closeIfLocal(em);
+        }
     }
 
     public boolean updateStatus(String bookingId, String newStatus) {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
+        boolean isLocal = (this.em == null);
         try {
-            em.getTransaction().begin();
+            if (isLocal) em.getTransaction().begin();
             TblBookings b = em.find(TblBookings.class, bookingId);
             if (b == null) return false;
             b.setStatus(newStatus);
             em.merge(b);
-            em.getTransaction().commit();
+            if (isLocal) em.getTransaction().commit();
             return true;
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            if (isLocal && em.getTransaction().isActive()) em.getTransaction().rollback();
             return false;
-        } finally { em.close(); }
+        } finally {
+            closeIfLocal(em);
+        }
     }
 
-    public List<TblBookings> findByMonth(int year, int month) {        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+    public List<TblBookings> findByMonth(int year, int month) {
+        EntityManager em = getEntityManager();
         try {
             Calendar cal = Calendar.getInstance();
             cal.set(year, month - 1, 1, 0, 0, 0);
@@ -165,13 +184,15 @@ public class BookingDAO {
                     .setParameter("end", end)
                     .getResultList();
         } finally {
-            em.close();
+            closeIfLocal(em);
         }
     }
     public long count() {
-        EntityManager em = util.JpaUtil.getEntityManagerFactory().createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             return (long) em.createQuery("SELECT COUNT(b) FROM TblBookings b").getSingleResult();
-        } finally { em.close(); }
+        } finally {
+            closeIfLocal(em);
+        }
     }
 }

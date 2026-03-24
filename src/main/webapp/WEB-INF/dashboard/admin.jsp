@@ -255,6 +255,159 @@
             </div>
         </div>
 
+        <!-- AI SMART INSIGHTS -->
+        <div class="section-label" style="margin-top:10px">AI Intelligence</div>
+        <div class="section-title">Smart Insights</div>
+        <div class="stats-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 32px;">
+                <!-- AI Card: Sentiment -->
+                <div class="col-md-6 mb-4">
+                    <div class="ai-smart-card h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0"><i class="fas fa-heart text-danger me-2"></i>Phân Tích Cảm Xúc</h5>
+                            <button class="btn btn-sm btn-outline-warning" onclick="fetchAiInsight('sentiment')">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        <div id="sentimentContent" class="ai-content-zone">
+                            <p class="text-muted small">Nhấn nút để bắt đầu phân tích cảm xúc từ đánh giá thực tế của khách hàng.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Card: Activity -->
+                <div class="col-md-6 mb-4">
+                    <div class="ai-smart-card h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0"><i class="fas fa-bolt text-warning me-2"></i>Hoạt Động Hệ Thống</h5>
+                            <button class="btn btn-sm btn-outline-warning" onclick="fetchAiInsight('activity')">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        <div id="activityContent" class="ai-content-zone">
+                            <p class="text-muted small">Tóm tắt các hoạt động quan trọng trong 24h qua bằng Trí tuệ nhân tạo.</p>
+                        </div>
+                    </div>
+                </div>
+        </div>
+
+        <style>
+            /* AI Card Enhancements */
+    .ai-smart-card {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 20px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .ai-smart-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.05);
+        border-color: var(--primary-color);
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5), 0 0 15px rgba(212, 175, 55, 0.1);
+    }
+    .ai-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        background: rgba(212, 175, 55, 0.1);
+        color: var(--primary-color);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    
+    /* Skeleton Loading */
+    .skeleton {
+        background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+        background-size: 200% 100%;
+        animation: skeleton-shimmer 1.5s infinite;
+        border-radius: 4px;
+    }
+    @keyframes skeleton-shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    .skeleton-line { height: 12px; margin-bottom: 8px; width: 100%; }
+    .skeleton-line.short { width: 60%; }
+
+    /* Typing Cursor */
+    .typing-cursor::after {
+        content: "|";
+        animation: cursor-blink 0.8s infinite;
+        color: var(--primary-color);
+    }
+    @keyframes cursor-blink {
+        0%, 100% { opacity: 0; }
+        50% { opacity: 1; }
+    }
+
+    .ai-content-zone {
+        line-height: 1.6;
+        color: var(--text-light);
+    }
+</style>
+
+<script>
+    const typeSpeed = 30;
+    function typeEffect(element, text) {
+        element.innerHTML = "";
+        element.classList.add('typing-cursor');
+        let i = 0;
+        function typing() {
+            if (i < text.length) {
+                element.innerHTML += text.charAt(i);
+                i++;
+                setTimeout(typing, typeSpeed);
+            } else {
+                element.classList.remove('typing-cursor');
+            }
+        }
+        typing();
+    }
+
+    async function fetchAiInsight(type) {
+        const containerId = type === 'sentiment' ? 'sentimentContent' : 'activityContent';
+        const container = document.getElementById(containerId);
+        
+        // Show Skeleton
+        container.innerHTML = `
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line short"></div>
+        `;
+        
+        try {
+            const res = await fetch("<%=request.getContextPath()%>" + "/dashboard/ai-insights?type=" + type);
+            if (!res.ok) {
+                container.innerHTML = `<span style="color:#f87171">⚠️ Lỗi HTTP: \${res.status}</span>`;
+                return;
+            }
+            const data = await res.json();
+            
+            if (data.error) {
+                container.innerHTML = `<span style="color:#f87171">⚠️ Lỗi: \${data.error}</span>`;
+                return;
+            }
+            
+            const rawText = type === 'sentiment' ? (data.analysis || data.summary) : data.summary;
+            typeEffect(container, rawText || 'Không có dữ liệu.');
+            
+        } catch (e) {
+            container.innerHTML = `<span style="color:#f87171">Lỗi: \${e.message}</span>`;
+        }
+    }
+
+            
+            // Auto fetch on load
+            window.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => {
+                    fetchAiInsight('sentiment');
+                    fetchAiInsight('activity');
+                }, 1000);
+            });
+        </script>
+
         <div class="revenue-card">
             <div class="revenue-top">
                 <div>

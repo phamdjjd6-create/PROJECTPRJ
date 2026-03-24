@@ -108,9 +108,6 @@ public class VwContracts implements Serializable {
     @Size(max = 20)
     @Column(name = "facility_id")
     private String facilityId;
-    @Size(max = 20)
-    @Column(name = "facility_type")
-    private String facilityType;
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 100)
@@ -239,17 +236,8 @@ public class VwContracts implements Serializable {
         this.facilityId = facilityId;
     }
 
-    public String getFacilityType() {
-        return facilityType;
-    }
-
-    public void setFacilityType(String facilityType) {
-        this.facilityType = facilityType;
-    }
-
-    /** Suy ra loại facility từ facilityId prefix nếu facilityType chưa được set */
+    /** Suy ra loại facility từ facilityId prefix */
     public String resolveFacilityType() {
-        if (facilityType != null && !facilityType.isEmpty()) return facilityType;
         if (facilityId == null) return "ROOM";
         String id = facilityId.toUpperCase();
         if (id.startsWith("VL")) return "VILLA";

@@ -80,4 +80,8 @@ public class CustomerService implements IService<TblCustomers, String> {
             throw new IllegalArgumentException("Số điện thoại phải bắt đầu bằng 0 và có đủ 10 chữ số.");
         }
     }
+
+    public void toggleLock(String id, boolean lock) {
+        customerDAO.toggleLock(id, lock);
+    }
 }

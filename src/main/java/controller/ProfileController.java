@@ -11,11 +11,16 @@ import jakarta.servlet.http.HttpSession;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import model.TblPersons;
+import model.TblCustomers;
+import DAO.CustomerDAO;
+import service.LoyaltyService;
 
 @WebServlet(name = "ProfileController", urlPatterns = {"/profile"})
 public class ProfileController extends HttpServlet {
 
     private AccountDAO accountDAO = new AccountDAO();
+    private CustomerDAO customerDAO = new CustomerDAO();
+    private LoyaltyService loyaltyService = new LoyaltyService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -32,6 +37,13 @@ public class ProfileController extends HttpServlet {
         TblPersons updatedPerson = accountDAO.findByUsername(account.getAccount());
         if(updatedPerson != null) {
              session.setAttribute("account", updatedPerson);
+             
+             // ── Fetch Loyalty Data ──
+             TblCustomers customer = customerDAO.findById(updatedPerson.getId());
+             if (customer != null) {
+                 request.setAttribute("customerData", customer);
+                 request.setAttribute("membershipTier", loyaltyService.calculateTier(customer));
+             }
         }
 
         request.getRequestDispatcher("profile.jsp").forward(request, response);

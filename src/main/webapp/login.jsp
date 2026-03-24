@@ -8,7 +8,6 @@
     <title>Đăng Nhập — Azure Resort & Spa</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -153,7 +152,7 @@
             </div>
 
             <div class="text-center text-white/40 text-sm">
-                Chưa có tài khoản? <a href="${pageContext.request.contextPath}/register.jsp" class="text-gold font-bold hover:underline decoration-gold/30 underline-offset-4">Đăng ký ngay</a>
+                Chưa có tài khoản? <a href="${pageContext.request.contextPath}/register" class="text-gold font-bold hover:underline decoration-gold/30 underline-offset-4">Đăng ký ngay</a>
             </div>
         </div>
     </div>

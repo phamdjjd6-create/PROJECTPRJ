@@ -45,4 +45,32 @@ public class ContractService implements IService<TblContracts, String> {
         item.setContractId(id);
         contractDAO.save(item);
     }
+
+    public List<model.VwContracts> findByCustomerId(String customerId) {
+        return contractDAO.findByCustomerId(customerId);
+    }
+
+    public List<model.VwContracts> findAllView() {
+        return contractDAO.findAll_View();
+    }
+
+    public List<model.VwContracts> findByStatus(String status) {
+        return contractDAO.findByStatus(status);
+    }
+
+    public long countByStatus(String status) {
+        return contractDAO.countByStatus(status);
+    }
+
+    public String addPayment(String id, java.math.BigDecimal amount, String method, String note) {
+        return contractDAO.addPayment(id, amount, method, note);
+    }
+
+    public String confirmDeposit(String id, String employeeId) {
+        return contractDAO.confirmDeposit(id, employeeId);
+    }
+
+    public String approve(String id, String employeeId) {
+        return contractDAO.approve(id, employeeId);
+    }
 }
